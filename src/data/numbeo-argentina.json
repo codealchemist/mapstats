@@ -1,0 +1,31 @@
+{
+  "source": "https://www.numbeo.com",
+  "builtFrom": "data/numbeo (local store)",
+  "cities": [
+    {
+      "slug": "Lomas-de-Zamora-Argentina",
+      "name": "Lomas de Zamora",
+      "cityId": "ARG-lomas-de-zamora",
+      "crimeIndex": 70.99,
+      "safetyIndex": 29.01,
+      "survey": {
+        "level": 85.07,
+        "increasing": 82.29,
+        "homeBrokenIn": 70.26,
+        "mugged": 87.85,
+        "carStolen": 70.07,
+        "thingsFromCar": 61,
+        "attacked": 64.7,
+        "insulted": 42.31,
+        "bias": 18.27,
+        "drugs": 74.04,
+        "propertyCrimes": 75.81,
+        "violentCrimes": 76.74,
+        "corruption": 82.69,
+        "safetyDay": 42.48
+      },
+      "source": "manual (screenshot of es.numbeo.com)",
+      "fetchedAt": "2026-10-04"
+    }
+  ]
+}

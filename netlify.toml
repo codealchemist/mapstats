@@ -1,0 +1,14 @@
+# Netlify: static Vite build + the /api/news function (free plan compatible: synchronous only,
+# no background or scheduled functions; Netlify Blobs is used as a 24 h cache).
+[build]
+  command = "npm run build"
+  publish = "dist"
+
+[functions]
+  directory = "netlify/functions"
+  node_bundler = "esbuild"
+
+[dev]
+  command = "npm run dev"
+  targetPort = 5173
+  port = 8888
