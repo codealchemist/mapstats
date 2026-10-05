@@ -13,7 +13,10 @@
     "numbeo:build": "node scripts/numbeo-build.mjs",
     "snic:import": "node scripts/snic-import.mjs",
     "news:test": "node netlify/news/test/run.mjs",
-    "news:probe": "node scripts/news-probe.mjs"
+    "news:probe": "node scripts/news-probe.mjs",
+    "deploy": "npm run lint && npm run news:test && npx -y -p netlify-cli netlify deploy --prod",
+    "deploy:preview": "npx -y -p netlify-cli netlify deploy",
+    "dev:netlify": "npx -y -p netlify-cli netlify dev"
   },
   "dependencies": {
     "@mozilla/readability": "^0.6.0",
