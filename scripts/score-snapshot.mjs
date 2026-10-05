@@ -5,7 +5,7 @@ import fs from 'node:fs'
 import { buildEntities, baseCities, adHocEntity } from '../src/lib/scoring.js'
 import { countryByIso } from '../src/data/countries.js'
 import { DEFAULT_WEIGHTS } from '../src/data/metrics.js'
-import { SOURCE_FAMILIES } from '../src/data/sources.js'
+import { familiesFor } from '../src/data/sources.js'
 
 const iso3 = process.argv[2] || 'ARG'
 const country = countryByIso(iso3)
@@ -36,7 +36,7 @@ const pick = (e) => ({
 
 const out = {}
 for (const live of [{}, fixture(liveIds)]) {
-  for (const f of SOURCE_FAMILIES) {
+  for (const f of familiesFor(iso3)) {
     const m = buildEntities({ country, provincesGeo: geo, cities, live, weights: DEFAULT_WEIGHTS, sourceMode: f.id })
     const key = `${Object.keys(live).length ? 'live' : 'empty'}:${f.id}`
     const prov = m.provinces.find((p) => p.id === cities[0].province)

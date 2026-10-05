@@ -8,6 +8,9 @@ const YEAR = new Date().getFullYear()
 
 export const BASE = {
   snic: { w: 1.0, why: 'official register of recorded cases' },
+  ssmsi: { w: 1.0, why: 'official register of recorded cases' },
+  onisr: { w: 1.0, why: 'official road-accident register' },
+  insee: { w: 1.0, why: 'official statistics' },
   openmeteo: { w: 1.0, why: 'physical measurement / reanalysis' },
   usgs: { w: 1.0, why: 'instrumental earthquake catalogue' },
   numbeo: { w: 0.5, why: 'crowd-sourced perception survey' },

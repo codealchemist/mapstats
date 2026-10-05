@@ -39,6 +39,7 @@ const esc = (v) => {
   const s = String(v)
   return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s
 }
+// Leading BOM so spreadsheet apps read the UTF-8 accents correctly.
 const toCsv = (rows) => '﻿' + rows.map((r) => r.map(esc).join(',')).join('\n')
 const round = (v, d = 2) => (v == null ? null : Math.round(v * 10 ** d) / 10 ** d)
 

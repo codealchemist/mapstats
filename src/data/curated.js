@@ -18,7 +18,8 @@
 //                period (used for the recency weight).
 //   methodology  sentences for the methodology dialog
 import { ARGENTINA } from './argentina.js'
+import { FRANCE } from './france.js'
 
-export const CURATED = { ARG: ARGENTINA }
+export const CURATED = { ARG: ARGENTINA, FRA: FRANCE }
 
 export const curatedFor = (iso3) => CURATED[iso3] || null

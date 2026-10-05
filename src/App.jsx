@@ -55,6 +55,10 @@ export default function App() {
   useEffect(() => store.set('country', iso3), [iso3])
   useEffect(() => store.set('weights', weights), [weights])
   useEffect(() => store.set('sourceMode', sourceMode), [sourceMode])
+  // A single-source view the loaded country doesn't have (e.g. SNIC outside Argentina) falls back to the median.
+  useEffect(() => {
+    if (!familiesFor(iso3).some((f) => f.id === sourceMode)) setSourceMode('combined')
+  }, [iso3]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const model = useMemo(
     () => (data.geo ? buildEntities({ country, provincesGeo: data.geo, cities: data.cities, live, weights, sourceMode }) : null),
@@ -206,8 +210,6 @@ export default function App() {
     setCompare([null, null, null])
     setSelected(null)
     setIso3(next)
-    // A single-source view that the new country doesn't have falls back to the median of sources.
-    if (!familiesFor(next).some((f) => f.id === sourceMode)) setSourceMode('combined')
   }
 
   return (

@@ -43,6 +43,9 @@ export const INDICATORS = [
   { id: 'trafficIndex', label: 'Commute time index', unit: '', category: 'infrastructure', better: 'low', domain: [20, 50], source: 'Numbeo', digits: 0 },
   // Economy & wellbeing
   { id: 'poverty', label: 'Poverty', unit: '%', category: 'economy', better: 'low', domain: [15, 60], source: 'EPH', digits: 0 },
+  // Relative poverty (share below 60% of the national median income) is not the same measure as the
+  // basic-basket poverty above, so it is shown but never scored.
+  { id: 'povertyRelative', label: 'Relative poverty (60% of median income)', unit: '%', category: 'economy', better: null, source: 'INSEE Filosofi', digits: 1 },
   { id: 'unemployment', label: 'Unemployment', unit: '%', category: 'economy', better: 'low', domain: [2, 10], source: 'EPH', digits: 1 },
   { id: 'purchasingPower', label: 'Purchasing power', unit: '', category: 'economy', better: 'high', domain: [20, 60], source: 'Numbeo', digits: 0 },
   { id: 'lifeExp', label: 'Life expectancy', unit: 'yrs', category: 'economy', better: 'high', domain: [74, 79], source: 'INDEC', digits: 1 },
@@ -95,6 +98,7 @@ export const MAP_METRICS = [
   { id: 'sewer', group: 'Services', icon: 'Droplets' },
   { id: 'transit', group: 'Services', icon: 'Bus' },
   { id: 'poverty', group: 'Economy', icon: 'Wallet' },
+  { id: 'povertyRelative', group: 'Economy', icon: 'Wallet' },
   { id: 'unemployment', group: 'Economy', icon: 'Wallet' },
   { id: 'costOfLiving', group: 'Economy', icon: 'Wallet' },
   { id: 'pop', group: 'Economy', icon: 'Building2' },

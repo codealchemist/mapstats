@@ -12,6 +12,12 @@
     "numbeo:fetch": "node scripts/numbeo-fetch.mjs",
     "numbeo:build": "node scripts/numbeo-build.mjs",
     "snic:import": "node scripts/snic-import.mjs",
+    "ssmsi:import": "node scripts/ssmsi-import.mjs",
+    "baac:import": "node scripts/baac-import.mjs",
+    "insee:import": "node scripts/insee-import.mjs",
+    "drees:import": "node scripts/drees-import.mjs",
+    "france:import": "npm run insee:import && npm run ssmsi:import && npm run baac:import && npm run drees:import",
+    "score:snapshot": "node scripts/score-snapshot.mjs",
     "news:test": "node netlify/news/test/run.mjs",
     "news:probe": "node scripts/news-probe.mjs",
     "live:test": "node src/lib/test/live.mjs"

@@ -24,6 +24,12 @@ export const SOURCES = {
   INA: { name: 'INA – Instituto Nacional del Agua', url: 'https://www.ina.gob.ar/', covers: 'Flood exposure' },
   PNUD: { name: 'PNUD Argentina', url: 'https://www.undp.org/es/argentina', covers: 'Provincial Human Development Index' },
   'MapStats est.': { name: 'MapStats estimate', url: null, covers: 'Public transport coverage score (see methodology)' },
+  SSMSI: { name: 'SSMSI – Ministère de l’Intérieur', url: 'https://www.data.gouv.fr/fr/datasets/bases-statistiques-communale-departementale-et-regionale-de-la-delinquance-enregistree-par-la-police-et-la-gendarmerie-nationales', covers: 'Recorded crime by département (police & gendarmerie): homicides, violence, thefts, burglaries, drugs, fraud' },
+  ONISR: { name: 'ONISR – road accident database (BAAC)', url: 'https://www.data.gouv.fr/fr/datasets/bases-de-donnees-annuelles-des-accidents-corporels-de-la-circulation-routiere-annees-de-2005-a-2024', covers: 'People killed in road accidents by département, per 100,000 inhabitants' },
+  'INSEE population': { name: 'INSEE – population estimates', url: 'https://www.insee.fr/fr/statistiques/1893198', covers: 'Population at 1 January by département; municipal population of communes' },
+  'INSEE unemployment': { name: 'INSEE – localised unemployment', url: 'https://www.insee.fr/fr/statistiques/2012804', covers: 'ILO unemployment rate by département, annual average' },
+  'INSEE Filosofi': { name: 'INSEE – Filosofi', url: 'https://www.insee.fr/fr/statistiques/8984752', covers: 'Relative poverty rate (60% of the median) and median standard of living, départements and communes' },
+  DREES: { name: 'DREES – physician demography (RPPS)', url: 'https://data.drees.solidarites-sante.gouv.fr/explore/dataset/la-demographie-des-professionnels-de-sante-depuis-2012/information/', covers: 'Physicians per 100,000 inhabitants by département at 1 January' },
   'Open-Meteo ERA5 (live)': { name: 'Open-Meteo · ERA5', url: 'https://open-meteo.com/en/docs/historical-weather-api', covers: 'Historical weather: temperature, rain, snow, sunshine, wind' },
   'Open-Meteo CAMS (live)': { name: 'Open-Meteo · CAMS', url: 'https://open-meteo.com/en/docs/air-quality-api', covers: 'Air quality (European AQI, pollutants)' },
   'Open-Meteo DEM (live)': { name: 'Open-Meteo · Elevation', url: 'https://open-meteo.com/en/docs/elevation-api', covers: 'Elevation' },
@@ -54,7 +60,7 @@ export const DATA_TYPES = [
 
 export const ACCESS = {
   live: { label: 'Live API', detail: 'fetched in your browser, cached locally' },
-  import: { label: 'Imported file', detail: 'downloaded once, converted offline (npm run snic:import)' },
+  import: { label: 'Imported file', detail: 'downloaded once, converted offline (npm run snic:import, france:import)' },
   snapshot: { label: 'Stored snapshot', detail: 'copied once (npm run numbeo:fetch / hand-entered), not re-fetched' },
   manual: { label: 'Hand-entered', detail: 'approximate values typed from the publication; verify before relying on them' },
   bundled: { label: 'Bundled', detail: 'shipped with the app' },
@@ -64,6 +70,12 @@ export const ACCESS = {
 
 export const SOURCE_META = {
   SNIC: { types: ['crime'], access: 'import', cadence: 'Annual (2000–latest year)', scope: 'Argentina · province & department' },
+  SSMSI: { types: ['crime'], access: 'import', cadence: 'Annual (2016–latest year), revised each July', scope: 'France · département' },
+  ONISR: { types: ['crime'], access: 'import', cadence: 'Annual', scope: 'France · département' },
+  'INSEE population': { types: ['society'], access: 'import', cadence: 'Annual estimates', scope: 'France · département & commune' },
+  'INSEE unemployment': { types: ['society'], access: 'import', cadence: 'Annual average of quarterly rates', scope: 'France · département (not Mayotte)' },
+  'INSEE Filosofi': { types: ['society'], access: 'import', cadence: 'Annual', scope: 'Metropolitan France & La Réunion · département & commune' },
+  DREES: { types: ['society'], access: 'import', cadence: 'Annual (1 January)', scope: 'France · département' },
   'SNIC mirror': { types: ['crime'], access: 'once', cadence: 'Copy of the 2000–2025 bases', scope: 'Argentina' },
   Numbeo: { types: ['crime', 'society', 'air'], access: 'snapshot', cadence: 'Crowd-sourced, continuously updated', scope: 'Cities worldwide' },
   'Open-Meteo ERA5 (live)': { types: ['climate'], access: 'live', cadence: 'Daily, ~5-day delay', scope: 'Global grid ≈ 25 km' },
@@ -125,6 +137,12 @@ export const SOURCE_FAMILIES = [
   { id: 'combined', label: 'All sources · median', short: 'Median of sources' },
   { id: 'weighted', label: 'All sources · weighted by reliability', short: 'Weighted' },
   { id: 'snic', label: 'SNIC · official crime statistics', short: 'SNIC', countries: ['ARG'] },
+  { id: 'ssmsi', label: 'SSMSI · official crime statistics', short: 'SSMSI', countries: ['FRA'] },
+  { id: 'onisr', label: 'ONISR · road deaths', short: 'ONISR', countries: ['FRA'] },
+  {
+    id: 'insee', label: 'INSEE & DREES · official statistics', short: 'INSEE/DREES', countries: ['FRA'],
+    status: 'Official statistics', note: 'Official figures as published for the département, each with its reference period.',
+  },
   { id: 'numbeo', label: 'Numbeo · crowd-sourced indices', short: 'Numbeo' },
   { id: 'openmeteo', label: 'Open-Meteo · live climate & air', short: 'Open-Meteo' },
   { id: 'usgs', label: 'USGS · earthquakes', short: 'USGS' },
@@ -142,7 +160,8 @@ export const isMultiSource = (mode) => mode === 'combined' || mode === 'weighted
 
 const FAMILY_BY_SOURCE = {
   SNIC: 'snic', Numbeo: 'numbeo',
-  'Censo / Natural Earth': 'base', // population: context, not a scored source
+  SSMSI: 'ssmsi', ONISR: 'onisr', 'INSEE unemployment': 'insee', 'INSEE Filosofi': 'insee', DREES: 'insee',
+  'Censo / Natural Earth': 'base', 'INSEE population': 'base', // population: context, not a scored source
 }
 
 export function familyOfSource(source) {
