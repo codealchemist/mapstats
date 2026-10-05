@@ -271,7 +271,7 @@ export default function App() {
         )}
 
         <Legend surface={overlays.surface ? surface : null} surfaceVar={surfaceVar} sourceMode={sourceMode} metric={metric} scale={scale} overlays={overlays} theme={theme} national={model?.national} shifted={panelOpen} />
-        <LiveStatus status={live.status} error={data.error} />
+        <LiveStatus status={live.status} progress={live.progress} errors={live.errors} error={data.error} />
 
         {selectedEntity && model && (
           <ReportPanel

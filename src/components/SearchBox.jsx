@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { Search, MapPin, Building2, Globe, LoaderCircle, X } from 'lucide-react'
 import { fold } from '../lib/format.js'
 import { fetchAqiBatch, fetchClimateBatch, geocode } from '../lib/live.js'
+import { PRIORITY } from '../lib/meteoQueue.js'
 import { countQuakesNear } from '../lib/scoring.js'
 import { pointInFeature } from '../lib/geo.js'
 
@@ -56,14 +57,15 @@ export function SearchBox({ model, country, live, geo, onSelect }) {
     const quakes = inCountry ? countQuakesNear(live.quakes, g.lat, g.lon) : null
     onSelect({ type: 'adhoc', id, input: { ...base, live: { quakes } } }, { fly: true })
     const pt = [{ id, lat: g.lat, lon: g.lon }]
-    const [clim, aqi] = await Promise.allSettled([fetchClimateBatch(pt), fetchAqiBatch(pt)])
-    const c = clim.value?.[id] || {}
+    const opts = { priority: PRIORITY.user }
+    const [clim, aqi] = await Promise.all([fetchClimateBatch(pt, opts), fetchAqiBatch(pt, opts)])
+    const c = clim.data[id] || {}
     onSelect({
       type: 'adhoc', id,
       input: {
         ...base,
         live: {
-          quakes, aqi: aqi.value?.[id] ?? null, climateComfort: c.climateComfort ?? null, meanTemp: c.meanTemp ?? null,
+          quakes, aqi: aqi.data[id] ?? null, climateComfort: c.climateComfort ?? null, meanTemp: c.meanTemp ?? null,
           annualPrecip: c.annualPrecip ?? null, snowfall: c.snowfall ?? null, sunshine: c.sunshine ?? null, elevation: c.elevation ?? null,
         },
       },

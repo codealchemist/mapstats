@@ -278,6 +278,9 @@ input[type='range']::-moz-range-thumb {
 .st { display: inline-flex; align-items: center; gap: 5px; }
 .st.ready { color: var(--good-ink); }
 .st.error { color: var(--critical); }
+.st.partial { color: var(--ink-2); }
+.st.partial svg { color: var(--warning); }
+.st-count { font-variant-numeric: tabular-nums; opacity: 0.75; }
 
 /* ---------- Report ---------- */
 .report {
