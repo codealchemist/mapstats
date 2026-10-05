@@ -6,6 +6,7 @@ import { SURVEY } from '../../data/numbeoSurvey.js'
 import { baseOptions, barStyle, lineStyle } from '../charts/theme.js'
 import { fmtIndicator, fmtScore, MONTHS } from '../../lib/format.js'
 import { normalise, isOwnValue } from '../../lib/scoring.js'
+import { sourceOf } from '../../data/sources.js'
 import { floodLevel } from '../mapLayers.js'
 import { matches } from './match.js'
 
@@ -14,9 +15,9 @@ import { matches } from './match.js'
  * columns always scroll together and line up. Charts in a row share one axis range.
  * places: fixed-length array (3) of { e, i, d, flood } or null for an empty slot.
  */
-export function SideBySide({ places, header, national, tk, onFocus, query = '', scrollRef, initialScroll, flashKey, onFlashDone }) {
+export function SideBySide({ places, header, national, curated, country, tk, onFocus, query = '', scrollRef, initialScroll, flashKey, onFlashDone }) {
   const filled = places.filter(Boolean)
-  const rows = filterRows(buildRows(filled, national), query)
+  const rows = filterRows(buildRows(filled, national, curated, country), query)
   return (
     <div className="sbs-scroll" ref={(el) => {
       if (!el || !scrollRef) return
@@ -111,8 +112,9 @@ function MiniChart({ cfg, height = 140 }) {
 }
 
 // ---------- rows ----------
-function buildRows(filled, national) {
+function buildRows(filled, national, curated, country) {
   const rows = []
+  const regionLabel = country?.regionLabel || 'Region'
   const bestOf = (ind) => {
     if (!ind.better || filled.length < 2) return null
     const own = filled.filter(({ e }) => isOwnValue(e, ind.id) || e.type === 'province')
@@ -124,7 +126,7 @@ function buildRows(filled, national) {
   const indicatorRow = (ind) => {
     const best = bestOf(ind)
     return {
-      key: `ind:${ind.id}`, label: ind.label, sub: ind.source, focus: `ind:${ind.id}`,
+      key: `ind:${ind.id}`, label: ind.label, sub: sourceOf(ind.id, country?.iso3) || '', focus: `ind:${ind.id}`,
       cell: ({ e }) => {
         const v = e.values[ind.id]
         if (v == null) return null
@@ -132,7 +134,7 @@ function buildRows(filled, national) {
         return (
           <div className={`sbs-value ${best?.has(e.id) ? 'best' : ''}`}>
             <b>{best?.has(e.id) && <Check size={12} />} {fmtIndicator(ind.id, v)}</b>
-            {e.inherited?.has(ind.id) && <span className="tag" title="Province figure, not this place's own">prov.</span>}
+            {e.inherited?.has(ind.id) && <span className="tag" title={`${regionLabel} figure, not this place's own`}>{regionLabel.toLowerCase()}</span>}
             {n != null && <span className="meter"><span style={{ width: `${n}%` }} />{national.values[ind.id] != null && <i style={{ left: `${normalise(ind.id, national.values[ind.id])}%` }} />}</span>}
           </div>
         )
@@ -155,14 +157,16 @@ function buildRows(filled, national) {
   for (const c of CATEGORIES) {
     const extra = []
     if (c.id === 'safety') {
-      const years = national.snic?.years || []
-      for (const [metric, label] of [['homicide', 'Homicide rate by year'], ['propertyCrime', 'Robberies + thefts by year']]) {
-        if (!filled.some(({ e }) => e.snic)) break
-        const scale = range(filled.map(({ e }) => e.snic?.series[metric] || []), { zero: true })
-        extra.push({
-          key: `snic:${metric}`, label, sub: 'per 100,000 · SNIC', chart: true, focus: `snic:${metric}`, na: 'No SNIC data',
-          cell: ({ e, i }, tk) => e.snic && <MiniChart cfg={mini(tk, { labels: years, data: e.snic.series[metric], color: tk.series[i], scale })} />,
-        })
+      // Official statistical series (SNIC, …) with a chart, for every place that has them.
+      for (const [fam, o] of Object.entries(curated?.official || {})) {
+        if (!filled.some(({ e }) => e.official?.[fam]?.series)) continue
+        for (const [metric, m] of Object.entries(o.metrics || {}).filter(([, m]) => m.chart)) {
+          const scale = range(filled.map(({ e }) => e.official?.[fam]?.series?.[metric] || []), { zero: true })
+          extra.push({
+            key: `${fam}:${metric}`, label: `${m.chart[0]} by year`, sub: `per 100,000 · ${o.label}`, chart: true, focus: `${fam}:${metric}`, na: `No ${o.label} data`,
+            cell: ({ e, i }, tk) => e.official?.[fam]?.series && <MiniChart cfg={mini(tk, { labels: o.years, data: e.official[fam].series[metric], color: tk.series[i], scale })} />,
+          })
+        }
       }
       const keys = SURVEY.filter(([k]) => filled.some(({ e }) => e.numbeo?.survey?.[k] != null))
       if (keys.length) {

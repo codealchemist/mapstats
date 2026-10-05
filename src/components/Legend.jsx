@@ -5,7 +5,7 @@ import { FLOOD_LEVELS } from './mapLayers.js'
 import { SourceButtons } from './SourceButtons.jsx'
 import { sourcesForCategory, sourcesForIndicators, familyById } from '../data/sources.js'
 
-export function Legend({ metric, scale, overlays, theme, national, shifted, sourceMode = 'combined', surface, surfaceVar }) {
+export function Legend({ metric, scale, overlays, theme, national, shifted, sourceMode = 'combined', surface, surfaceVar, country }) {
   const isScore = metric.kind === 'score'
   const fmt = (v) => (isScore ? fmtScore(v) : fmtIndicator(metric.id, v))
   const ind = indicatorById[metric.id]
@@ -51,7 +51,7 @@ export function Legend({ metric, scale, overlays, theme, national, shifted, sour
       ) : (
         <div className="legend-sub">Waiting for data…</div>
       )}
-      <SourceButtons keys={ind ? sourcesForIndicators([metric.id]) : metric.id.startsWith('cat:') ? sourcesForCategory(metric.id.slice(4)) : []} label={null} />
+      <SourceButtons keys={ind ? sourcesForIndicators([metric.id], country?.iso3) : metric.id.startsWith('cat:') ? sourcesForCategory(metric.id.slice(4), country?.iso3) : []} label={null} />
       <div className="legend-extra">
         <span><i className="sw" style={{ background: NO_DATA[theme] }} /> No data</span>
         {overlays.quakes && <span><i className="sw round" style={{ background: '#eb6834' }} /> Earthquake (size = magnitude)</span>}

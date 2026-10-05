@@ -10,9 +10,9 @@ import { isOwnValue } from '../../lib/scoring.js'
 const r1 = (v) => (v == null ? null : Math.round(v * 10) / 10)
 const placeLabel = (e) => e.name
 
-// One bar per place (+ country average in the de-emphasis gray). Province fallbacks are labelled.
-function barPerPlace({ places, tk, national, value, unit, nationalValue, inheritedKey }) {
-  const labels = [...places.map(({ e }) => placeLabel(e) + (inheritedKey && !isOwnValue(e, inheritedKey) && e.values[inheritedKey] != null ? ' (prov.)' : '')), 'Country average']
+// One bar per place (+ country average in the de-emphasis gray). Region fallbacks are labelled.
+function barPerPlace({ places, tk, national, value, unit, nationalValue, inheritedKey, regionLabel = 'region' }) {
+  const labels = [...places.map(({ e }) => placeLabel(e) + (inheritedKey && !isOwnValue(e, inheritedKey) && e.values[inheritedKey] != null ? ` (${regionLabel})` : '')), 'Country average']
   const data = [...places.map(({ e, d, flood }) => r1(value(e, d, flood))), r1(nationalValue ? nationalValue(national) : null)]
   const colors = [...places.map(({ i }) => tk.series[i]), tk.de]
   return {
@@ -48,16 +48,19 @@ const monthly = (field, label, unit, kind = 'line') => ({
     : groupedBars({ places, tk, labels: MONTHS, yTitle: unit, series: (p) => p.d.climate?.monthly.map((m) => m[field]) })),
 })
 
-const snicTrend = (metric, label) => ({
-  id: `snic:${metric}`, group: 'Crime trends (SNIC)', label, unit: 'per 100,000',
-  available: (ps) => ps.some((p) => p.e.snic),
-  build: ({ places, tk, national }) => linePerPlace({
-    places, tk, labels: national.snic?.years || [], yTitle: 'per 100,000', zero: true, pointRadius: 3,
-    series: (p) => p.e.snic?.series[metric],
-  }),
-})
+// One trend per charted metric of an official statistical series (SNIC, …).
+const officialTrends = (curated) => Object.entries(curated?.official || {}).flatMap(([fam, o]) =>
+  Object.entries(o.metrics || {}).filter(([, m]) => m.chart).map(([metric, m]) => ({
+    id: `${fam}:${metric}`, group: `Official trends (${o.label})`, label: `${m.chart[0]} by year`, unit: 'per 100,000',
+    available: (ps) => ps.some((p) => p.e.official?.[fam]?.series),
+    build: ({ places, tk }) => linePerPlace({
+      places, tk, labels: o.years, yTitle: 'per 100,000', zero: true, pointRadius: 3,
+      series: (p) => p.e.official?.[fam]?.series?.[metric],
+    }),
+  })))
 
-export function buildMeasures() {
+export function buildMeasures(curated, country) {
+  const regionLabel = (country?.regionLabel || 'region').toLowerCase()
   const list = [
     {
       id: 'score', group: 'Scores', label: 'MapStats score', unit: '/100',
@@ -69,9 +72,7 @@ export function buildMeasures() {
       available: () => true,
       build: ({ places, tk }) => groupedBars({ places, tk, labels: CATEGORIES.map((c) => c.label), series: (p) => CATEGORIES.map((c) => r1(p.e.categories[c.id])), horizontal: true, max: 100 }),
     },
-    snicTrend('homicide', 'Homicide rate by year'),
-    snicTrend('propertyCrime', 'Robberies + thefts by year'),
-    snicTrend('roadDeaths', 'Road deaths by year'),
+    ...officialTrends(curated),
     {
       id: 'survey', group: 'Crime survey (Numbeo)', label: 'Crime perception survey', unit: '0–100',
       available: (ps) => ps.some((p) => p.e.numbeo?.survey),
@@ -117,13 +118,13 @@ export function buildMeasures() {
       build: ({ places, tk, national }) => barPerPlace({ places, tk, national, value: (e, d, f) => (f?.river ? f.floodWatch : null), unit: '× usual high water' }),
     },
   ]
-  // Every indicator as a one-bar-per-place chart (province fallbacks labelled "prov.").
+  // Every indicator as a one-bar-per-place chart (region fallbacks labelled).
   for (const ind of INDICATORS) {
     list.push({
       id: `ind:${ind.id}`, group: `Indicators · ${CATEGORIES.find((c) => c.id === ind.category)?.label || 'Climate & context'}`,
       label: ind.label, unit: ind.unit, indicator: ind,
       available: (ps) => ps.some((p) => p.e.values[ind.id] != null),
-      build: ({ places, tk, national }) => barPerPlace({ places, tk, national, value: (e) => e.values[ind.id], nationalValue: (n) => n.values[ind.id], unit: ind.unit || ind.label, inheritedKey: ind.id }),
+      build: ({ places, tk, national }) => barPerPlace({ places, tk, national, value: (e) => e.values[ind.id], nationalValue: (n) => n.values[ind.id], unit: ind.unit || ind.label, inheritedKey: ind.id, regionLabel }),
     })
   }
   return list

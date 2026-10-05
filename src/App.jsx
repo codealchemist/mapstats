@@ -11,7 +11,7 @@ import { CompareView } from './components/CompareView.jsx'
 import { ToastProvider } from './components/Toast.jsx'
 import { COUNTRIES, countryByIso } from './data/countries.js'
 import { DEFAULT_WEIGHTS, metricById } from './data/metrics.js'
-import { familyOf, isMultiSource } from './data/sources.js'
+import { familiesFor, familyOf, isMultiSource } from './data/sources.js'
 import { useCountryData } from './hooks/useCountryData.js'
 import { useLiveData } from './hooks/useLiveData.js'
 import { adHocEntity, buildEntities, ownValue } from './lib/scoring.js'
@@ -160,7 +160,7 @@ export default function App() {
 
   const changeSource = (mode) => {
     setSourceMode(mode)
-    if (!isMultiSource(mode) && metric.kind === 'indicator' && familyOf(metricId) !== mode) setMetricId('score')
+    if (!isMultiSource(mode) && metric.kind === 'indicator' && familyOf(metricId, country.iso3) !== mode) setMetricId('score')
   }
 
   // Resolve compare selections against the current model (so weights / source mode apply).
@@ -206,6 +206,8 @@ export default function App() {
     setCompare([null, null, null])
     setSelected(null)
     setIso3(next)
+    // A single-source view that the new country doesn't have falls back to the median of sources.
+    if (!familiesFor(next).some((f) => f.id === sourceMode)) setSourceMode('combined')
   }
 
   return (
@@ -270,7 +272,7 @@ export default function App() {
           />
         )}
 
-        <Legend surface={overlays.surface ? surface : null} surfaceVar={surfaceVar} sourceMode={sourceMode} metric={metric} scale={scale} overlays={overlays} theme={theme} national={model?.national} shifted={panelOpen} />
+        <Legend surface={overlays.surface ? surface : null} surfaceVar={surfaceVar} sourceMode={sourceMode} metric={metric} scale={scale} overlays={overlays} theme={theme} national={model?.national} shifted={panelOpen} country={country} />
         <LiveStatus status={live.status} progress={live.progress} errors={live.errors} error={data.error} />
 
         {selectedEntity && model && (
@@ -289,8 +291,8 @@ export default function App() {
           />
         )}
 
-        {showInfo && <Methodology onClose={() => setShowInfo(false)} weights={weights} onSources={() => { setShowInfo(false); setShowSources(true) }} />}
-        {showSources && <SourcesView onClose={() => setShowSources(false)} snicOrigin={model?.snicOrigin} />}
+        {showInfo && <Methodology onClose={() => setShowInfo(false)} weights={weights} country={country} curated={model?.curated} onSources={() => { setShowInfo(false); setShowSources(true) }} />}
+        {showSources && <SourcesView onClose={() => setShowSources(false)} curated={model?.curated} />}
         {showCompare && model && (
           <CompareView
             slots={compareEntities}

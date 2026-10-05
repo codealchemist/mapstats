@@ -7,8 +7,8 @@ import { matches } from './match.js'
  * One measure, all selected places, the whole screen. The measure list on the left is grouped;
  * on narrow screens it becomes a dropdown.
  */
-export function FocusChart({ places, national, theme, measureId, onMeasure, query = '' }) {
-  const measures = useMemo(() => buildMeasures(), [])
+export function FocusChart({ places, national, curated, country, theme, measureId, onMeasure, query = '' }) {
+  const measures = useMemo(() => buildMeasures(curated, country), [curated, country])
   const available = measures.filter((m) => m.available(places) && matches(query, m.label, m.group, m.unit))
   const measure = available.find((m) => m.id === measureId) || available[0]
   // Keep the selection in sync with the search: the first match becomes the shown measure.

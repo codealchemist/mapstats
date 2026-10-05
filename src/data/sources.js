@@ -1,6 +1,7 @@
-// Data source registry. Keys match the `source` labels used in metrics.js, so any
-// indicator, category or layer can resolve the sources behind it.
+// Data source registry. Keys match the `source` labels used in metrics.js and in each curated
+// country's `sources` map, so any indicator, category or layer can resolve the sources behind it.
 import { INDICATORS, indicatorById } from './metrics.js'
+import { CURATED, curatedFor } from './curated.js'
 
 export const SOURCES = {
   Numbeo: {
@@ -96,34 +97,64 @@ export const SOURCE_META = {
 
 export const sourceList = Object.entries(SOURCES).map(([key, s]) => ({ key, ...s }))
 
+const isGlobal = (ind) => ind.live || ind.source === 'Numbeo'
+
+// Source behind an indicator in a country. Live and Numbeo indicators are the same everywhere;
+// the rest come from the country's curated module, or null when the country has no such data.
+export function sourceOf(indicatorId, iso3) {
+  const ind = indicatorById[indicatorId]
+  if (!ind) return null
+  return isGlobal(ind) ? ind.source : curatedFor(iso3)?.sources[indicatorId] ?? null
+}
+
+// Indicators a source feeds in any country (for the Sources view).
+export const indicatorsOfSource = (key) =>
+  INDICATORS.filter((i) => (isGlobal(i) ? i.source === key : Object.values(CURATED).some((c) => c.sources[i.id] === key)))
+
 const uniq = (keys) => [...new Set(keys)].filter((k) => SOURCES[k])
 
-export const sourcesForIndicators = (ids) => uniq(ids.map((id) => indicatorById[id]?.source))
+export const sourcesForIndicators = (ids, iso3) => uniq(ids.map((id) => sourceOf(id, iso3)))
 
-export const sourcesForCategory = (categoryId) => uniq(INDICATORS.filter((i) => i.category === categoryId).map((i) => i.source))
+export const sourcesForCategory = (categoryId, iso3) => uniq(INDICATORS.filter((i) => i.category === categoryId).map((i) => sourceOf(i.id, iso3)))
 
 // Source families for the main-view source selector. Each indicator belongs to exactly one family.
 // Hand-entered provincial figures are grouped together: they share the same provenance caveat.
+// `countries` restricts a family to the curated countries that have it; `status`/`note` describe
+// the family's region-level figures in "Values by source".
 export const SOURCE_FAMILIES = [
   { id: 'combined', label: 'All sources · median', short: 'Median of sources' },
   { id: 'weighted', label: 'All sources · weighted by reliability', short: 'Weighted' },
-  { id: 'snic', label: 'SNIC · official crime statistics', short: 'SNIC' },
+  { id: 'snic', label: 'SNIC · official crime statistics', short: 'SNIC', countries: ['ARG'] },
   { id: 'numbeo', label: 'Numbeo · crowd-sourced indices', short: 'Numbeo' },
   { id: 'openmeteo', label: 'Open-Meteo · live climate & air', short: 'Open-Meteo' },
   { id: 'usgs', label: 'USGS · earthquakes', short: 'USGS' },
-  { id: 'provincial', label: 'Provincial statistics · hand-entered', short: 'Provincial stats' },
+  {
+    id: 'provincial', label: 'Provincial statistics · hand-entered', short: 'Provincial stats', countries: ['ARG'],
+    status: 'Hand-entered approximations', note: 'Approximate values entered by hand from each reference source; verify before relying on them.',
+  },
 ]
 export const familyById = Object.fromEntries(SOURCE_FAMILIES.map((f) => [f.id, f]))
+
+export const familiesFor = (iso3) => SOURCE_FAMILIES.filter((f) => !f.countries || f.countries.includes(iso3))
 
 // Modes that integrate every source (vs. a single-source view).
 export const isMultiSource = (mode) => mode === 'combined' || mode === 'weighted'
 
-export function familyOf(indicatorId) {
-  const s = indicatorById[indicatorId]?.source || ''
-  if (s === 'SNIC') return 'snic'
-  if (s === 'Numbeo') return 'numbeo'
+const FAMILY_BY_SOURCE = {
+  SNIC: 'snic', Numbeo: 'numbeo',
+  'Censo / Natural Earth': 'base', // population: context, not a scored source
+}
+
+export function familyOfSource(source) {
+  const s = source || ''
+  if (FAMILY_BY_SOURCE[s]) return FAMILY_BY_SOURCE[s]
   if (s.startsWith('Open-Meteo')) return 'openmeteo'
   if (s.startsWith('USGS')) return 'usgs'
-  if (s === 'Censo / Natural Earth') return 'base' // population: context, not a scored source
   return 'provincial'
 }
+
+export const familyOf = (indicatorId, iso3) => familyOfSource(sourceOf(indicatorId, iso3))
+
+const familyMaps = {}
+// indicatorId -> family for a country, computed once (scoring looks this up for every indicator of every place).
+export const familiesByIndicator = (iso3) => (familyMaps[iso3] ||= Object.fromEntries(INDICATORS.map((i) => [i.id, familyOf(i.id, iso3)])))

@@ -9,6 +9,7 @@
 
 import NUMBEO from './numbeo-argentina.json' with { type: 'json' }
 import SNIC from './snic-argentina.json' with { type: 'json' }
+import { indicatorById } from './metrics.js'
 
 export const PROVINCE_FIELDS = [
   'pop', 'homicide', 'propertyCrime', 'poverty', 'unemployment', 'water', 'sewer',
@@ -173,7 +174,7 @@ const SNIC_DEPT = {
 function snicFor(id) {
   if (id === 'buenos-aires') return SNIC.provinces?.['AR-C'] && { level: 'city', name: 'Ciudad de Buenos Aires', ...SNIC.provinces['AR-C'] }
   const d = SNIC.departments?.[SNIC_DEPT[id]]
-  return d && { level: 'department', code: SNIC_DEPT[id], ...d }
+  return d && { level: 'subregion', code: SNIC_DEPT[id], ...d }
 }
 
 // Scraped Numbeo data (scripts/numbeo-fetch.mjs) replaces the approximate snapshot above city by city.
@@ -184,7 +185,7 @@ export const CITIES = C.map(([id, name, province, lat, lon, pop, numbeo]) => {
   const snic = snicFor(id)
   const city = {
     id: `ARG-${id}`, name, province, lat, lon, pop, capital: id === 'buenos-aires', ...(numbeo || {}),
-    snic: snic || null,
+    official: snic ? { snic } : null,
     // Values measured for this place (its SNIC department), never inherited from the province.
     ownValues: snic ? Object.fromEntries(SNIC_KEYS.map((k) => [k, snic.avg3[k] ?? null])) : {},
   }
@@ -198,3 +199,40 @@ export const CITIES = C.map(([id, name, province, lat, lon, pop, numbeo]) => {
     numbeoSource: s.source, numbeoFetchedAt: s.fetchedAt, numbeoContributors: s.contributors ?? null,
   }
 })
+
+// Curated-country adapter (see data/curated.js for the contract). Region populations are stored in
+// thousands above, so they are converted to persons here, once.
+const SNIC_METRICS = {
+  homicide: { label: 'Intentional homicide (victims)', unit: 'per 100k', digits: 2, chart: ['Homicide rate', 'Victims of intentional homicide per 100,000'] },
+  robbery: { label: 'Robberies', unit: 'per 100k', digits: 0 },
+  theft: { label: 'Thefts', unit: 'per 100k', digits: 0 },
+  propertyCrime: { label: 'Robberies + thefts', unit: 'per 100k', digits: 0, chart: ['Robberies and thefts', 'Incidents per 100,000'] },
+  injuries: { label: 'Intentional injuries', unit: 'per 100k', digits: 0 },
+  threats: { label: 'Threats', unit: 'per 100k', digits: 0 },
+  sexualAssault: { label: 'Rapes', unit: 'per 100k', digits: 2 },
+  drugs: { label: 'Drug law offences', unit: 'per 100k', digits: 0 },
+  roadDeaths: { label: 'Road deaths (victims)', unit: 'per 100k', digits: 2, chart: ['Road deaths', 'Victims per 100,000'] },
+}
+
+export const ARGENTINA = {
+  iso3: 'ARG',
+  regions: Object.fromEntries(Object.entries(PROVINCES).map(([id, p]) => [id, { ...p, pop: p.pop != null ? p.pop * 1000 : null }])),
+  cities: CITIES,
+  sources: Object.fromEntries([...PROVINCE_FIELDS, 'roadDeaths'].map((k) => [k, indicatorById[k].source])),
+  periods: { poverty: 'EPH 2024', unemployment: 'EPH 2024', water: 'Censo 2022', sewer: 'Censo 2022', internet: 'ENACOM 2024' },
+  subregion: { label: 'Department (partido)' },
+  official: {
+    snic: {
+      key: 'SNIC', label: 'SNIC', years: SNIC.years, latestYear: SNIC.latestYear, origin: SNIC.origin || null,
+      metrics: SNIC_METRICS, table: ['homicide', 'robbery', 'theft', 'injuries', 'threats', 'sexualAssault', 'drugs', 'roadDeaths'], tableLabel: 'Crime type',
+      national: SNIC.national, regions: SNIC.provinces,
+      levelNote: 'the finest level SNIC publishes',
+      footnote: 'Scores use 3-year averages. Rates are as published by SNIC; blank cells are not published for this area.',
+      note: 'Rates as published by SNIC, rounded to 2 decimals. Counts are exact.',
+    },
+  },
+  methodology: [
+    'Official crime data comes from SNIC (Ministerio de Seguridad). Cities use their department (partido) — the finest level SNIC publishes — as 3-year averages per 100,000 inhabitants, using parent crime codes only so sub-categories aren\'t counted twice.',
+    'Other provincial statistics (poverty, unemployment, services, infrastructure, hazards) are approximate figures entered by hand from each reference source.',
+  ],
+}
