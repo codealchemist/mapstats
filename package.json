@@ -1,7 +1,7 @@
 {
   "name": "mapstats",
   "private": true,
-  "version": "0.1.0",
+  "version": "1.0.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -14,7 +14,10 @@
     "snic:import": "node scripts/snic-import.mjs",
     "news:test": "node netlify/news/test/run.mjs",
     "news:probe": "node scripts/news-probe.mjs",
-    "live:test": "node src/lib/test/live.mjs"
+    "live:test": "node src/lib/test/live.mjs",
+    "deploy": "npm run lint && npm run news:test && npm run live:test && npx -y -p netlify-cli netlify deploy --prod",
+    "deploy:preview": "npx -y -p netlify-cli netlify deploy",
+    "dev:netlify": "npx -y -p netlify-cli netlify dev"
   },
   "dependencies": {
     "@mozilla/readability": "^0.6.0",
