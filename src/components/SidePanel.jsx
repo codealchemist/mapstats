@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { Layers, Trophy, SlidersHorizontal, FileSpreadsheet, FileText, RotateCcw, Info, LoaderCircle } from 'lucide-react'
+import { Layers, Trophy, SlidersHorizontal, FileSpreadsheet, FileText, RotateCcw, Info, LoaderCircle, X } from 'lucide-react'
 import { CATEGORIES, DEFAULT_WEIGHTS, MAP_METRICS, indicatorById } from '../data/metrics.js'
 import { ICONS } from './icons.js'
 import { fmtScore } from '../lib/format.js'
@@ -20,8 +20,8 @@ const TABS = [
 export function SidePanel(props) {
   const [tab, setTab] = useState('layers')
   return (
-    <aside className="side-panel glass">
-      <SourcePicker mode={props.sourceMode} onChange={props.onSourceMode} />
+    <aside className="side-panel glass" hidden={props.hidden}>
+      <SourcePicker mode={props.sourceMode} onChange={props.onSourceMode} onClose={props.onClose} />
       <nav className="tabs" role="tablist">
         {TABS.map((t) => (
           <button key={t.id} role="tab" aria-selected={tab === t.id} className={tab === t.id ? 'active' : ''} onClick={() => setTab(t.id)}>
@@ -236,10 +236,13 @@ function WeightsTab({ weights, onWeights, onInfo, country }) {
   )
 }
 
-function SourcePicker({ mode, onChange }) {
+function SourcePicker({ mode, onChange, onClose }) {
   return (
     <div className="source-picker">
-      <label htmlFor="source-mode" className="eyebrow">Data source</label>
+      <div className="source-picker-head">
+        <label htmlFor="source-mode" className="eyebrow">Data source</label>
+        {onClose && <button className="icon-btn panel-close" onClick={onClose} title="Close panel"><X size={18} /></button>}
+      </div>
       <div className="select-wrap">
         <select id="source-mode" value={mode} onChange={(e) => onChange(e.target.value)}>
           {SOURCE_FAMILIES.map((f) => <option key={f.id} value={f.id}>{f.label}</option>)}

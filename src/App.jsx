@@ -27,6 +27,9 @@ const store = {
 
 const DEFAULT_OVERLAYS = { choropleth: true, cities: true, labels: true, heat: false, quakes: false, relief: false, flood: false, surface: false, surfaceVar: 'tempMaxAnnual' }
 
+// Matches the CSS breakpoint where the side panel and reports become bottom sheets.
+const isNarrow = () => window.matchMedia?.('(max-width: 820px)').matches
+
 const initialTheme = () => store.get('theme', window.matchMedia?.('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
 
 export default function App() {
@@ -157,6 +160,8 @@ export default function App() {
 
   const select = useCallback((sel, { fly = false } = {}) => {
     setSelected(sel)
+    // Phones show one bottom sheet at a time: a report replaces the side panel.
+    if (sel && isNarrow()) setPanelOpen(false)
     if (!fly || !model || !sel) return
     if (sel.type === 'adhoc') return mapRef.current?.flyTo(sel.input.place.lon, sel.input.place.lat, 9)
     const e = (sel.type === 'city' ? model.cities : model.provinces).find((x) => x.id === sel.id)
@@ -207,6 +212,11 @@ export default function App() {
     if (data.bbox) mapRef.current?.fitBounds(data.bbox)
   }
 
+  const togglePanel = () => {
+    if (!panelOpen && isNarrow()) setSelected(null)
+    setPanelOpen(!panelOpen)
+  }
+
   const changeCountry = (next) => {
     setCompare([null, null, null])
     setSelected(null)
@@ -249,31 +259,32 @@ export default function App() {
           onSources={() => setShowSources(true)}
           onCompare={() => setShowCompare(true)}
           compareCount={compare.filter(Boolean).length}
-          onTogglePanel={() => setPanelOpen((o) => !o)}
+          onTogglePanel={togglePanel}
           panelOpen={panelOpen}
           mapRef={mapRef}
         />
 
-        {panelOpen && (
-          <SidePanel
-            key={`side-${homeKey}`}
-            model={model}
-            country={country}
-            live={live}
-            metricId={metricId}
-            onMetric={setMetricId}
-            overlays={overlays}
-            onOverlays={setOverlays}
-            weights={weights}
-            onWeights={setWeights}
-            selected={selected}
-            onSelect={select}
-            mapRef={mapRef}
-            onInfo={() => setShowInfo(true)}
-            sourceMode={sourceMode}
-            onSourceMode={changeSource}
-          />
-        )}
+        {/* Kept mounted while closed so the open tab survives a report opening over it on phones. */}
+        <SidePanel
+          key={`side-${homeKey}`}
+          hidden={!panelOpen}
+          onClose={() => setPanelOpen(false)}
+          model={model}
+          country={country}
+          live={live}
+          metricId={metricId}
+          onMetric={setMetricId}
+          overlays={overlays}
+          onOverlays={setOverlays}
+          weights={weights}
+          onWeights={setWeights}
+          selected={selected}
+          onSelect={select}
+          mapRef={mapRef}
+          onInfo={() => setShowInfo(true)}
+          sourceMode={sourceMode}
+          onSourceMode={changeSource}
+        />
 
         <Legend surface={overlays.surface ? surface : null} surfaceVar={surfaceVar} sourceMode={sourceMode} metric={metric} scale={scale} overlays={overlays} theme={theme} national={model?.national} shifted={panelOpen} />
         <LiveStatus status={live.status} progress={live.progress} errors={live.errors} error={data.error} />

@@ -1,5 +1,5 @@
-import { useState } from 'react'
-import { Moon, Sun, Info, Camera, PanelLeft, ChevronDown, Columns3, Database } from 'lucide-react'
+import { useEffect, useRef, useState } from 'react'
+import { Moon, Sun, Info, Camera, PanelLeft, ChevronDown, Columns3, Database, Ellipsis } from 'lucide-react'
 import { SearchBox } from './SearchBox.jsx'
 import { canvasToBlob, copyImage } from '../lib/export.js'
 import { useToast } from './Toast.jsx'
@@ -24,6 +24,17 @@ export function Logo() {
 export function TopBar({ onHome, country, countries, onCountry, theme, onTheme, model, live, geo, onSelect, onInfo, onSources, onCompare, compareCount = 0, onTogglePanel, panelOpen, mapRef }) {
   const toast = useToast()
   const [snapping, setSnapping] = useState(false)
+  const [menuOpen, setMenuOpen] = useState(false)
+  const menuRef = useRef(null)
+
+  useEffect(() => {
+    if (!menuOpen) return
+    const close = (e) => !menuRef.current?.contains(e.target) && setMenuOpen(false)
+    const onKey = (e) => e.key === 'Escape' && setMenuOpen(false)
+    document.addEventListener('pointerdown', close)
+    window.addEventListener('keydown', onKey)
+    return () => { document.removeEventListener('pointerdown', close); window.removeEventListener('keydown', onKey) }
+  }, [menuOpen])
 
   const copyMap = async () => {
     const snap = mapRef.current?.snapshot()
@@ -61,15 +72,33 @@ export function TopBar({ onHome, country, countries, onCountry, theme, onTheme, 
           <ChevronDown size={14} />
         </label>
         <span className="divider" />
-        <button className="icon-btn" onClick={copyMap} title="Copy map image to clipboard" disabled={snapping}><Camera size={17} /></button>
-        <button className="icon-btn" onClick={onTheme} title={theme === 'dark' ? 'Light mode' : 'Dark mode'}>
-          {theme === 'dark' ? <Sun size={17} /> : <Moon size={17} />}
-        </button>
+        <span className="wide-only">
+          <button className="icon-btn" onClick={copyMap} title="Copy map image to clipboard" disabled={snapping}><Camera size={17} /></button>
+          <button className="icon-btn" onClick={onTheme} title={theme === 'dark' ? 'Light mode' : 'Dark mode'}>
+            {theme === 'dark' ? <Sun size={17} /> : <Moon size={17} />}
+          </button>
+        </span>
         <button className="icon-btn badge-host" onClick={onCompare} title="Compare places (up to 3)">
           <Columns3 size={17} />{compareCount > 0 && <span className="count-badge">{compareCount}</span>}
         </button>
-        <button className="icon-btn" onClick={onSources} title="Data sources"><Database size={17} /></button>
-        <button className="icon-btn" onClick={onInfo} title="Methodology & sources"><Info size={17} /></button>
+        <span className="wide-only">
+          <button className="icon-btn" onClick={onSources} title="Data sources"><Database size={17} /></button>
+          <button className="icon-btn" onClick={onInfo} title="Methodology & sources"><Info size={17} /></button>
+        </span>
+        {/* Phones: the less frequent actions move into a menu so the bar fits on one row. */}
+        <div className="more" ref={menuRef}>
+          <button className={`icon-btn ${menuOpen ? 'active' : ''}`} onClick={() => setMenuOpen((o) => !o)} title="More" aria-haspopup="menu" aria-expanded={menuOpen}>
+            <Ellipsis size={17} />
+          </button>
+          {menuOpen && (
+            <div className="more-menu glass" role="menu" onClick={() => setMenuOpen(false)}>
+              <button role="menuitem" onClick={copyMap} disabled={snapping}><Camera size={16} /> Copy map image</button>
+              <button role="menuitem" onClick={onTheme}>{theme === 'dark' ? <Sun size={16} /> : <Moon size={16} />} {theme === 'dark' ? 'Light mode' : 'Dark mode'}</button>
+              <button role="menuitem" onClick={onSources}><Database size={16} /> Data sources</button>
+              <button role="menuitem" onClick={onInfo}><Info size={16} /> How scores work</button>
+            </div>
+          )}
+        </div>
       </div>
     </header>
   )
