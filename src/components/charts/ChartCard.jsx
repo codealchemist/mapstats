@@ -42,6 +42,7 @@ export function renderOffscreen(build, width = 900, height = 380) {
 
 /**
  * build(tokens) -> { type, data, options }. `table` = { columns, rows } for the accessible table view.
+ * height: pixels, or 'fill' to take the remaining height of a flex-column parent.
  */
 export function ChartCard({ id, title, subtitle, theme, build, height = 200, table, footnote }) {
   const ref = useRef(null)
@@ -72,7 +73,7 @@ export function ChartCard({ id, title, subtitle, theme, build, height = 200, tab
   }
 
   return (
-    <figure className="chart-card">
+    <figure className={`chart-card ${height === 'fill' ? 'fill' : ''}`}>
       <figcaption className="chart-head">
         <div>
           <div className="chart-title">{title}</div>
@@ -92,7 +93,7 @@ export function ChartCard({ id, title, subtitle, theme, build, height = 200, tab
           </button>
         </div>
       </figcaption>
-      <div className="chart-body" style={{ height }}>
+      <div className="chart-body" style={height === 'fill' ? undefined : { height }}>
         <Chart ref={ref} type={cfg.type} data={cfg.data} options={cfg.options} />
       </div>
       {showTable && table && (

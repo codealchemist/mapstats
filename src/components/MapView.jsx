@@ -92,8 +92,10 @@ export const MapView = forwardRef(function MapView(
       if (m.getLayer('prov-hover')) m.setFilter('prov-hover', ['==', ['get', 'id'], id ?? ''])
     }
 
+    // Touch screens emulate a mousemove on tap, which would leave a hover popup stuck open.
+    const canHover = window.matchMedia?.('(hover: hover)').matches ?? true
     m.on('mousemove', (e) => {
-      if (!m.getLayer('prov-fill')) return
+      if (!canHover || !m.getLayer('prov-fill')) return
       const layers = ['city-circles', 'flood-circles', 'prov-fill'].filter((l) => m.getLayer(l) && m.getLayoutProperty(l, 'visibility') !== 'none')
       const feats = m.queryRenderedFeatures(e.point, { layers })
       const city = feats.find((f) => f.layer.id === 'city-circles')
@@ -152,7 +154,7 @@ export const MapView = forwardRef(function MapView(
 
 function fitPadding() {
   const narrow = window.innerWidth < 820
-  return narrow ? { top: 120, bottom: 40, left: 20, right: 20 } : { top: 90, bottom: 40, left: 370, right: 40 }
+  return narrow ? { top: 130, bottom: 40, left: 20, right: 20 } : { top: 90, bottom: 40, left: 370, right: 40 }
 }
 
 function escapeHtml(s) {

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo } from 'react'
 import { ChartCard } from '../charts/ChartCard.jsx'
 import { buildMeasures } from './measures.js'
 import { matches } from './match.js'
@@ -15,7 +15,6 @@ export function FocusChart({ places, national, theme, measureId, onMeasure, quer
   useEffect(() => {
     if (measure && measure.id !== measureId) onMeasure(measure.id)
   }, [measure?.id]) // eslint-disable-line react-hooks/exhaustive-deps
-  const height = useViewportHeight(250)
 
   const groups = useMemo(() => {
     const g = {}
@@ -54,7 +53,7 @@ export function FocusChart({ places, national, theme, measureId, onMeasure, quer
           </select>
         </div>
         <ChartCard key={measure.id} id={`focus-${measure.id}`} title={measure.label} subtitle={[measure.unit, measure.group].filter(Boolean).join(' · ')}
-          theme={theme} build={build} height={height} table={table} />
+          theme={theme} build={build} height="fill" table={table} />
       </div>
     </div>
   )
@@ -70,15 +69,4 @@ function tableFor(build, places) {
   } catch {
     return { columns: ['Place'], rows: places.map((p) => [p.e.name]) }
   }
-}
-
-function useViewportHeight(offset) {
-  const get = () => Math.max(320, (typeof window === 'undefined' ? 800 : window.innerHeight) - offset)
-  const [h, setH] = useState(get)
-  useEffect(() => {
-    const on = () => setH(get())
-    window.addEventListener('resize', on)
-    return () => window.removeEventListener('resize', on)
-  }, []) // eslint-disable-line react-hooks/exhaustive-deps
-  return h
 }

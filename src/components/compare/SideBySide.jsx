@@ -17,6 +17,9 @@ import { matches } from './match.js'
 export function SideBySide({ places, header, national, tk, onFocus, query = '', scrollRef, initialScroll, flashKey, onFlashDone }) {
   const filled = places.filter(Boolean)
   const rows = filterRows(buildRows(filled, national), query)
+  // Phones hide every empty slot but the first, so the filled places get the width.
+  const firstEmpty = places.findIndex((p) => !p)
+  const spare = places.map((p, k) => !p && k !== firstEmpty)
   return (
     <div className="sbs-scroll" ref={(el) => {
       if (!el || !scrollRef) return
@@ -24,22 +27,22 @@ export function SideBySide({ places, header, national, tk, onFocus, query = '', 
       if (scrollRef.current !== el && initialScroll) { el.scrollTop = initialScroll.top; el.scrollLeft = initialScroll.left }
       scrollRef.current = el
     }}>
-      <div className="sbs-grid" style={{ '--cols': places.length }}>
+      <div className="sbs-grid" style={{ '--cols': places.length, '--ncols': spare.filter((s) => !s).length }}>
         <div className="sbs-corner sbs-sticky-top sbs-sticky-left" />
-        {places.map((p, k) => <div key={k} className="sbs-head sbs-sticky-top">{header(k)}</div>)}
+        {places.map((p, k) => <div key={k} className={`sbs-head sbs-sticky-top${spare[k] ? ' spare' : ''}`}>{header(k)}</div>)}
 
         {!rows.length && <div className="sbs-section sbs-empty">No measure matches “{query}”.</div>}
         {rows.map((r) => (r.section ? (
           <div key={r.key} className="sbs-section">{r.section}{r.score && <span className="muted"> · category score</span>}</div>
         ) : (
-          <Row key={r.key} r={r} places={places} tk={tk} onFocus={onFocus} flash={r.key === flashKey} onFlashDone={onFlashDone} />
+          <Row key={r.key} r={r} places={places} spare={spare} tk={tk} onFocus={onFocus} flash={r.key === flashKey} onFlashDone={onFlashDone} />
         )))}
       </div>
     </div>
   )
 }
 
-function Row({ r, places, tk, onFocus, flash, onFlashDone }) {
+function Row({ r, places, spare, tk, onFocus, flash, onFlashDone }) {
   const labelRef = useRef(null)
   // Briefly highlight the row we came back to; bring it into view if the restored scroll doesn't show it.
   useEffect(() => {
@@ -62,7 +65,9 @@ function Row({ r, places, tk, onFocus, flash, onFlashDone }) {
         {r.focus && <button className="icon-btn sm" onClick={() => onFocus(r.focus, r)} title="Show as one large chart"><Focus size={13} /></button>}
       </div>
       {places.map((p, k) => (
-        <div key={k} className={`sbs-cell ${r.chart ? 'chart' : ''}${fl}`}>
+        <div key={k} className={`sbs-cell ${r.chart ? 'chart' : ''}${p ? '' : ' vacant'}${spare[k] ? ' spare' : ''}${fl}`} style={{ '--place': tk.series[k] }}>
+          {/* Phones stack chart cells full width, so each one names its place. */}
+          {p && r.chart && <span className="sbs-cell-place"><i className="swatch" style={{ background: tk.series[k] }} />{p.e.name}</span>}
           {!p ? null : r.cell(p, tk) || <span className="sbs-na">{r.na || 'No data'}</span>}
         </div>
       ))}
@@ -121,7 +126,8 @@ function buildRows(filled, national) {
     const top = Math.max(...vals)
     return new Set(own.filter((_, k) => vals[k] === top).map(({ e }) => e.id))
   }
-  const indicatorRow = (ind) => {
+  // tint: the value itself takes the place's colour (climate rows mostly have no meter to carry it).
+  const indicatorRow = (ind, { tint = false } = {}) => {
     const best = bestOf(ind)
     return {
       key: `ind:${ind.id}`, label: ind.label, sub: ind.source, focus: `ind:${ind.id}`,
@@ -130,7 +136,7 @@ function buildRows(filled, national) {
         if (v == null) return null
         const n = normalise(ind.id, v)
         return (
-          <div className={`sbs-value ${best?.has(e.id) ? 'best' : ''}`}>
+          <div className={`sbs-value ${best?.has(e.id) ? 'best' : ''}${tint ? ' tint' : ''}`}>
             <b>{best?.has(e.id) && <Check size={12} />} {fmtIndicator(ind.id, v)}</b>
             {e.inherited?.has(ind.id) && <span className="tag" title="Province figure, not this place's own">prov.</span>}
             {n != null && <span className="meter"><span style={{ width: `${n}%` }} />{national.values[ind.id] != null && <i style={{ left: `${normalise(ind.id, national.values[ind.id])}%` }} />}</span>}
@@ -139,7 +145,7 @@ function buildRows(filled, national) {
       },
     }
   }
-  const indicatorsOf = (cat) => INDICATORS.filter((i) => i.category === cat && filled.some(({ e }) => e.values[i.id] != null)).map(indicatorRow)
+  const indicatorsOf = (cat, opts) => INDICATORS.filter((i) => i.category === cat && filled.some(({ e }) => e.values[i.id] != null)).map((i) => indicatorRow(i, opts))
 
   // Overview
   rows.push({ key: 's:overview', section: 'Overview' })
@@ -217,6 +223,6 @@ function buildRows(filled, national) {
       })
     }
   }
-  rows.push(...indicatorsOf('climate'))
+  rows.push(...indicatorsOf('climate', { tint: true }))
   return rows
 }

@@ -11,6 +11,7 @@ const r1 = (v) => (v == null ? null : Math.round(v * 10) / 10)
 const placeLabel = (e) => e.name
 
 // One bar per place (+ country average in the de-emphasis gray). Province fallbacks are labelled.
+// Horizontal, so place names sit on the category axis at full length, even on phones.
 function barPerPlace({ places, tk, national, value, unit, nationalValue, inheritedKey }) {
   const labels = [...places.map(({ e }) => placeLabel(e) + (inheritedKey && !isOwnValue(e, inheritedKey) && e.values[inheritedKey] != null ? ' (prov.)' : '')), 'Country average']
   const data = [...places.map(({ e, d, flood }) => r1(value(e, d, flood))), r1(nationalValue ? nationalValue(national) : null)]
@@ -18,7 +19,7 @@ function barPerPlace({ places, tk, national, value, unit, nationalValue, inherit
   return {
     type: 'bar',
     data: { labels, datasets: [{ label: unit || 'value', data, ...barStyle(colors[0]), backgroundColor: colors, maxBarThickness: 64 }] },
-    options: baseOptions(tk, { yTitle: unit }),
+    options: baseOptions(tk, { yTitle: unit, horizontal: true }),
   }
 }
 
