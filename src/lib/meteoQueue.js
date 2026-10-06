@@ -22,7 +22,9 @@ export async function getJSON(url, { timeout = 30000, signal } = {}) {
   try {
     const res = await fetch(url, { signal: ctrl.signal })
     if (!res.ok) {
-      const reason = await res.json().then((b) => b?.reason || null, () => null)
+      // The reason is shown in the UI: keep it short and printable (React escapes it; this bounds it).
+      // eslint-disable-next-line no-control-regex -- strips control characters on purpose
+      const reason = await res.json().then((b) => (typeof b?.reason === 'string' ? b.reason.replace(/[\u0000-\u001f\u007f]/g, ' ').slice(0, 200) : null), () => null)
       throw Object.assign(new Error(reason || `${res.status} ${res.statusText}`), { status: res.status, reason })
     }
     return url.includes('format=csv') ? await res.text() : await res.json()
@@ -135,14 +137,17 @@ export function createQueue({ fetchJSON = getJSON, now = Date.now, wait = sleep,
   function request(url, { weight = 1, priority = PRIORITY.map, signal, timeout } = {}) {
     return new Promise((resolve, reject) => {
       if (signal?.aborted) return reject(abortError())
-      const job = { url, host: new URL(url).host, weight, priority, signal, timeout, attempts: 0, notBefore: 0, seq: seq++, resolve, reject }
-      const stop = blockOf(job.host)
-      if (stop) return reject(stop)
-      // An in-flight job is aborted by its fetch; a queued one has to be dropped here.
-      signal?.addEventListener('abort', () => {
+      // An in-flight job is aborted by its fetch; a queued one has to be dropped here. The listener
+      // is removed once the job settles, so long-lived signals don't keep finished jobs alive.
+      const onAbort = () => {
         const i = waiting.indexOf(job)
         if (i >= 0) waiting.splice(i, 1)[0].reject(abortError())
-      })
+      }
+      const settle = (fn) => (v) => { signal?.removeEventListener('abort', onAbort); fn(v) }
+      const job = { url, host: new URL(url).host, weight, priority, signal, timeout, attempts: 0, notBefore: 0, seq: seq++, resolve: settle(resolve), reject: settle(reject) }
+      const stop = blockOf(job.host)
+      if (stop) return job.reject(stop)
+      signal?.addEventListener('abort', onAbort, { once: true })
       enqueue(job)
       pump()
     })
