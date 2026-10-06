@@ -1,9 +1,14 @@
 import { useEffect, useState } from 'react'
 import { fetchAqiBatch, fetchClimateBatch, fetchFloodBatch, fetchQuakes, fetchUvBatch } from '../lib/live.js'
+import { PRIORITY, isAbort } from '../lib/meteoQueue.js'
 import { gapGrid } from '../lib/geo.js'
 import { livePoints } from '../lib/scoring.js'
 
-const EMPTY = { climate: null, aqi: null, quakes: null, uv: null, flood: null, grid: [], status: { climate: 'idle', aqi: 'idle', quakes: 'idle', uv: 'idle', flood: 'idle' } }
+const KEYS = ['climate', 'aqi', 'quakes', 'uv', 'flood']
+const each = (v) => Object.fromEntries(KEYS.map((k) => [k, v]))
+
+// status per source: idle | loading | ready | partial (some points failed) | error (none loaded)
+const EMPTY = { climate: null, aqi: null, quakes: null, uv: null, flood: null, grid: [], status: each('idle'), progress: {}, errors: {} }
 
 // Fetches live layers for every city (and city-less province) of the loaded country.
 // Each source resolves independently so the map fills in progressively.
@@ -12,26 +17,38 @@ export function useLiveData({ iso3, geo, cities, bbox }) {
 
   useEffect(() => {
     if (!geo) return
-    let cancelled = false
+    const ctrl = new AbortController()
+    const { signal } = ctrl
     const points = livePoints(geo, cities)
     // Extra grid points fill gaps between cities for the interpolated climate surfaces.
     const grid = gapGrid(geo, points, bbox)
-    setLive({ ...EMPTY, grid, status: { climate: 'loading', aqi: 'loading', quakes: 'loading', uv: 'loading', flood: 'loading' } })
+    setLive({ ...EMPTY, grid, status: each('loading') })
 
-    const run = (key, promise) =>
-      promise
-        .then((data) => !cancelled && setLive((l) => ({ ...l, [key]: data, status: { ...l.status, [key]: 'ready' } })))
-        .catch((err) => {
-          console.warn(`[MapStats] ${key} failed`, err)
-          if (!cancelled) setLive((l) => ({ ...l, status: { ...l.status, [key]: 'error' } }))
+    const update = (fn) => !signal.aborted && setLive(fn)
+    const finish = (key, status, error = null) =>
+      update((l) => ({ ...l, status: { ...l.status, [key]: status }, errors: { ...l.errors, [key]: error?.message || null } }))
+    const fail = (key) => (err) => {
+      if (isAbort(err)) return
+      console.warn(`[MapStats] ${key} failed`, err)
+      finish(key, 'error', err)
+    }
+    const run = (key, fetchBatch, pts, priority) =>
+      fetchBatch(pts, { signal, priority, onProgress: ({ data, ...counts }) => update((l) => ({ ...l, [key]: data, progress: { ...l.progress, [key]: counts } })) })
+        .then((p) => {
+          if (p.failed) console.warn(`[MapStats] ${key}: ${p.failed} of ${p.total} points failed`, p.error)
+          finish(key, !p.failed ? 'ready' : p.loaded ? 'partial' : 'error', p.error)
         })
+        .catch(fail(key))
 
-    run('quakes', fetchQuakes(bbox))
-    run('aqi', fetchAqiBatch(points))
-    run('climate', fetchClimateBatch([...points, ...grid]))
-    run('uv', fetchUvBatch([...points, ...grid]))
-    run('flood', fetchFloodBatch(points))
-    return () => { cancelled = true }
+    fetchQuakes(bbox, { signal })
+      .then((quakes) => update((l) => ({ ...l, quakes, status: { ...l.status, quakes: 'ready' } })))
+      .catch(fail('quakes'))
+    // Scored layers first; UV and river flow are descriptive and wait for them.
+    run('aqi', fetchAqiBatch, points, PRIORITY.map)
+    run('climate', fetchClimateBatch, [...points, ...grid], PRIORITY.map)
+    run('uv', fetchUvBatch, [...points, ...grid], PRIORITY.extra)
+    run('flood', fetchFloodBatch, points, PRIORITY.extra)
+    return () => ctrl.abort()
   }, [iso3, geo, cities, bbox])
 
   return live

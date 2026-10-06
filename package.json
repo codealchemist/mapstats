@@ -14,7 +14,8 @@
     "snic:import": "node scripts/snic-import.mjs",
     "news:test": "node netlify/news/test/run.mjs",
     "news:probe": "node scripts/news-probe.mjs",
-    "deploy": "npm run lint && npm run news:test && npx -y -p netlify-cli netlify deploy --prod",
+    "live:test": "node src/lib/test/live.mjs",
+    "deploy": "npm run lint && npm run news:test && npm run live:test && npx -y -p netlify-cli netlify deploy --prod",
     "deploy:preview": "npx -y -p netlify-cli netlify deploy",
     "dev:netlify": "npx -y -p netlify-cli netlify dev"
   },
