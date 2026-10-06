@@ -110,7 +110,8 @@ export function createQueue({ fetchJSON = getJSON, now = Date.now, wait = sleep,
       job.resolve(await fetchJSON(job.url, { signal: job.signal, timeout: job.timeout }))
     } catch (e) {
       // The server doesn't count a refused request.
-      if (e?.status === 429 && sent.includes(entry)) sent.splice(sent.indexOf(entry), 1)
+      const i = sent.indexOf(entry)
+      if (e?.status === 429 && i >= 0) sent.splice(i, 1)
       settleFailure(job, e)
     } finally {
       active--

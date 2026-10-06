@@ -56,9 +56,13 @@ export default function App() {
   useEffect(() => store.set('weights', weights), [weights])
   useEffect(() => store.set('sourceMode', sourceMode), [sourceMode])
 
+  // Only the data layers feed scoring: status/progress updates (one per loaded chunk) must not
+  // rebuild the model and the map.
+  const { climate, aqi, quakes, uv, flood } = live
+  const liveData = useMemo(() => ({ climate, aqi, quakes, uv, flood }), [climate, aqi, quakes, uv, flood])
   const model = useMemo(
-    () => (data.geo ? buildEntities({ country, provincesGeo: data.geo, cities: data.cities, live, weights, sourceMode }) : null),
-    [country, data.geo, data.cities, live, weights, sourceMode],
+    () => (data.geo ? buildEntities({ country, provincesGeo: data.geo, cities: data.cities, live: liveData, weights, sourceMode }) : null),
+    [country, data.geo, data.cities, liveData, weights, sourceMode],
   )
 
   // Ad-hoc (searched) places are rescored when weights change.
@@ -134,8 +138,9 @@ export default function App() {
   const surface = useMemo(() => {
     if (!overlays.surface || !data.geo) return null
     const points = [...livePoints(data.geo, data.cities), ...live.grid]
-    return renderSurface({ samples: surfaceSamples(surfaceVar, points, live), fc: data.geo, bbox: data.bbox, rampName: surfaceVar.ramp })
-  }, [overlays.surface, surfaceVar, data.geo, data.cities, data.bbox, live])
+    return renderSurface({ samples: surfaceSamples(surfaceVar, points, { climate, uv }), fc: data.geo, bbox: data.bbox, rampName: surfaceVar.ramp })
+    // Redrawn (≈ 50–100 ms) only when the layer this variable reads changes, not on every other chunk.
+  }, [overlays.surface, surfaceVar, data.geo, data.cities, data.bbox, live.grid, surfaceVar.id === 'uvMean' ? uv : climate]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // River flood watch points (cities whose GloFAS cell has a significant river).
   const floodFC = useMemo(() => model && live.flood && {
