@@ -35,7 +35,7 @@ export function Legend({ metric, scale, overlays, theme, national, shifted, sour
           </div>
         </div>
       )}
-      <div className="legend-head">
+      <div className="row-between">
         <div className="legend-title">{metric.label}</div>
         <button className="icon-btn sm legend-toggle" onClick={() => setExpanded((x) => !x)} title={expanded ? 'Less' : 'Legend details'} aria-expanded={expanded}>
           {expanded ? <ChevronDown size={14} /> : <ChevronUp size={14} />}

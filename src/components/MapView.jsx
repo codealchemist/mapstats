@@ -7,6 +7,7 @@ import workerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url'
 setWorkerUrl(workerUrl)
 import { fmtIndicator, fmtScore } from '../lib/format.js'
 import { addCustomLayers, syncAll, FLOOD_LEVELS } from './mapLayers.js'
+import { chromeTop, isNarrow } from '../lib/viewport.js'
 
 const STYLES = {
   light: 'https://basemaps.cartocdn.com/gl/positron-gl-style/style.json',
@@ -153,8 +154,8 @@ export const MapView = forwardRef(function MapView(
 })
 
 function fitPadding() {
-  const narrow = window.innerWidth < 820
-  return narrow ? { top: 130, bottom: 40, left: 20, right: 20 } : { top: 90, bottom: 40, left: 370, right: 40 }
+  const top = chromeTop() + 12
+  return isNarrow() ? { top, bottom: 40, left: 20, right: 20 } : { top, bottom: 40, left: 370, right: 40 }
 }
 
 function escapeHtml(s) {

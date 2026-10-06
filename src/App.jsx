@@ -19,6 +19,7 @@ import { colorAt, scaleFor } from './lib/colors.js'
 import { renderSurface, surfaceSamples, surfaceVarById } from './lib/surface.js'
 import { livePoints } from './lib/scoring.js'
 import { floodLevel } from './components/mapLayers.js'
+import { isNarrow } from './lib/viewport.js'
 
 const store = {
   get: (k, d) => { try { const v = localStorage.getItem(`mapstats:${k}`); return v ? JSON.parse(v) : d } catch { return d } },
@@ -26,9 +27,6 @@ const store = {
 }
 
 const DEFAULT_OVERLAYS = { choropleth: true, cities: true, labels: true, heat: false, quakes: false, relief: false, flood: false, surface: false, surfaceVar: 'tempMaxAnnual' }
-
-// Matches the CSS breakpoint where the side panel and reports become bottom sheets.
-const isNarrow = () => window.matchMedia?.('(max-width: 820px)').matches
 
 const initialTheme = () => store.get('theme', window.matchMedia?.('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
 
@@ -42,7 +40,7 @@ export default function App() {
   const [weights, setWeights] = useState(() => ({ ...DEFAULT_WEIGHTS, ...store.get('weights', {}) }))
   const [sourceMode, setSourceMode] = useState(() => store.get('sourceMode', 'combined'))
   const [selected, setSelected] = useState(null) // { type, id } | { type: 'adhoc', entityInput }
-  const [panelOpen, setPanelOpen] = useState(() => window.innerWidth >= 820)
+  const [panelOpen, setPanelOpen] = useState(() => !isNarrow())
   const [showInfo, setShowInfo] = useState(false)
   const [showSources, setShowSources] = useState(false)
   // Compare slots keep their position (and colour) when another place is removed.
