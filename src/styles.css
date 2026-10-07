@@ -666,6 +666,8 @@ a.src-btn:hover, button.src-btn:hover { border-color: var(--accent); color: var(
   .legend:not(.expanded) :is(.legend-block, .legend-sub, .src-btns, .legend-extra) { display: none; }
   .legend.expanded { max-height: 60vh; max-height: 60dvh; overflow: auto; }
   .app.has-report .legend { display: none; }
+  /* Map attribution (with the app version) sits above the legend instead of under it. */
+  .maplibregl-ctrl-bottom-left { bottom: calc(var(--legend-h, 0px) + 8px + env(safe-area-inset-bottom, 0px)); left: -2px; z-index: 3; }
 
   .tiles { grid-template-columns: repeat(2, 1fr); }
   .sources li { grid-template-columns: 1fr; gap: 0; }

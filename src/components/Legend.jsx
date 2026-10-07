@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { ChevronDown, ChevronUp } from 'lucide-react'
 import { indicatorById } from '../data/metrics.js'
 import { fmtIndicator, fmtScore } from '../lib/format.js'
@@ -13,8 +13,16 @@ export function Legend({ metric, scale, overlays, theme, national, shifted, sour
   const ind = indicatorById[metric.id]
   // Phones show only the colour ramp until expanded; wider screens always show everything.
   const [expanded, setExpanded] = useState(false)
+  // Publishes the legend's height as --legend-h so the map attribution can sit just above it (0 when hidden).
+  const ref = useRef(null)
+  useEffect(() => {
+    const root = document.documentElement.style
+    const ro = new ResizeObserver(() => root.setProperty('--legend-h', `${ref.current?.offsetHeight || 0}px`))
+    ro.observe(ref.current)
+    return () => { ro.disconnect(); root.removeProperty('--legend-h') }
+  }, [])
   return (
-    <div className={`legend glass ${shifted ? 'shifted' : ''} ${expanded ? 'expanded' : ''}`}>
+    <div ref={ref} className={`legend glass ${shifted ? 'shifted' : ''} ${expanded ? 'expanded' : ''}`}>
       {surface && (
         <div className="legend-block">
           <div className="legend-title">{surfaceVar.label}</div>
