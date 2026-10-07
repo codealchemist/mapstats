@@ -1,5 +1,7 @@
 import { LoaderCircle, Check, CircleAlert } from 'lucide-react'
 
+const failed = (s) => s === 'error' || s === 'partial'
+
 const LABELS = { climate: 'Climate', aqi: 'Air quality', quakes: 'Earthquakes', uv: 'UV', flood: 'Rivers' }
 
 function tooltip(label, s, p, error) {
@@ -11,8 +13,8 @@ function tooltip(label, s, p, error) {
 export function LiveStatus({ status, progress = {}, errors = {}, error }) {
   const entries = Object.entries(status)
   const busy = entries.some(([, s]) => s === 'loading')
-  const failed = entries.some(([, s]) => s === 'error' || s === 'partial')
-  if (!busy && !failed && !error) return null
+  const anyFailed = entries.some(([, s]) => failed(s))
+  if (!busy && !anyFailed && !error) return null
   return (
     <div className="live-status glass" role="status">
       {error && <span className="st error"><CircleAlert size={13} /> Map data failed to load</span>}
@@ -20,7 +22,7 @@ export function LiveStatus({ status, progress = {}, errors = {}, error }) {
         const p = progress[k]
         return (
           <span key={k} className={`st ${s}`} title={tooltip(LABELS[k], s, p, errors[k])}>
-            {s === 'loading' ? <LoaderCircle size={13} className="spin" /> : s === 'error' || s === 'partial' ? <CircleAlert size={13} /> : <Check size={13} />}
+            {s === 'loading' ? <LoaderCircle size={13} className="spin" /> : failed(s) ? <CircleAlert size={13} /> : <Check size={13} />}
             {LABELS[k]}
             {s === 'loading' && p && <span className="st-count">{p.loaded}/{p.total}</span>}
           </span>

@@ -19,6 +19,7 @@ import { colorAt, scaleFor } from './lib/colors.js'
 import { renderSurface, surfaceSamples, surfaceVarById } from './lib/surface.js'
 import { livePoints } from './lib/scoring.js'
 import { floodLevel } from './components/mapLayers.js'
+import { isNarrow } from './lib/viewport.js'
 
 const store = {
   get: (k, d) => { try { const v = localStorage.getItem(`mapstats:${k}`); return v ? JSON.parse(v) : d } catch { return d } },
@@ -39,7 +40,7 @@ export default function App() {
   const [weights, setWeights] = useState(() => ({ ...DEFAULT_WEIGHTS, ...store.get('weights', {}) }))
   const [sourceMode, setSourceMode] = useState(() => store.get('sourceMode', 'combined'))
   const [selected, setSelected] = useState(null) // { type, id } | { type: 'adhoc', entityInput }
-  const [panelOpen, setPanelOpen] = useState(() => window.innerWidth >= 820)
+  const [panelOpen, setPanelOpen] = useState(() => !isNarrow())
   const [showInfo, setShowInfo] = useState(false)
   const [showSources, setShowSources] = useState(false)
   // Compare slots keep their position (and colour) when another place is removed.
@@ -60,9 +61,13 @@ export default function App() {
     if (!familiesFor(iso3).some((f) => f.id === sourceMode)) setSourceMode('combined')
   }, [iso3]) // eslint-disable-line react-hooks/exhaustive-deps
 
+  // Only the data layers feed scoring: status/progress updates (one per loaded chunk) must not
+  // rebuild the model and the map.
+  const { climate, aqi, quakes, uv, flood } = live
+  const liveData = useMemo(() => ({ climate, aqi, quakes, uv, flood }), [climate, aqi, quakes, uv, flood])
   const model = useMemo(
-    () => (data.geo ? buildEntities({ country, provincesGeo: data.geo, cities: data.cities, live, weights, sourceMode }) : null),
-    [country, data.geo, data.cities, live, weights, sourceMode],
+    () => (data.geo ? buildEntities({ country, provincesGeo: data.geo, cities: data.cities, live: liveData, weights, sourceMode }) : null),
+    [country, data.geo, data.cities, liveData, weights, sourceMode],
   )
 
   // Ad-hoc (searched) places are rescored when weights change.
@@ -138,8 +143,9 @@ export default function App() {
   const surface = useMemo(() => {
     if (!overlays.surface || !data.geo) return null
     const points = [...livePoints(data.geo, data.cities), ...live.grid]
-    return renderSurface({ samples: surfaceSamples(surfaceVar, points, live), fc: data.geo, bbox: data.bbox, rampName: surfaceVar.ramp })
-  }, [overlays.surface, surfaceVar, data.geo, data.cities, data.bbox, live])
+    return renderSurface({ samples: surfaceSamples(surfaceVar, points, { climate, uv }), fc: data.geo, bbox: data.bbox, rampName: surfaceVar.ramp })
+    // Redrawn (≈ 50–100 ms) only when the layer this variable reads changes, not on every other chunk.
+  }, [overlays.surface, surfaceVar, data.geo, data.cities, data.bbox, live.grid, surfaceVar.id === 'uvMean' ? uv : climate]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // River flood watch points (cities whose GloFAS cell has a significant river).
   const floodFC = useMemo(() => model && live.flood && {
@@ -156,6 +162,8 @@ export default function App() {
 
   const select = useCallback((sel, { fly = false } = {}) => {
     setSelected(sel)
+    // Phones show one bottom sheet at a time: a report replaces the side panel.
+    if (sel && isNarrow()) setPanelOpen(false)
     if (!fly || !model || !sel) return
     if (sel.type === 'adhoc') return mapRef.current?.flyTo(sel.input.place.lon, sel.input.place.lat, 9)
     const e = (sel.type === 'city' ? model.cities : model.provinces).find((x) => x.id === sel.id)
@@ -206,6 +214,11 @@ export default function App() {
     if (data.bbox) mapRef.current?.fitBounds(data.bbox)
   }
 
+  const togglePanel = () => {
+    if (!panelOpen && isNarrow()) setSelected(null)
+    setPanelOpen(!panelOpen)
+  }
+
   const changeCountry = (next) => {
     setCompare([null, null, null])
     setSelected(null)
@@ -248,31 +261,32 @@ export default function App() {
           onSources={() => setShowSources(true)}
           onCompare={() => setShowCompare(true)}
           compareCount={compare.filter(Boolean).length}
-          onTogglePanel={() => setPanelOpen((o) => !o)}
+          onTogglePanel={togglePanel}
           panelOpen={panelOpen}
           mapRef={mapRef}
         />
 
-        {panelOpen && (
-          <SidePanel
-            key={`side-${homeKey}`}
-            model={model}
-            country={country}
-            live={live}
-            metricId={metricId}
-            onMetric={setMetricId}
-            overlays={overlays}
-            onOverlays={setOverlays}
-            weights={weights}
-            onWeights={setWeights}
-            selected={selected}
-            onSelect={select}
-            mapRef={mapRef}
-            onInfo={() => setShowInfo(true)}
-            sourceMode={sourceMode}
-            onSourceMode={changeSource}
-          />
-        )}
+        {/* Kept mounted while closed so the open tab survives a report opening over it on phones. */}
+        <SidePanel
+          key={`side-${homeKey}`}
+          hidden={!panelOpen}
+          onClose={() => setPanelOpen(false)}
+          model={model}
+          country={country}
+          live={live}
+          metricId={metricId}
+          onMetric={setMetricId}
+          overlays={overlays}
+          onOverlays={setOverlays}
+          weights={weights}
+          onWeights={setWeights}
+          selected={selected}
+          onSelect={select}
+          mapRef={mapRef}
+          onInfo={() => setShowInfo(true)}
+          sourceMode={sourceMode}
+          onSourceMode={changeSource}
+        />
 
         <Legend surface={overlays.surface ? surface : null} surfaceVar={surfaceVar} sourceMode={sourceMode} metric={metric} scale={scale} overlays={overlays} theme={theme} national={model?.national} shifted={panelOpen} country={country} />
         <LiveStatus status={live.status} progress={live.progress} errors={live.errors} error={data.error} />

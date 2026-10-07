@@ -1,5 +1,5 @@
 // npm run live:test — offline checks of the Open-Meteo queue against a fake rate-limited API, on a virtual clock.
-import { callWeight, createQueue, isAbort, PRIORITY } from '../meteoQueue.js'
+import { abortError, callWeight, createQueue, isAbort, PRIORITY } from '../meteoQueue.js'
 import { fetchAqiBatch, fetchClimateBatch, fetchUvBatch } from '../live.js'
 
 let failures = 0
@@ -67,7 +67,7 @@ function fakeApi(clock, { limit = 600, alreadyUsed = 0, fault } = {}) {
     const call = { url, at: clock.now(), weight: urlWeight(url) }
     log.push(call)
     await clock.wait(300)
-    if (signal?.aborted) throw new DOMException('Aborted', 'AbortError')
+    if (signal?.aborted) throw abortError()
     const minute = Math.floor(call.at / 60_000)
     if ((usage[minute] || 0) >= limit) throw (call.status = 429, httpError(429, MINUTELY))
     const injected = fault?.(url, call)

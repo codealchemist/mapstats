@@ -37,7 +37,7 @@ export async function cached(key, ttl, fn) {
   return data
 }
 
-const meteoJSON = (url, cost, { queue = meteo, priority = PRIORITY.map, signal } = {}, timeout = 30000) =>
+const meteoJSON = (url, cost, { queue = meteo, priority = PRIORITY.map, signal, timeout = 30000 } = {}) =>
   queue.request(url, { weight: callWeight(cost), priority, signal, timeout })
 
 const chunk = (arr, n) => Array.from({ length: Math.ceil(arr.length / n) }, (_, i) => arr.slice(i * n, i * n + n))
@@ -47,8 +47,22 @@ const asArray = (r) => (Array.isArray(r) ? r : [r])
 const ids = (group) => group.map((p) => p.id).join('|')
 const daysBetween = (a, b) => Math.round((Date.parse(b) - Date.parse(a)) / DAY) + 1
 
-/** Resolves with whatever chunks loaded ({ data, loaded, failed, total, error }); rejects only when aborted. */
-async function batch(points, size, opts, load) {
+const yearRange = (year) => ({ start: `${year}-01-01`, end: `${year}-12-31`, days: daysBetween(`${year}-01-01`, `${year}-12-31`) })
+
+/**
+ * Loads many points for one layer: in chunks of `size`, each chunk cached under `${key}:<ids>` for `ttl`
+ * and fetched through the queue. `row(response, point)` summarises one location; `value(row)` picks
+ * what the layer stores (default: the whole row).
+ * Resolves with whatever chunks loaded ({ data, loaded, failed, total, error }); rejects only when aborted.
+ */
+async function batch(points, { size, key, ttl, url, cost, row, value = (d) => d, timeout }, opts) {
+  const load = async (group) => {
+    const rows = await cached(`${key}:${ids(group)}`, ttl, async () => {
+      const res = asArray(await meteoJSON(url(group), { locations: group.length, ...cost }, { ...opts, timeout }))
+      return res.map((r, i) => row(r, group[i]))
+    })
+    return rows.map((d) => [d.id, value(d)])
+  }
   const state = { data: {}, loaded: 0, failed: 0, total: points.length, error: null }
   const settled = () => !opts.signal?.aborted && opts.onProgress?.({ ...state, data: { ...state.data } })
   await Promise.all(chunk(points, size).map((group) => load(group).then(
@@ -153,18 +167,15 @@ const lastFullYear = () => new Date().getFullYear() - 1
 // One recent full year per point (map layers). 40 points ≈ 520 calls, just under the per-minute budget.
 export function fetchClimateBatch(points, opts = {}) {
   const year = lastFullYear()
-  const days = daysBetween(`${year}-01-01`, `${year}-12-31`)
-  return batch(points, 40, opts, async (group) => {
-    const rows = await cached(`clim2:${year}:${ids(group)}`, 30 * DAY, async () => {
-      const url = `https://archive-api.open-meteo.com/v1/archive?${coordParams(group)}&start_date=${year}-01-01&end_date=${year}-12-31&daily=${DAILY_VARS}&timezone=auto`
-      const res = asArray(await meteoJSON(url, { locations: group.length, variables: N_DAILY, days }, opts, 60000))
-      return res.map((r, i) => {
-        const { monthly, yearly, ...rest } = summariseDaily(r.daily)
-        return { id: group[i].id, elevation: r.elevation, ...rest }
-      })
-    })
-    return rows.map((d) => [d.id, d])
-  })
+  const { start, end, days } = yearRange(year)
+  return batch(points, {
+    size: 40, key: `clim2:${year}`, ttl: 30 * DAY, timeout: 60000, cost: { variables: N_DAILY, days },
+    url: (group) => `https://archive-api.open-meteo.com/v1/archive?${coordParams(group)}&start_date=${start}&end_date=${end}&daily=${DAILY_VARS}&timezone=auto`,
+    row: (r, point) => {
+      const { monthly, yearly, ...rest } = summariseDaily(r.daily)
+      return { id: point.id, elevation: r.elevation, ...rest }
+    },
+  }, opts)
 }
 
 // Ten-year normals for one location (city report).
@@ -174,7 +185,7 @@ export async function fetchClimateDetail(lat, lon, { signal } = {}) {
   return cached(`climd2:${lat.toFixed(2)},${lon.toFixed(2)}:${end}`, 30 * DAY, async () => {
     const url = `https://archive-api.open-meteo.com/v1/archive?latitude=${lat}&longitude=${lon}&start_date=${start}-01-01&end_date=${end}-12-31&daily=${DAILY_VARS}&timezone=auto`
     const cost = { variables: N_DAILY, days: daysBetween(`${start}-01-01`, `${end}-12-31`) }
-    const r = await meteoJSON(url, cost, { priority: PRIORITY.user, signal }, 90000)
+    const r = await meteoJSON(url, cost, { priority: PRIORITY.user, signal, timeout: 90000 })
     return { elevation: r.elevation, period: `${start}–${end}`, ...summariseDaily(r.daily) }
   })
 }
@@ -184,18 +195,15 @@ export async function fetchClimateDetail(lat, lon, { signal } = {}) {
 // ERA5 has no UV, so a full year of archived forecasts (Open-Meteo historical forecast API) is used.
 export function fetchUvBatch(points, opts = {}) {
   const year = lastFullYear()
-  const days = daysBetween(`${year}-01-01`, `${year}-12-31`)
-  return batch(points, 40, opts, async (group) => {
-    const rows = await cached(`uvy:${year}:${ids(group)}`, 30 * DAY, async () => {
-      const url = `https://historical-forecast-api.open-meteo.com/v1/forecast?${coordParams(group)}&start_date=${year}-01-01&end_date=${year}-12-31&daily=uv_index_max&timezone=auto`
-      const res = asArray(await meteoJSON(url, { locations: group.length, variables: 1, days }, opts, 60000))
-      return res.map((r, i) => {
-        const v = r.daily.uv_index_max.filter((x) => x != null)
-        return { id: group[i].id, uvMean: v.length > 300 ? Math.round(mean(v) * 10) / 10 : null, uvMax: v.length > 300 ? Math.max(...v) : null }
-      })
-    })
-    return rows.map((d) => [d.id, d])
-  })
+  const { start, end, days } = yearRange(year)
+  return batch(points, {
+    size: 40, key: `uvy:${year}`, ttl: 30 * DAY, timeout: 60000, cost: { variables: 1, days },
+    url: (group) => `https://historical-forecast-api.open-meteo.com/v1/forecast?${coordParams(group)}&start_date=${start}&end_date=${end}&daily=uv_index_max&timezone=auto`,
+    row: (r, point) => {
+      const v = r.daily.uv_index_max.filter((x) => x != null)
+      return { id: point.id, uvMean: v.length > 300 ? Math.round(mean(v) * 10) / 10 : null, uvMax: v.length > 300 ? Math.max(...v) : null }
+    },
+  }, opts)
 }
 
 // ---------- River floods (GloFAS) ----------
@@ -209,14 +217,11 @@ export function fetchFloodBatch(points, opts = {}) {
   const today = new Date()
   const iso = (d) => d.toISOString().slice(0, 10)
   const start = iso(new Date(today - 365 * DAY)), end = iso(new Date(+today + 30 * DAY)), now = iso(today)
-  return batch(points, 40, opts, async (group) => {
-    const rows = await cached(`flood:${now}:${ids(group)}`, DAY / 2, async () => {
-      const url = `https://flood-api.open-meteo.com/v1/flood?${coordParams(group)}&daily=river_discharge&start_date=${start}&end_date=${end}`
-      const res = asArray(await meteoJSON(url, { locations: group.length, variables: 1, days: daysBetween(start, end) }, opts, 60000))
-      return res.map((r, i) => summariseFlood(group[i].id, r.daily, now))
-    })
-    return rows.map((d) => [d.id, d])
-  })
+  return batch(points, {
+    size: 40, key: `flood:${now}`, ttl: DAY / 2, timeout: 60000, cost: { variables: 1, days: daysBetween(start, end) },
+    url: (group) => `https://flood-api.open-meteo.com/v1/flood?${coordParams(group)}&daily=river_discharge&start_date=${start}&end_date=${end}`,
+    row: (r, point) => summariseFlood(point.id, r.daily, now),
+  }, opts)
 }
 
 export function summariseFlood(id, daily, today) {
@@ -248,14 +253,12 @@ export function summariseFlood(id, daily, today) {
 // ---------- Air quality ----------
 
 export function fetchAqiBatch(points, opts = {}) {
-  return batch(points, 50, opts, async (group) => {
-    const rows = await cached(`aqi:${new Date().toISOString().slice(0, 10)}:${ids(group)}`, DAY, async () => {
-      const url = `https://air-quality-api.open-meteo.com/v1/air-quality?${coordParams(group)}&hourly=european_aqi&past_days=30&forecast_days=1`
-      const res = asArray(await meteoJSON(url, { locations: group.length, variables: 1, days: 31 }, opts))
-      return res.map((r, i) => ({ id: group[i].id, aqi: Math.round(mean(r.hourly.european_aqi)) }))
-    })
-    return rows.map((d) => [d.id, d.aqi])
-  })
+  return batch(points, {
+    size: 50, key: `aqi:${new Date().toISOString().slice(0, 10)}`, ttl: DAY, cost: { variables: 1, days: 31 },
+    url: (group) => `https://air-quality-api.open-meteo.com/v1/air-quality?${coordParams(group)}&hourly=european_aqi&past_days=30&forecast_days=1`,
+    row: (r, point) => ({ id: point.id, aqi: Math.round(mean(r.hourly.european_aqi)) }),
+    value: (d) => d.aqi,
+  }, opts)
 }
 
 const POLLUTANTS = ['pm2_5', 'pm10', 'nitrogen_dioxide', 'ozone', 'sulphur_dioxide']

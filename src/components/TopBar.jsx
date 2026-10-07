@@ -1,8 +1,9 @@
-import { useState } from 'react'
-import { Moon, Sun, Info, Camera, PanelLeft, ChevronDown, Columns3, Database } from 'lucide-react'
+import { useCallback, useRef, useState } from 'react'
+import { Moon, Sun, Info, Camera, PanelLeft, ChevronDown, Columns3, Database, Ellipsis } from 'lucide-react'
 import { SearchBox } from './SearchBox.jsx'
 import { canvasToBlob, copyImage } from '../lib/export.js'
 import { useToast } from './Toast.jsx'
+import { useDismiss } from '../hooks/useDismiss.js'
 
 export function Logo() {
   return (
@@ -24,6 +25,10 @@ export function Logo() {
 export function TopBar({ onHome, country, countries, onCountry, theme, onTheme, model, live, geo, onSelect, onInfo, onSources, onCompare, compareCount = 0, onTogglePanel, panelOpen, mapRef }) {
   const toast = useToast()
   const [snapping, setSnapping] = useState(false)
+  const [menuOpen, setMenuOpen] = useState(false)
+  const menuRef = useRef(null)
+
+  useDismiss(menuRef, menuOpen, useCallback(() => setMenuOpen(false), []))
 
   const copyMap = async () => {
     const snap = mapRef.current?.snapshot()
@@ -38,6 +43,19 @@ export function TopBar({ onHome, country, countries, onCountry, theme, onTheme, 
       setSnapping(false)
     }
   }
+
+  // Icon buttons on wide screens, items of the "more" menu on phones.
+  const actions = [
+    { icon: Camera, title: 'Copy map image to clipboard', label: 'Copy map image', onClick: copyMap, disabled: snapping },
+    { icon: theme === 'dark' ? Sun : Moon, title: theme === 'dark' ? 'Light mode' : 'Dark mode', onClick: onTheme },
+    { icon: Database, title: 'Data sources', onClick: onSources },
+    { icon: Info, title: 'Methodology & sources', label: 'How scores work', onClick: onInfo },
+  ]
+  const iconButtons = (list) => (
+    <span className="wide-only">
+      {list.map((a) => <button key={a.title} className="icon-btn" onClick={a.onClick} title={a.title} disabled={a.disabled}><a.icon size={17} /></button>)}
+    </span>
+  )
 
   return (
     <header className="topbar">
@@ -61,15 +79,22 @@ export function TopBar({ onHome, country, countries, onCountry, theme, onTheme, 
           <ChevronDown size={14} />
         </label>
         <span className="divider" />
-        <button className="icon-btn" onClick={copyMap} title="Copy map image to clipboard" disabled={snapping}><Camera size={17} /></button>
-        <button className="icon-btn" onClick={onTheme} title={theme === 'dark' ? 'Light mode' : 'Dark mode'}>
-          {theme === 'dark' ? <Sun size={17} /> : <Moon size={17} />}
-        </button>
+        {iconButtons(actions.slice(0, 2))}
         <button className="icon-btn badge-host" onClick={onCompare} title="Compare places (up to 3)">
           <Columns3 size={17} />{compareCount > 0 && <span className="count-badge">{compareCount}</span>}
         </button>
-        <button className="icon-btn" onClick={onSources} title="Data sources"><Database size={17} /></button>
-        <button className="icon-btn" onClick={onInfo} title="Methodology & sources"><Info size={17} /></button>
+        {iconButtons(actions.slice(2))}
+        {/* Phones: the less frequent actions move into a menu so the bar fits on one row. */}
+        <div className="more" ref={menuRef}>
+          <button className={`icon-btn ${menuOpen ? 'active' : ''}`} onClick={() => setMenuOpen((o) => !o)} title="More" aria-haspopup="menu" aria-expanded={menuOpen}>
+            <Ellipsis size={17} />
+          </button>
+          {menuOpen && (
+            <div className="more-menu glass" role="menu" onClick={() => setMenuOpen(false)}>
+              {actions.map((a) => <button key={a.title} role="menuitem" onClick={a.onClick} disabled={a.disabled}><a.icon size={16} /> {a.label || a.title}</button>)}
+            </div>
+          )}
+        </div>
       </div>
     </header>
   )

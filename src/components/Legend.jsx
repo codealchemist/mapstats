@@ -1,3 +1,5 @@
+import { useEffect, useRef, useState } from 'react'
+import { ChevronDown, ChevronUp } from 'lucide-react'
 import { indicatorById } from '../data/metrics.js'
 import { fmtIndicator, fmtScore } from '../lib/format.js'
 import { NO_DATA } from '../lib/colors.js'
@@ -9,8 +11,18 @@ export function Legend({ metric, scale, overlays, theme, national, shifted, sour
   const isScore = metric.kind === 'score'
   const fmt = (v) => (isScore ? fmtScore(v) : fmtIndicator(metric.id, v))
   const ind = indicatorById[metric.id]
+  // Phones show only the colour ramp until expanded; wider screens always show everything.
+  const [expanded, setExpanded] = useState(false)
+  // Publishes the legend's height as --legend-h so the map attribution can sit just above it (0 when hidden).
+  const ref = useRef(null)
+  useEffect(() => {
+    const root = document.documentElement.style
+    const ro = new ResizeObserver(() => root.setProperty('--legend-h', `${ref.current?.offsetHeight || 0}px`))
+    ro.observe(ref.current)
+    return () => { ro.disconnect(); root.removeProperty('--legend-h') }
+  }, [])
   return (
-    <div className={`legend glass ${shifted ? 'shifted' : ''}`}>
+    <div ref={ref} className={`legend glass ${shifted ? 'shifted' : ''} ${expanded ? 'expanded' : ''}`}>
       {surface && (
         <div className="legend-block">
           <div className="legend-title">{surfaceVar.label}</div>
@@ -31,7 +43,12 @@ export function Legend({ metric, scale, overlays, theme, national, shifted, sour
           </div>
         </div>
       )}
-      <div className="legend-title">{metric.label}</div>
+      <div className="row-between">
+        <div className="legend-title">{metric.label}</div>
+        <button className="icon-btn sm legend-toggle" onClick={() => setExpanded((x) => !x)} title={expanded ? 'Less' : 'Legend details'} aria-expanded={expanded}>
+          {expanded ? <ChevronDown size={14} /> : <ChevronUp size={14} />}
+        </button>
+      </div>
       {isScore && <div className="legend-sub">Source: {familyById[sourceMode].short}</div>}
       {ind?.better && <div className="legend-sub">{ind.better === 'low' ? 'Lower' : 'Higher'} is better</div>}
       {isScore && <div className="legend-sub">0–100 · centred on the country average{national?.score != null ? ` (${fmtScore(national.score)})` : ''}</div>}

@@ -71,8 +71,14 @@ export async function fetchNews({ entity, country, disambiguate, signal }) {
     ...(disambiguate && { withRegion: '1' }),
   })
   const res = await fetch(`/api/news?${params}`, { signal })
-  if (res.status === 404) throw Object.assign(new Error('News service not running (start the app with `netlify dev`)'), { code: 'no-service' })
+  // A missing endpoint shows up as a 404, or as the app's index.html with status 200 (static hosting
+  // and dev servers answer unknown paths with the SPA page): either way, the function isn't running.
+  const isJson = /json/i.test(res.headers.get('content-type') || '')
+  if (res.status === 404 || !isJson) {
+    throw Object.assign(new Error('The news service is not reachable at /api/news (it runs with `npm run dev`, `npm run dev:netlify` or on Netlify).'), { code: 'no-service' })
+  }
   const body = await res.json().catch(() => null)
-  if (!res.ok || !body) throw new Error(body?.error || `News service error ${res.status}`)
+  if (!body) throw new Error('The news service returned an unreadable response.')
+  if (!res.ok && res.status !== 503) throw new Error(body.error || `News service error (HTTP ${res.status}).`)
   return body
 }

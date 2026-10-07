@@ -33,7 +33,7 @@ export function useLiveData({ iso3, geo, cities, bbox }) {
       finish(key, 'error', err)
     }
     const run = (key, fetchBatch, pts, priority) =>
-      fetchBatch(pts, { signal, priority, onProgress: (p) => update((l) => ({ ...l, [key]: p.data, progress: { ...l.progress, [key]: p } })) })
+      fetchBatch(pts, { signal, priority, onProgress: ({ data, ...counts }) => update((l) => ({ ...l, [key]: data, progress: { ...l.progress, [key]: counts } })) })
         .then((p) => {
           if (p.failed) console.warn(`[MapStats] ${key}: ${p.failed} of ${p.total} points failed`, p.error)
           finish(key, !p.failed ? 'ready' : p.loaded ? 'partial' : 'error', p.error)

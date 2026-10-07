@@ -146,7 +146,7 @@ export function CompareView({ slots, model, country, theme, sourceMode, live, on
         </div>
         <div className="report-actions">
           <button className="icon-btn" onClick={exportCsv} title="Download comparison CSV" disabled={!filled.length}><FileSpreadsheet size={16} /></button>
-          <button className="icon-btn" onClick={toggleFull} title={isFull ? 'Exit fullscreen' : 'Fullscreen'}>{isFull ? <Minimize2 size={16} /> : <Maximize2 size={16} />}</button>
+          <button className="icon-btn fullscreen-btn" onClick={toggleFull} title={isFull ? 'Exit fullscreen' : 'Fullscreen'}>{isFull ? <Minimize2 size={16} /> : <Maximize2 size={16} />}</button>
           <button className="icon-btn" onClick={onClose} title="Close (Esc)"><X size={18} /></button>
         </div>
       </header>

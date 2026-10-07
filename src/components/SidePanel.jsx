@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { Layers, Trophy, SlidersHorizontal, FileSpreadsheet, FileText, RotateCcw, Info, LoaderCircle } from 'lucide-react'
+import { Layers, Trophy, SlidersHorizontal, FileSpreadsheet, FileText, RotateCcw, Info, LoaderCircle, X } from 'lucide-react'
 import { CATEGORIES, DEFAULT_WEIGHTS, MAP_METRICS, indicatorById } from '../data/metrics.js'
 import { ICONS } from './icons.js'
 import { fmtScore } from '../lib/format.js'
@@ -20,8 +20,8 @@ const TABS = [
 export function SidePanel(props) {
   const [tab, setTab] = useState('layers')
   return (
-    <aside className="side-panel glass">
-      <SourcePicker mode={props.sourceMode} onChange={props.onSourceMode} country={props.country} />
+    <aside className="side-panel glass" hidden={props.hidden}>
+      <SourcePicker mode={props.sourceMode} onChange={props.onSourceMode} onClose={props.onClose} country={props.country} />
       <nav className="tabs" role="tablist">
         {TABS.map((t) => (
           <button key={t.id} role="tab" aria-selected={tab === t.id} className={tab === t.id ? 'active' : ''} onClick={() => setTab(t.id)}>
@@ -29,11 +29,12 @@ export function SidePanel(props) {
           </button>
         ))}
       </nav>
-      <div className="panel-scroll">
+      {/* Not rendered while hidden: the tabs scan every place on each live-data update. */}
+      {!props.hidden && <div className="panel-scroll">
         {tab === 'layers' && <LayersTab {...props} />}
         {tab === 'ranking' && <RankingTab {...props} />}
         {tab === 'weights' && <WeightsTab {...props} />}
-      </div>
+      </div>}
     </aside>
   )
 }
@@ -64,10 +65,13 @@ function LayersTab({ model, country, live, metricId, onMetric, overlays, onOverl
     return Object.entries(g)
   }, [sourceMode, country.iso3]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  const available = (m) => {
-    if (!model || m.kind === 'score') return true
-    return [...model.provinces, ...model.cities].some((e) => e.values[m.id] != null)
-  }
+  // Indicator ids that at least one place has a value for (one pass instead of one per metric).
+  const withData = useMemo(() => {
+    const ids = new Set()
+    if (model) for (const e of [...model.provinces, ...model.cities]) for (const [id, v] of Object.entries(e.values)) if (v != null) ids.add(id)
+    return ids
+  }, [model])
+  const available = (m) => !model || m.kind === 'score' || withData.has(m.id)
   const pending = (m) => {
     if (m.kind === 'score') return false
     const ind = indicatorById[m.id]
@@ -236,10 +240,13 @@ function WeightsTab({ weights, onWeights, onInfo, country }) {
   )
 }
 
-function SourcePicker({ mode, onChange, country }) {
+function SourcePicker({ mode, onChange, onClose, country }) {
   return (
     <div className="source-picker">
-      <label htmlFor="source-mode" className="eyebrow">Data source</label>
+      <div className="row-between">
+        <label htmlFor="source-mode" className="eyebrow">Data source</label>
+        {onClose && <button className="icon-btn panel-close" onClick={onClose} title="Close panel"><X size={18} /></button>}
+      </div>
       <div className="select-wrap">
         <select id="source-mode" value={mode} onChange={(e) => onChange(e.target.value)}>
           {familiesFor(country.iso3).map((f) => <option key={f.id} value={f.id}>{f.label}</option>)}

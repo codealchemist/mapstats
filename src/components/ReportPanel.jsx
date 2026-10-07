@@ -718,8 +718,9 @@ function WeightDetails({ weighted }) {
 
 function FloodWatch({ flood, status, isCity }) {
   if (!isCity) return null
-  if (status === 'loading') return <div className="kv"><span>River flood watch <LoaderCircle size={12} className="spin muted inline" /></span></div>
-  if (!flood) return null
+  // Flood data arrives in chunks: show this place's data as soon as its chunk is in, even while
+  // the rest of the country is still loading.
+  if (!flood) return status === 'loading' ? <div className="kv"><span>River flood watch <LoaderCircle size={12} className="spin muted inline" /></span></div> : null
   if (!flood.river) return <p className="chart-foot">River flood watch: no significant river in the GloFAS cell at this location (median flow under 1 m³/s).</p>
   const lvl = floodLevel(flood.floodWatch ?? 0)
   const tone = { normal: 'good', near: 'warning', above: 'serious', 'well-above': 'critical' }[lvl.id]
