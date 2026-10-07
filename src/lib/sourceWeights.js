@@ -8,6 +8,10 @@ const YEAR = new Date().getFullYear()
 
 export const BASE = {
   snic: { w: 1.0, why: 'official register of recorded cases' },
+  ssmsi: { w: 1.0, why: 'official register of recorded cases' },
+  onisr: { w: 1.0, why: 'official road-accident register' },
+  insee: { w: 1.0, why: 'official statistics' },
+  georisques: { w: 0.6, why: 'official zoning and risk records, exposure classes estimated by MapStats' },
   openmeteo: { w: 1.0, why: 'physical measurement / reanalysis' },
   usgs: { w: 1.0, why: 'instrumental earthquake catalogue' },
   numbeo: { w: 0.5, why: 'crowd-sourced perception survey' },
@@ -19,7 +23,7 @@ const recency = (year) => (year == null ? 1 : Math.max(0.5, 1 - 0.15 * Math.max(
 
 /**
  * @param family  source family id
- * @param ctx     { type: 'city'|'province', snic, numbeo }
+ * @param ctx     { type: 'city'|'province', official: { [family]: { level, latestYear } }, numbeo }
  * @param borrowed  value comes from the province, not the place itself
  * @returns { w, factors: [[label, multiplier]] }
  */
@@ -27,10 +31,11 @@ export function sourceWeight(family, ctx = {}, borrowed = false) {
   const base = BASE[family]
   if (!base) return { w: 0, factors: [] }
   const factors = [[base.why, base.w]]
-  if (family === 'snic') {
-    if (ctx.type === 'city' && ctx.snic?.level === 'department') factors.push(['department, not city boundary', 0.9])
-    const r = recency(ctx.snic?.latestYear)
-    if (r < 1) factors.push([`data from ${ctx.snic.latestYear}`, r])
+  const official = ctx.official?.[family]
+  if (official) {
+    if (ctx.type === 'city' && official.level === 'subregion') factors.push(['department, not city boundary', 0.9])
+    const r = recency(official.latestYear)
+    if (r < 1) factors.push([`data from ${official.latestYear}`, r])
   }
   if (family === 'numbeo' && ctx.numbeo) {
     const n = ctx.numbeo

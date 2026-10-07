@@ -37,15 +37,25 @@ export const INDICATORS = [
   { id: 'water', label: 'Running water', unit: '%', category: 'services', better: 'high', domain: [70, 100], source: 'Censo 2022', digits: 0 },
   { id: 'sewer', label: 'Sewer network', unit: '%', category: 'services', better: 'high', domain: [20, 100], source: 'Censo 2022', digits: 0 },
   { id: 'internet', label: 'Fixed internet', unit: '/100 hh', category: 'services', better: 'high', domain: [25, 100], source: 'ENACOM', digits: 0 },
+  // Availability of fibre is not the subscription rate above, so it is shown as context only.
+  { id: 'fibreCoverage', label: 'Premises eligible to fibre (FttH)', unit: '%', category: 'services', better: null, source: 'ARCEP', digits: 1 },
   // Infrastructure & transport
   { id: 'roadPaved', label: 'Paved road network', unit: '%', category: 'infrastructure', better: 'high', domain: [30, 100], source: 'DNV', digits: 0 },
   { id: 'transit', label: 'Public transport', unit: '/100', category: 'infrastructure', better: 'high', domain: [20, 100], source: 'MapStats est.', digits: 0 },
+  // Census mode share: a measure of use, not of the coverage score above, so descriptive.
+  { id: 'transitCommute', label: 'Commuters using public transport', unit: '%', category: 'infrastructure', better: null, source: 'INSEE census', digits: 1 },
   { id: 'trafficIndex', label: 'Commute time index', unit: '', category: 'infrastructure', better: 'low', domain: [20, 50], source: 'Numbeo', digits: 0 },
   // Economy & wellbeing
   { id: 'poverty', label: 'Poverty', unit: '%', category: 'economy', better: 'low', domain: [15, 60], source: 'EPH', digits: 0 },
+  // Relative poverty (share below 60% of the national median income) is not the same measure as the
+  // basic-basket poverty above, so it is shown but never scored.
+  { id: 'povertyRelative', label: 'Relative poverty (60% of median income)', unit: '%', category: 'economy', better: null, source: 'INSEE Filosofi', digits: 1 },
   { id: 'unemployment', label: 'Unemployment', unit: '%', category: 'economy', better: 'low', domain: [2, 10], source: 'EPH', digits: 1 },
   { id: 'purchasingPower', label: 'Purchasing power', unit: '', category: 'economy', better: 'high', domain: [20, 60], source: 'Numbeo', digits: 0 },
   { id: 'lifeExp', label: 'Life expectancy', unit: 'yrs', category: 'economy', better: 'high', domain: [74, 79], source: 'INDEC', digits: 1 },
+  // Published separately by sex where no both-sex figure exists (France); shown next to the scalar.
+  { id: 'lifeExpWomen', label: 'Life expectancy, women', unit: 'yrs', category: 'economy', better: null, source: 'INSEE life expectancy', digits: 1 },
+  { id: 'lifeExpMen', label: 'Life expectancy, men', unit: 'yrs', category: 'economy', better: null, source: 'INSEE life expectancy', digits: 1 },
   { id: 'hdi', label: 'Human development', unit: '', category: 'economy', better: 'high', domain: [0.75, 0.9], source: 'PNUD', digits: 3 },
   // Descriptive (not scored)
   { id: 'meanTemp', label: 'Mean temperature', unit: '°C', category: 'climate', better: null, source: 'Open-Meteo ERA5 (live)', digits: 1, live: true },
@@ -92,10 +102,14 @@ export const MAP_METRICS = [
   { id: 'healthcareIndex', group: 'Services', icon: 'HeartPulse' },
   { id: 'doctors', group: 'Services', icon: 'HeartPulse' },
   { id: 'internet', group: 'Services', icon: 'Globe' },
+  { id: 'fibreCoverage', group: 'Services', icon: 'Globe' },
   { id: 'sewer', group: 'Services', icon: 'Droplets' },
   { id: 'transit', group: 'Services', icon: 'Bus' },
+  { id: 'transitCommute', group: 'Services', icon: 'Bus' },
   { id: 'poverty', group: 'Economy', icon: 'Wallet' },
+  { id: 'povertyRelative', group: 'Economy', icon: 'Wallet' },
   { id: 'unemployment', group: 'Economy', icon: 'Wallet' },
+  { id: 'lifeExp', group: 'Economy', icon: 'HeartPulse' },
   { id: 'costOfLiving', group: 'Economy', icon: 'Wallet' },
   { id: 'pop', group: 'Economy', icon: 'Building2' },
 ].map((m) => (m.kind ? m : { ...m, label: indicatorById[m.id].label, kind: 'indicator' }))

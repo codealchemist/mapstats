@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { X, ExternalLink, Search, Database } from 'lucide-react'
-import { INDICATORS } from '../data/metrics.js'
-import { SOURCES, SOURCE_META, DATA_TYPES, ACCESS, familyOf } from '../data/sources.js'
+import { SOURCES, SOURCE_META, DATA_TYPES, ACCESS, familyOfSource, indicatorsOfSource } from '../data/sources.js'
 import { BASE } from '../lib/sourceWeights.js'
 import { fold } from '../lib/format.js'
 
@@ -24,7 +23,7 @@ const USED_FOR = {
   'News service': 'Article excerpts and images in “In the news”',
 }
 
-export function SourcesView({ onClose, snicOrigin }) {
+export function SourcesView({ onClose, curated }) {
   const [q, setQ] = useState('')
   const [access, setAccess] = useState('all')
 
@@ -36,10 +35,11 @@ export function SourcesView({ onClose, snicOrigin }) {
 
   const sources = useMemo(() => Object.entries(SOURCES).map(([key, s]) => {
     const meta = SOURCE_META[key] || { types: ['geo'], access: 'bundled' }
-    const indicators = INDICATORS.filter((i) => i.source === key)
-    const family = indicators.length ? familyOf(indicators[0].id) : null
-    return { key, ...s, ...meta, indicators, weight: BASE[family]?.w ?? null }
-  }), [])
+    const indicators = indicatorsOfSource(key)
+    // Raw files behind an imported series, when the loaded country uses this source.
+    const origin = Object.values(curated?.official || {}).find((o) => o.key === key)?.origin || null
+    return { key, ...s, ...meta, indicators, origin, weight: indicators.length ? BASE[familyOfSource(key)]?.w ?? null : null }
+  }), [curated])
 
   const needle = fold(q.trim())
   const visible = sources.filter((s) =>
@@ -102,7 +102,7 @@ export function SourcesView({ onClose, snicOrigin }) {
                       {s.scope && <><dt>Coverage</dt><dd>{s.scope}</dd></>}
                       {s.cadence && <><dt>Updates</dt><dd>{s.cadence}</dd></>}
                       {s.weight != null && <><dt>Reliability</dt><dd>×{s.weight.toFixed(1)} in the weighted score</dd></>}
-                      {s.key === 'SNIC' && snicOrigin && <><dt>Files</dt><dd>{snicOrigin}</dd></>}
+                      {s.origin && <><dt>Files</dt><dd>{s.origin}</dd></>}
                     </dl>
                     {(s.indicators.length > 0 || USED_FOR[s.key]) && (
                       <div className="src-used">

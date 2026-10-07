@@ -3,7 +3,7 @@
 // is averaged across sources or borrowed from another area without saying so.
 import { INDICATORS } from '../data/metrics.js'
 import { SURVEY } from '../data/numbeoSurvey.js'
-import { SOURCES } from '../data/sources.js'
+import { SOURCES, familyById, familyOfSource, sourceOf } from '../data/sources.js'
 import { isOwnValue } from './scoring.js'
 
 const NUMBEO_INDICES = [
@@ -12,44 +12,49 @@ const NUMBEO_INDICES = [
   ['purchasingPower', 'Purchasing power index'], ['qualityOfLife', 'Quality of life index'],
 ]
 
-const SNIC_ROWS = [
-  ['homicide', 'Intentional homicide victims'], ['robbery', 'Robberies'], ['theft', 'Thefts'],
-  ['propertyCrime', 'Robberies + thefts'], ['injuries', 'Intentional injuries'], ['threats', 'Threats'],
-  ['sexualAssault', 'Rapes'], ['drugs', 'Drug law offences'], ['roadDeaths', 'Road traffic death victims'],
-]
-
 const POLLUTANTS = [['pm2_5', 'PM2.5'], ['pm10', 'PM10'], ['nitrogen_dioxide', 'NO₂'], ['ozone', 'O₃'], ['sulphur_dioxide', 'SO₂']]
 
 const row = (label, value, unit = '') => ({ label, value, unit })
 
+// Human label of an official block's geographic level ('region' | 'subregion' | 'city').
+export const levelLabel = (level, country, curated) =>
+  level === 'subregion' ? curated?.subregion?.label || 'Sub-region' : level === 'city' ? 'City' : country?.regionLabel || 'Region'
+
 /**
  * @returns [{ key, name, url, level, area, period, status, note, rows: [{ label, value, unit }] }]
  */
-export function valuesBySource({ entity, model, detail, quakes, live = {} }) {
+export function valuesBySource({ entity, model, detail, quakes, live = {}, country }) {
   const isCity = entity.type === 'city'
   const point = `${entity.lat.toFixed(3)}, ${entity.lon.toFixed(3)}`
+  const cur = model.curated
+  const iso3 = country?.iso3 ?? cur?.iso3
+  const regionLabel = country?.regionLabel || 'Region'
   const groups = []
 
-  // ---- SNIC (official crime statistics) ----
-  const snic = entity.snic
-  if (snic) {
-    const y = snic.latestYear
+  // ---- Official statistical series (SNIC, …) ----
+  for (const [fam, o] of Object.entries(cur?.official || {})) {
+    if (!o.metrics) continue
+    const src = SOURCES[o.key]
+    const b = entity.official?.[fam]
+    if (!b) {
+      if (isCity) groups.push({ key: o.key, name: src.name, url: src.url, rows: [], note: `No ${o.label} ${cur.subregion?.label.toLowerCase() || 'area'} matched to ${entity.name}.` })
+      continue
+    }
+    const y = b.latestYear
     const span = `${y - 2}–${String(y).slice(2)}`
     groups.push({
-      key: 'SNIC', name: SOURCES.SNIC.name, url: SOURCES.SNIC.url,
-      level: snic.level === 'department' ? 'Department (partido)' : snic.level === 'city' ? 'City' : 'Province',
-      area: snic.level === 'department' ? `${snic.name} (INDEC ${snic.code})` : snic.name,
+      key: o.key, name: src.name, url: src.url,
+      level: levelLabel(b.level, country, cur),
+      area: b.code ? `${b.name} (${b.code})` : b.name,
       period: `${y} (+ ${span} average)`,
-      status: /mirror/i.test(model.snicOrigin || '') ? 'Unofficial mirror copy' : 'Official download',
-      rows: SNIC_ROWS.flatMap(([k, label]) => [
-        row(`${label}, ${y}`, snic.counts?.[k], 'count'),
-        row(`${label}, ${y}`, snic.latest[k], 'per 100k'),
-        row(`${label}, ${span} average`, snic.avg3[k], 'per 100k'),
+      status: /mirror/i.test(o.origin || '') ? 'Unofficial mirror copy' : 'Official download',
+      rows: Object.entries(o.metrics).flatMap(([k, m]) => [
+        row(`${m.label}, ${y}`, b.counts?.[k], 'count'),
+        row(`${m.label}, ${y}`, b.latest?.[k], m.unit),
+        row(`${m.label}, ${span} average`, b.avg3?.[k], m.unit),
       ]).filter((r) => r.value != null),
-      note: `Rates as published by SNIC, rounded to 2 decimals. Counts are exact.${model.snicOrigin ? ` Files: ${model.snicOrigin}.` : ''}`,
+      note: `${o.note || ''}${o.origin ? ` Files: ${o.origin}.` : ''}`.trim() || null,
     })
-  } else if (isCity) {
-    groups.push({ key: 'SNIC', name: SOURCES.SNIC.name, url: SOURCES.SNIC.url, rows: [], note: `No SNIC department matched to ${entity.name}.` })
   }
 
   // ---- Numbeo (crowd-sourced) ----
@@ -149,18 +154,33 @@ export function valuesBySource({ entity, model, detail, quakes, live = {} }) {
     })
   }
 
-  // ---- Statistics only available for the whole province (cities) / the province's own figures ----
-  const provRows = INDICATORS.filter((i) => i.source !== 'Numbeo' && i.source !== 'SNIC' && !i.live && i.id !== 'pop')
-    .filter((i) => (isCity ? entity.inherited?.has(i.id) : entity.values[i.id] != null))
-    .map((i) => ({ ...row(i.label, entity.values[i.id], i.unit), source: i.source }))
-  if (provRows.length) {
+  // ---- Curated statistics outside the series above, grouped by source family: the place's own
+  // (e.g. commune figures) and, for cities, the region-wide figures the score falls back on ----
+  const inSeries = new Set(Object.values(cur?.official || {}).flatMap((o) => Object.keys(o.metrics || {})))
+  const own = {}, regional = {}
+  for (const i of INDICATORS) {
+    if (i.live || i.id === 'pop' || inSeries.has(i.id) || entity.values[i.id] == null) continue
+    const src = sourceOf(i.id, iso3)
+    if (!src || src === 'Numbeo') continue
+    const period = cur?.periods?.[i.id]
+    const r = { ...row(period ? `${i.label}, ${period}` : i.label, entity.values[i.id], i.unit), source: src }
+    const bucket = isCity && !entity.inherited?.has(i.id) ? own : regional
+    ;(bucket[familyOfSource(src)] ||= []).push(r)
+  }
+  for (const [f, rows] of Object.entries(own)) {
     groups.push({
-      key: 'province', name: isCity ? `Province-level statistics (${entity.provinceName})` : 'Provincial statistics',
-      level: 'Province', area: isCity ? entity.provinceName : entity.name, status: 'Hand-entered approximations',
-      rows: provRows,
+      key: `own:${f}`, name: `${cur?.subregion?.label || 'City'} statistics`, level: cur?.subregion?.label || 'City', area: entity.name,
+      status: familyById[f]?.status || null, rows, note: familyById[f]?.note || null,
+    })
+  }
+  for (const [f, rows] of Object.entries(regional)) {
+    groups.push({
+      key: `region:${f}`, name: isCity ? `${regionLabel}-level statistics (${entity.provinceName})` : `${regionLabel} statistics`,
+      level: regionLabel, area: isCity ? entity.provinceName : entity.name, status: familyById[f]?.status || null,
+      rows,
       note: isCity
         ? `Not published for ${entity.name}; shown for transparency because the score uses them. Each row names its reference source.`
-        : 'Approximate values entered by hand from each reference source; verify before relying on them.',
+        : familyById[f]?.note || null,
     })
   }
 

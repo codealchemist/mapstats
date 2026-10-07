@@ -18,6 +18,7 @@ import { useToast } from './Toast.jsx'
 import { SURVEY, SURVEY_SAFER_HIGH } from '../data/numbeoSurvey.js'
 import { valuesBySource, fmtExact } from '../lib/provenance.js'
 import { familyById, SOURCE_FAMILIES, isMultiSource } from '../data/sources.js'
+import { levelLabel } from '../lib/provenance.js'
 import { agreementOf } from '../lib/sourceWeights.js'
 import { floodLevel } from './mapLayers.js'
 import { NewsSection } from './NewsSection.jsx'
@@ -158,28 +159,37 @@ export function ReportPanel({ entity, model, country, live, theme, onClose, onSe
   const buildSurvey = useCallback(surveyBar(surveyRows, 1), [surveyRows]) // eslint-disable-line react-hooks/exhaustive-deps
   const buildWalking = useCallback(surveyBar(safetyRows, 0), [safetyRows]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Official SNIC series: this place vs its province vs the country (cities sit in a SNIC department).
-  const snic = entity.snic
-  const snicProv = isCity ? model.provinces.find((p) => p.id === entity.province)?.snic : null
-  const snicNat = national.snic
-  const snicYears = snicNat?.years || []
-  const snicLabel = !snic ? '' : snic.level === 'department' ? `${snic.name} department` : snic.level === 'city' ? snic.name : entity.name
-  const buildSnicTrend = (metric) => (t) => ({
-    type: 'line',
-    data: {
-      labels: snicYears,
-      datasets: [
-        { label: snicLabel, data: snic.series[metric], ...lineStyle(t.series[0]), pointRadius: 2.5 },
-        ...(snicProv ? [{ label: snicProv.name, data: snicProv.series[metric], ...lineStyle(t.series[1]), pointRadius: 0 }] : []),
-        { label: 'Argentina', data: snicNat.series[metric], ...lineStyle(t.de), borderDash: [], pointRadius: 0 },
-      ],
-    },
-    options: baseOptions(t, { legend: true, yTitle: 'per 100,000' }),
-  })
-  const buildHomicideTrend = useCallback(buildSnicTrend('homicide'), [snic, snicProv, snicNat]) // eslint-disable-line react-hooks/exhaustive-deps
-  const buildPropertyTrend = useCallback(buildSnicTrend('propertyCrime'), [snic, snicProv, snicNat]) // eslint-disable-line react-hooks/exhaustive-deps
+  // Official statistical series (SNIC, …): this place vs its region vs the country. A city may sit in
+  // a finer official unit (its SNIC department) or, without one, show its region's series as such.
+  const curated = model.curated
+  const officials = useMemo(() => Object.entries(curated?.official || {}).flatMap(([fam, o]) => {
+    const block = entity.official?.[fam]
+    if (!o.metrics || !block?.series || !o.years?.length) return []
+    const region = isCity && block.level !== 'region' ? model.provinces.find((p) => p.id === entity.province)?.official?.[fam] : null
+    const sub = curated.subregion?.label || 'Sub-region'
+    const placeLabel = block.level === 'subregion' ? `${block.name} ${sub.toLowerCase()}` : block.level === 'region' && isCity ? block.name : block.level === 'city' ? block.name : entity.name
+    const where = block.level === 'subregion' ? `${block.name} ${sub.toLowerCase()}${o.levelNote ? `, ${o.levelNote}` : ''}`
+      : block.level === 'city' ? 'city-wide'
+        : isCity ? `${block.name}: ${country.regionLabel.toLowerCase()}-wide figures, no ${sub.toLowerCase()}-level data` : `${country.regionLabel.toLowerCase()}-wide`
+    const charts = Object.entries(o.metrics).filter(([, m]) => m.chart).map(([metric, m]) => ({
+      metric, id: `${fam}-${metric}`, title: m.chart[0], subtitle: `${m.chart[1]} · ${o.label}`, digits: m.digits ?? 1,
+      build: (t) => ({
+        type: 'line',
+        data: {
+          labels: o.years,
+          datasets: [
+            { label: placeLabel, data: block.series[metric], ...lineStyle(t.series[0]), pointRadius: 2.5 },
+            ...(region?.series ? [{ label: region.name, data: region.series[metric], ...lineStyle(t.series[1]), pointRadius: 0 }] : []),
+            ...(national.official?.[fam]?.series ? [{ label: country.name, data: national.official[fam].series[metric], ...lineStyle(t.de), borderDash: [], pointRadius: 0 }] : []),
+          ],
+        },
+        options: baseOptions(t, { legend: true, yTitle: 'per 100,000' }),
+      }),
+    }))
+    return [{ fam, o, block, region, nat: national.official?.[fam], placeLabel, where, charts }]
+  }), [curated, entity, model.provinces, national, isCity, country])
 
-  const sourceGroups = useMemo(() => valuesBySource({ entity, model, detail, quakes, live }), [entity, model, detail, quakes, live])
+  const sourceGroups = useMemo(() => valuesBySource({ entity, model, detail, quakes, live, country }), [entity, model, detail, quakes, live, country])
 
   // ---------- exports ----------
   const exportPdf = async () => {
@@ -187,7 +197,7 @@ export function ReportPanel({ entity, model, country, live, theme, onClose, onSe
     try {
       await new Promise((r) => setTimeout(r, 30))
       const charts = [...(registryRef.current?.values() || [])].map(({ title, build }) => ({ title, ...renderOffscreen(build) }))
-      await reportPdf({ entity, national, charts, countryName: country.name, sourceGroups })
+      await reportPdf({ entity, national, charts, country, sourceGroups })
       toast('PDF report downloaded')
     } catch (e) {
       console.error(e)
@@ -197,7 +207,7 @@ export function ReportPanel({ entity, model, country, live, theme, onClose, onSe
     }
   }
   const exportCsv = () => {
-    downloadBlob(reportCsv(entity, detail, sourceGroups), `mapstats-${slug(entity.name)}.csv`)
+    downloadBlob(reportCsv(entity, detail, sourceGroups, country), `mapstats-${slug(entity.name)}.csv`)
     toast('CSV downloaded')
   }
 
@@ -262,7 +272,7 @@ export function ReportPanel({ entity, model, country, live, theme, onClose, onSe
             </div>
             {isCity && entity.inherited?.size > 0 && (
               <p className="note">
-                <Info size={13} /> Scores use province-level figures{entity.provinceName ? ` (${entity.provinceName})` : ''} where {entity.name} has no city-level data.
+                <Info size={13} /> Scores use {country.regionLabel.toLowerCase()}-level figures{entity.provinceName ? ` (${entity.provinceName})` : ''} where {entity.name} has no city-level data.
                 These are listed as missing in each category below, not shown as city values.
               </p>
             )}
@@ -282,7 +292,7 @@ export function ReportPanel({ entity, model, country, live, theme, onClose, onSe
             <ChartCard id="categories" title="Score by category" subtitle="0–100, higher is better" theme={theme} build={buildCategories} height={230}
               table={{ columns: ['Category', entity.name, 'Country avg.'], rows: CATEGORIES.map((c) => [c.label, fmtScore(entity.categories[c.id]), fmtScore(national.categories[c.id])]) }} />
 
-            <ScoreBySource entity={entity} mode={sourceMode} />
+            <ScoreBySource entity={entity} mode={sourceMode} country={country} />
 
             {!isCity && provinceCities.length > 0 && (
               <ChartCard id="cities" title={`Cities in ${entity.name}`} subtitle="MapStats score" theme={theme} build={buildCities}
@@ -315,8 +325,8 @@ export function ReportPanel({ entity, model, country, live, theme, onClose, onSe
           {/* ---------- Safety ---------- */}
           <section id="sec-safety" className="report-section">
             <SectionHead icon={ShieldAlert} title="Safety"
-              sub={[snic && 'Official SNIC statistics', entity.numbeo?.survey && 'Numbeo survey'].filter(Boolean).join(' · ') || (isCity ? 'City-level crime data' : 'Province crime statistics')}
-              sources={sourcesForIndicators(['crimeIndex', 'homicide', 'propertyCrime', 'roadDeaths'].filter((k) => isOwnValue(entity, k)))} entity={entity} category="safety" />
+              sub={[...officials.map((x) => `Official ${x.o.label} statistics`), entity.numbeo?.survey && 'Numbeo survey'].filter(Boolean).join(' · ') || (isCity ? 'City-level crime data' : `${country.regionLabel} crime statistics`)}
+              sources={sourcesForIndicators(['crimeIndex', 'homicide', 'propertyCrime', 'roadDeaths'].filter((k) => isOwnValue(entity, k)), country.iso3)} entity={entity} category="safety" />
             {['crimeIndex', 'homicide', 'propertyCrime', 'roadDeaths'].some((k) => isOwnValue(entity, k)) && (
               <div className="kv">
                 {['crimeIndex', 'homicide', 'propertyCrime', 'roadDeaths'].filter((k) => isOwnValue(entity, k)).map((k) => (
@@ -329,34 +339,46 @@ export function ReportPanel({ entity, model, country, live, theme, onClose, onSe
             {entity.numbeo?.source === 'snapshot' && (
               <p className="note"><Info size={13} /> Numbeo values for {entity.name} are an approximate snapshot. Run the Numbeo scraper or check the live page.</p>
             )}
-            {snic && snicYears.length > 0 && (
-              <>
+            {officials.map(({ fam, o, block, region, nat, placeLabel, where, charts }) => (
+              <div key={fam}>
                 <div className="sub-head">
-                  Official statistics · SNIC {snicYears[0]}–{snic.latestYear}
-                  <span className="muted small"> · {snic.level === 'department' ? `${snic.name} department (partido), the finest level SNIC publishes` : snic.level === 'city' ? 'city-wide' : 'province-wide'}</span>
+                  Official statistics · {o.label} {o.years[0]}–{block.latestYear}
+                  <span className="muted small"> · {where}</span>
                 </div>
-                <ChartCard id="snic-homicide" title="Homicide rate" subtitle="Victims of intentional homicide per 100,000 · SNIC" theme={theme} build={buildHomicideTrend} height={190}
-                  table={{ columns: ['Year', snicLabel, ...(snicProv ? [snicProv.name] : []), 'Argentina'], rows: snicYears.map((y, i) => [y, fmt2(snic.series.homicide[i]), ...(snicProv ? [fmt2(snicProv.series.homicide[i])] : []), fmt2(snicNat.series.homicide[i])]) }} />
-                <ChartCard id="snic-property" title="Robberies and thefts" subtitle="Incidents per 100,000 · SNIC" theme={theme} build={buildPropertyTrend} height={190}
-                  table={{ columns: ['Year', snicLabel, ...(snicProv ? [snicProv.name] : []), 'Argentina'], rows: snicYears.map((y, i) => [y, fmt0(snic.series.propertyCrime[i]), ...(snicProv ? [fmt0(snicProv.series.propertyCrime[i])] : []), fmt0(snicNat.series.propertyCrime[i])]) }} />
-                <div className="table-wrap">
-                  <table className="data-table">
-                    <thead><tr><th>Crime type ({snic.latestYear}, per 100k)</th><th className="num">{isCity ? 'Department' : entity.name}</th>{snicProv && <th className="num">Province</th>}<th className="num">Argentina</th></tr></thead>
-                    <tbody>
-                      {Object.entries(SNIC_TABLE).map(([k, label]) => (
-                        <tr key={k}>
-                          <td>{label}</td>
-                          <td className="num">{fmtRate(snic.latest[k])}</td>
-                          {snicProv && <td className="num">{fmtRate(snicProv.latest[k])}</td>}
-                          <td className="num">{fmtRate(snicNat.latest[k])}</td>
+                {charts.map((c) => (
+                  <ChartCard key={c.id} id={c.id} title={c.title} subtitle={c.subtitle} theme={theme} build={c.build} height={190}
+                    table={{
+                      columns: ['Year', placeLabel, ...(region?.series ? [region.name] : []), ...(nat?.series ? [country.name] : [])],
+                      rows: o.years.map((y, i) => [y, fmtN(block.series[c.metric][i], c.digits), ...(region?.series ? [fmtN(region.series[c.metric][i], c.digits)] : []), ...(nat?.series ? [fmtN(nat.series[c.metric][i], c.digits)] : [])]),
+                    }} />
+                ))}
+                {o.table?.length > 0 && (
+                  <div className="table-wrap">
+                    <table className="data-table">
+                      <thead>
+                        <tr>
+                          <th>{o.tableLabel || 'Indicator'} ({block.latestYear}, per 100k)</th>
+                          <th className="num">{block.level === 'subregion' ? levelLabel('subregion', country, curated) : block.level === 'region' && isCity ? block.name : entity.name}</th>
+                          {region && <th className="num">{country.regionLabel}</th>}
+                          {nat && <th className="num">{country.name}</th>}
                         </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-                <p className="chart-foot">Scores use 3-year averages. Rates are as published by SNIC; blank cells are not published for this area.</p>
-              </>
-            )}
+                      </thead>
+                      <tbody>
+                        {o.table.map((k) => (
+                          <tr key={k}>
+                            <td>{o.metrics[k].label}{o.metrics[k].unit !== 'per 100k' && <span className="faint"> · {o.metrics[k].unit}</span>}</td>
+                            <td className="num">{fmtRate(block.latest?.[k])}</td>
+                            {region && <td className="num">{fmtRate(region.latest?.[k])}</td>}
+                            {nat && <td className="num">{fmtRate(nat.latest?.[k])}</td>}
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+                {o.footnote && <p className="chart-foot">{o.footnote}</p>}
+              </div>
+            ))}
             {surveyRows.length > 0 && (
               <div className="sub-head">
                 Numbeo crowd-sourced survey
@@ -374,7 +396,7 @@ export function ReportPanel({ entity, model, country, live, theme, onClose, onSe
                 height={safetyRows.length * 30 + 40}
                 table={{ columns: ['Question', 'Score'], rows: safetyRows.map(([k, label]) => [label, survey[k]]) }} />
             )}
-            <MissingStats entity={entity} ids={['crimeIndex', 'homicide', 'propertyCrime', 'roadDeaths'].filter((k) => !isOwnValue(entity, k))} category="safety" />
+            <MissingStats entity={entity} ids={['crimeIndex', 'homicide', 'propertyCrime', 'roadDeaths'].filter((k) => !isOwnValue(entity, k))} category="safety" country={country} />
           </section>
 
           <NewsSection entity={entity} country={country} model={model} />
@@ -438,7 +460,7 @@ export function ReportPanel({ entity, model, country, live, theme, onClose, onSe
                 ))}
               </div>
             )}
-            <MissingStats entity={entity} ids={HAZARD_KEYS.filter((k) => !isOwnValue(entity, k))} />
+            <MissingStats entity={entity} ids={HAZARD_KEYS.filter((k) => !isOwnValue(entity, k))} country={country} />
             <FloodWatch flood={live.flood?.[entity.id]} status={live.status.flood} isCity={isCity} />
             {quakes && (
               <>
@@ -463,7 +485,7 @@ export function ReportPanel({ entity, model, country, live, theme, onClose, onSe
           {/* ---------- Indicators ---------- */}
           <section id="sec-indicators" className="report-section">
             <SectionHead icon={Info} title="All indicators" sub="Value · country average · normalised score" />
-            {CATEGORIES.map((c) => <IndicatorGroup key={c.id} category={c} entity={entity} national={national} />)}
+            {CATEGORIES.map((c) => <IndicatorGroup key={c.id} category={c} entity={entity} national={national} country={country} />)}
           </section>
         </ChartRegistry>
       </div>
@@ -472,14 +494,8 @@ export function ReportPanel({ entity, model, country, live, theme, onClose, onSe
 }
 
 const round1 = (v) => (v == null ? null : Math.round(v * 10) / 10)
-const fmt2 = (v) => (v == null ? null : v.toFixed(2))
-const fmt0 = (v) => (v == null ? null : Math.round(v).toLocaleString('en'))
+const fmtN = (v, digits) => (v == null ? null : digits ? v.toFixed(digits) : Math.round(v).toLocaleString('en'))
 const fmtRate = (v) => (v == null ? '—' : v >= 100 ? Math.round(v).toLocaleString('en') : v.toFixed(1))
-
-const SNIC_TABLE = {
-  homicide: 'Intentional homicide (victims)', robbery: 'Robbery', theft: 'Theft', injuries: 'Intentional injuries',
-  threats: 'Threats', sexualAssault: 'Rape', drugs: 'Drug law offences', roadDeaths: 'Road deaths (victims)',
-}
 
 function SectionHead({ icon: Icon, title, sub, status, sources, entity, category }) {
   return (
@@ -523,7 +539,7 @@ function Coverage({ value = 0 }) {
   )
 }
 
-function IndicatorGroup({ category, entity, national }) {
+function IndicatorGroup({ category, entity, national, country }) {
   const Icon = ICONS[category.icon]
   const isCity = entity.type === 'city'
   const inCategory = INDICATORS.filter((i) => i.category === category.id)
@@ -537,7 +553,7 @@ function IndicatorGroup({ category, entity, national }) {
         <span><Icon size={14} /> {category.label}</span>
         <span className="muted small">{fmtScore(entity.categories[category.id])} <span className="faint">/ avg {fmtScore(national.categories[category.id])}</span></span>
       </div>
-      <SourceButtons keys={sourcesForIndicators(rows.map((i) => i.id))} entity={entity} category={category.id} label={null} />
+      <SourceButtons keys={sourcesForIndicators(rows.map((i) => i.id), country.iso3)} entity={entity} category={category.id} label={null} />
       {rows.map((i) => {
         const n = normalise(i.id, entity.values[i.id])
         const na = normalise(i.id, national.values[i.id])
@@ -552,7 +568,7 @@ function IndicatorGroup({ category, entity, national }) {
           </div>
         )
       })}
-      <MissingStats entity={entity} ids={missing} category={category.id} />
+      <MissingStats entity={entity} ids={missing} category={category.id} country={country} />
     </div>
   )
 }
@@ -560,7 +576,7 @@ function IndicatorGroup({ category, entity, national }) {
 const HAZARD_KEYS = ['seismicZone', 'fireRisk', 'floodRisk']
 
 // Notice for indicators with no city-level data, with links to where they could be found.
-function MissingStats({ entity, ids, category }) {
+function MissingStats({ entity, ids, category, country }) {
   if (entity.type !== 'city' || !ids.length) return null
   const fallback = ids.filter((id) => entity.inherited?.has(id))
   return (
@@ -569,10 +585,10 @@ function MissingStats({ entity, ids, category }) {
       <div className="missing-list">{ids.map((id) => indicatorById[id].label).join(' · ')}</div>
       {fallback.length > 0 && (
         <div className="missing-foot">
-          The score uses province-level figures{entity.provinceName ? ` (${entity.provinceName})` : ''} for {fallback.length === ids.length ? 'these' : fallback.map((id) => indicatorById[id].label.toLowerCase()).join(', ')}.
+          The score uses {country.regionLabel.toLowerCase()}-level figures{entity.provinceName ? ` (${entity.provinceName})` : ''} for {fallback.length === ids.length ? 'these' : fallback.map((id) => indicatorById[id].label.toLowerCase()).join(', ')}.
         </div>
       )}
-      <SourceButtons keys={sourcesForIndicators(ids)} entity={entity} category={category} label="Look up" />
+      <SourceButtons keys={sourcesForIndicators(ids, country.iso3)} entity={entity} category={category} label="Look up" />
     </div>
   )
 }
@@ -610,7 +626,7 @@ function SourceGroup({ group: g }) {
 
 // Category × source matrix: how each source scores the place, and both integrations side by side.
 const DISAGREE = 25
-function ScoreBySource({ entity, mode }) {
+function ScoreBySource({ entity, mode, country }) {
   const cmp = entity.compare
   // Per-source columns follow the integration being viewed (fixed-domain for median, percentile for weighted).
   const view = mode === 'weighted' ? cmp?.weighted : cmp?.combined
@@ -674,7 +690,7 @@ function ScoreBySource({ entity, mode }) {
       </div>
       <div className="chart-foot">
         ± is the weighted standard deviation between sources: under 10 high agreement, 10–20 medium, over 20 low.
-        Only data measured for {entity.name} votes; province figures fill a category only when no source has local data.
+        Only data measured for {entity.name} votes; {country.regionLabel.toLowerCase()} figures fill a category only when no source has local data.
       </div>
       {mode === 'weighted' && <WeightDetails weighted={w} />}
     </div>

@@ -8,9 +8,9 @@
 //    rewards nor punishes a place. `coverage` reports how much data was used.
 
 import { CATEGORIES, INDICATORS, indicatorById } from '../data/metrics.js'
-import { PROVINCES as AR_PROVINCES, CITIES as AR_CITIES, SNIC } from '../data/argentina.js'
+import { curatedFor } from '../data/curated.js'
 import { haversineKm, labelPoint } from './geo.js'
-import { familyOf, isMultiSource } from '../data/sources.js'
+import { familiesByIndicator, isMultiSource } from '../data/sources.js'
 import { sourceWeight, percentile } from './sourceWeights.js'
 
 const SCORED = INDICATORS.filter((i) => i.better)
@@ -50,7 +50,8 @@ const median = (a) => {
  * Only values measured for the place itself vote. Values borrowed from the province (`inherited`)
  * fill a category only when no source has local data for it. Provincial statistics are
  * province-level by nature and always count.
- * ctx: { type, snic, numbeo, dist } — dist[type][indicator] = sorted own values (for percentiles).
+ * ctx: { type, families, official, numbeo, dist } — families maps indicator -> source family for the
+ * country; dist[type][indicator] = sorted own values (for percentiles).
  */
 export function scoreValues(values, weights, mode = 'combined', inherited = null, ctx = {}) {
   const multi = isMultiSource(mode)
@@ -59,7 +60,7 @@ export function scoreValues(values, weights, mode = 'combined', inherited = null
   for (const c of CATEGORIES) {
     const own = {}, borrowed = {}
     for (const i of SCORED.filter((x) => x.category === c.id)) {
-      const f = familyOf(i.id)
+      const f = ctx.families[i.id]
       if (!multi && f !== mode) continue
       possible++
       const v = values[i.id]
@@ -124,7 +125,18 @@ function distributions(entities) {
   return dist
 }
 
-const ctxOf = (e, dist) => ({ type: e.type === 'national' ? 'province' : e.type, snic: e.snic, numbeo: e.numbeo, dist })
+const ctxOf = (e, dist, families) => ({ type: e.type === 'national' ? 'province' : e.type, families, official: e.official, numbeo: e.numbeo, dist })
+
+// Official statistical blocks (SNIC…) a region has, keyed by source family. Families that only
+// declare a reference period get a period-only block so the recency weight still applies.
+function officialFor(cur, id, level) {
+  const out = {}
+  for (const [fam, o] of Object.entries(cur?.official || {})) {
+    if (o.regions?.[id]) out[fam] = { level, ...o.regions[id] }
+    else if (!o.regions && o.latestYear != null) out[fam] = { level, latestYear: o.latestYear }
+  }
+  return Object.keys(out).length ? out : null
+}
 
 const weightedMean = (items, key) => {
   let w = 0, s = 0
@@ -178,11 +190,13 @@ export function liveValuesFor(id, lat, lon, live) {
 
 // Base (curated) data for cities in a country. Non-curated countries use Natural Earth cities.
 export function baseCities(country, neCities) {
-  return country.curated && country.iso3 === 'ARG' ? AR_CITIES : neCities
+  return curatedFor(country.iso3)?.cities || neCities
 }
 
 export function buildEntities({ country, provincesGeo, cities, live, weights, sourceMode = 'combined' }) {
-  const curated = country.iso3 === 'ARG' ? AR_PROVINCES : {}
+  const cur = curatedFor(country.iso3)
+  const curated = cur?.regions || {}
+  const families = familiesByIndicator(country.iso3)
 
   // Province-level Numbeo baseline (population-weighted over cities Numbeo covers), so
   // uncovered towns are compared on the same indicators instead of silently skipping them.
@@ -214,7 +228,9 @@ export function buildEntities({ country, provincesGeo, cities, live, weights, so
     for (const k of LIVE_KEYS) values[k] = lv[k]
     return {
       type: 'city', id: c.id, name: c.name, province: c.province, lat: c.lat, lon: c.lon,
-      capital: c.capital, numbeoSlug: c.numbeoSlug, values, inherited, snic: c.snic || null,
+      capital: c.capital, numbeoSlug: c.numbeoSlug, values, inherited,
+      // A city without its own official statistics shows its region's, labelled as such.
+      official: c.official || officialFor(cur, c.province, 'region'),
       numbeo: c.numbeoSource ? { source: c.numbeoSource, fetchedAt: c.numbeoFetchedAt, contributors: c.numbeoContributors, survey: c.numbeoSurvey, safetyIndex: c.safetyIndex ?? null } : null,
     }
   })
@@ -225,18 +241,16 @@ export function buildEntities({ country, provincesGeo, cities, live, weights, so
     const [lon, lat] = labelPoint(f)
     const own = cityEntities.filter((c) => c.province === id)
     const values = { ...(curated[id] || {}) }
-    if (values.pop) values.pop *= 1000
     for (const k of LIVE_KEYS) values[k] = own.length ? weightedMean(own, k) : null
     for (const k of NUMBEO_KEYS) values[k] = numbeoBaseline[id] ? weightedMean(numbeoBaseline[id], k) : null
     if (!own.length) Object.assign(values, liveValuesFor(`prov:${id}`, lat, lon, live))
-    const snic = country.iso3 === 'ARG' && SNIC.provinces?.[id] ? { level: 'province', ...SNIC.provinces[id] } : null
-    return { type: 'province', id, name: f.properties.name, lat, lon, values, cityCount: own.length, snic }
+    return { type: 'province', id, name: f.properties.name, lat, lon, values, cityCount: own.length, official: officialFor(cur, id, 'region') }
   })
 
   const all = [...provEntities, ...cityEntities]
   const dist = distributions(all)
   for (const e of all) {
-    const ctx = ctxOf(e, dist)
+    const ctx = ctxOf(e, dist, families)
     Object.assign(e, scoreValues(e.values, weights, sourceMode, e.inherited, ctx))
     // Both integration methods, always, so reports can compare them side by side.
     e.compare = {
@@ -250,9 +264,11 @@ export function buildEntities({ country, provincesGeo, cities, live, weights, so
   const provinceName = Object.fromEntries(provEntities.map((p) => [p.id, p.name]))
   cityEntities.forEach((c) => (c.provinceName = provinceName[c.province] || ''))
 
-  const national = nationalAverage(provEntities, weights, sourceMode, dist)
-  if (country.iso3 === 'ARG' && SNIC.national) national.snic = { ...SNIC.national, years: SNIC.years }
-  return { provinces: provEntities, cities: cityEntities, national, dist, snicOrigin: country.iso3 === 'ARG' ? SNIC.origin || null : null }
+  const national = nationalAverage(provEntities, weights, sourceMode, dist, families)
+  for (const [fam, o] of Object.entries(cur?.official || {})) {
+    if (o.national) (national.official ||= {})[fam] = { level: 'national', years: o.years, ...o.national }
+  }
+  return { provinces: provEntities, cities: cityEntities, national, dist, curated: cur }
 }
 
 function rank(list) {
@@ -261,12 +277,12 @@ function rank(list) {
   list.forEach((e) => (e.rankOf = sorted.length))
 }
 
-function nationalAverage(provinces, weights, sourceMode, dist) {
+function nationalAverage(provinces, weights, sourceMode, dist, families) {
   const values = {}
   for (const ind of INDICATORS) values[ind.id] = weightedMean(provinces, ind.id)
   const totalPop = provinces.reduce((s, p) => s + (p.values.pop || 0), 0)
   values.pop = totalPop || null
-  const ctx = { type: 'province', dist }
+  const ctx = { type: 'province', dist, families }
   return {
     type: 'national', id: 'national', name: 'National average', values, ...scoreValues(values, weights, sourceMode, null, ctx),
     compare: { combined: scoreValues(values, weights, 'combined', null, ctx), weighted: scoreValues(values, weights, 'weighted', null, ctx) },
@@ -276,14 +292,14 @@ function nationalAverage(provinces, weights, sourceMode, dist) {
 // For a city typed into search that isn't in our list: score it with live data
 // (and its province's curated baseline when it falls inside the current country).
 export function adHocEntity({ place, provinceId, provinceName, provinceEntity, country, live, weights, sourceMode = 'combined', dist = null }) {
-  const prov = { ...(country.iso3 === 'ARG' ? AR_PROVINCES[provinceId] || {} : {}) }
+  const prov = { ...(curatedFor(country.iso3)?.regions[provinceId] || {}) }
   for (const k of NUMBEO_KEYS) if (provinceEntity?.values[k] != null) prov[k] = provinceEntity.values[k]
   const values = { ...prov, pop: place.pop, ...live }
   const e = {
     type: 'city', id: place.id, name: place.name, province: provinceId, provinceName: provinceName || place.admin1 || '',
     lat: place.lat, lon: place.lon, values, inherited: new Set(Object.keys(prov).filter((k) => k !== 'pop')), adHoc: true,
   }
-  const ctx = { type: 'city', dist }
+  const ctx = { type: 'city', dist, families: familiesByIndicator(country.iso3) }
   Object.assign(e, scoreValues(values, weights, sourceMode, e.inherited, ctx))
   e.compare = { combined: scoreValues(values, weights, 'combined', e.inherited, ctx), weighted: scoreValues(values, weights, 'weighted', e.inherited, ctx) }
   return e

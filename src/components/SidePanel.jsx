@@ -7,7 +7,7 @@ import { downloadBlob, rankingCsv, rankingPdf } from '../lib/export.js'
 import { slug } from '../lib/format.js'
 import { useToast } from './Toast.jsx'
 import { SourceButtons } from './SourceButtons.jsx'
-import { sourcesForIndicators, SOURCE_FAMILIES, familyOf, familyById, isMultiSource } from '../data/sources.js'
+import { sourcesForIndicators, familiesFor, familyOf, familyById, isMultiSource } from '../data/sources.js'
 import { INDICATORS } from '../data/metrics.js'
 import { SURFACE_VARS } from '../lib/surface.js'
 
@@ -21,7 +21,7 @@ export function SidePanel(props) {
   const [tab, setTab] = useState('layers')
   return (
     <aside className="side-panel glass" hidden={props.hidden}>
-      <SourcePicker mode={props.sourceMode} onChange={props.onSourceMode} onClose={props.onClose} />
+      <SourcePicker mode={props.sourceMode} onChange={props.onSourceMode} onClose={props.onClose} country={props.country} />
       <nav className="tabs" role="tablist">
         {TABS.map((t) => (
           <button key={t.id} role="tab" aria-selected={tab === t.id} className={tab === t.id ? 'active' : ''} onClick={() => setTab(t.id)}>
@@ -52,18 +52,18 @@ const OVERLAYS = [
   { id: 'surface', label: 'Climate surface', hint: 'Interpolated map of a climate variable', status: 'climate' },
 ]
 
-function LayersTab({ model, live, metricId, onMetric, overlays, onOverlays, onInfo, sourceMode }) {
+function LayersTab({ model, country, live, metricId, onMetric, overlays, onOverlays, onInfo, sourceMode }) {
   // In a single-source view, only that source's indicators (and the categories it covers) are listed.
   const inSource = (m) => {
     if (isMultiSource(sourceMode) || m.id === 'score') return true
-    if (m.kind === 'score') return INDICATORS.some((i) => i.better && i.category === m.id.slice(4) && familyOf(i.id) === sourceMode)
-    return familyOf(m.id) === sourceMode
+    if (m.kind === 'score') return INDICATORS.some((i) => i.better && i.category === m.id.slice(4) && familyOf(i.id, country.iso3) === sourceMode)
+    return familyOf(m.id, country.iso3) === sourceMode
   }
   const groups = useMemo(() => {
     const g = {}
     for (const m of MAP_METRICS.filter(inSource)) (g[m.group] ||= []).push(m)
     return Object.entries(g)
-  }, [sourceMode]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [sourceMode, country.iso3]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // Indicator ids that at least one place has a value for (one pass instead of one per metric).
   const withData = useMemo(() => {
@@ -133,7 +133,7 @@ function LayersTab({ model, live, metricId, onMetric, overlays, onOverlays, onIn
               <button className="src-btn" onClick={onInfo}>All sources & methodology <Info size={11} /></button>
             </div>
           ) : (
-            <SourceButtons keys={sourcesForIndicators(metrics.filter((m) => m.kind === 'indicator' && available(m)).map((m) => m.id))} />
+            <SourceButtons keys={sourcesForIndicators(metrics.filter((m) => m.kind === 'indicator' && available(m)).map((m) => m.id), country.iso3)} />
           )}
         </section>
       ))}
@@ -240,7 +240,7 @@ function WeightsTab({ weights, onWeights, onInfo, country }) {
   )
 }
 
-function SourcePicker({ mode, onChange, onClose }) {
+function SourcePicker({ mode, onChange, onClose, country }) {
   return (
     <div className="source-picker">
       <div className="row-between">
@@ -249,7 +249,7 @@ function SourcePicker({ mode, onChange, onClose }) {
       </div>
       <div className="select-wrap">
         <select id="source-mode" value={mode} onChange={(e) => onChange(e.target.value)}>
-          {SOURCE_FAMILIES.map((f) => <option key={f.id} value={f.id}>{f.label}</option>)}
+          {familiesFor(country.iso3).map((f) => <option key={f.id} value={f.id}>{f.label}</option>)}
         </select>
       </div>
       <p className="hint">

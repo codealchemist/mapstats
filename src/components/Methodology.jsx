@@ -1,15 +1,17 @@
 import { useEffect } from 'react'
 import { X, ExternalLink } from 'lucide-react'
 import { CATEGORIES, INDICATORS } from '../data/metrics.js'
-import { sourceList } from '../data/sources.js'
+import { familiesFor, isMultiSource, sourceList, sourceOf } from '../data/sources.js'
 
-export function Methodology({ onClose, weights, onSources }) {
+export function Methodology({ onClose, weights, country, curated, onSources }) {
   useEffect(() => {
     const onKey = (e) => e.key === 'Escape' && onClose()
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
   }, [onClose])
   const total = Object.values(weights).reduce((s, x) => s + x, 0) || 1
+  const region = country.regionLabel.toLowerCase()
+  const families = familiesFor(country.iso3).filter((f) => !isMultiSource(f.id)).map((f) => f.short).join(', ')
 
   return (
     <div className="modal-backdrop" onClick={onClose}>
@@ -21,18 +23,19 @@ export function Methodology({ onClose, weights, onSources }) {
         <div className="modal-body">
           <ol className="steps">
             <li><b>Normalise.</b> Each indicator is mapped to 0–100 on a fixed range (below), flipped when lower is better and clamped at the ends. Fixed ranges keep scores comparable across countries.</li>
-            <li><b>Combine sources.</b> Within a category, each source (SNIC, Numbeo, Open-Meteo, USGS, provincial statistics) gets its own score: the average of its normalised indicators. The category score is the median of those source scores (with two sources, their mean). Only data measured for the place votes; province figures fill a category only when no source has local data. The data-source selector shows a single source instead.</li>
-            <li><b>Weighted integration</b> (selectable): each source ranks the place as a percentile among the places it covers, then sources are averaged by reliability — base weight (official register or measurement 1.0, crowd survey 0.5, hand-entered estimate 0.3) × geographic match (department 0.9, province-wide figure 0.5) × quality (Numbeo contributors, full weight at 50+) × recency (−15% per year beyond one). The ± shown is the weighted standard deviation between sources.</li>
+            <li><b>Combine sources.</b> Within a category, each source ({families}) gets its own score: the average of its normalised indicators. The category score is the median of those source scores (with two sources, their mean). Only data measured for the place votes; {region} figures fill a category only when no source has local data. The data-source selector shows a single source instead.</li>
+            <li><b>Weighted integration</b> (selectable): each source ranks the place as a percentile among the places it covers, then sources are averaged by reliability — base weight (official register or measurement 1.0, exposure classes derived from official risk records 0.6, crowd survey 0.5, hand-entered estimate 0.3) × geographic match (sub-{region} unit 0.9, {region}-wide figure 0.5) × quality (Numbeo contributors, full weight at 50+) × recency (−15% per year beyond one). The ± shown is the weighted standard deviation between sources.</li>
             <li><b>Weight.</b> The MapStats score is the weighted average of category scores. Missing categories are left out and the remaining weights re-normalised, so absent data neither helps nor hurts. Each report shows its data coverage.</li>
-            <li><b>Cities</b> inherit their province's statistics, then override them with city-level data (Numbeo indices) and live measurements at the exact location (climate, air quality, earthquakes). <b>Provinces</b> aggregate live and Numbeo data from their cities, weighted by population.</li>
-            <li><b>Official crime data</b> comes from SNIC (Ministerio de Seguridad). Cities use their department (partido) — the finest level SNIC publishes — as 3-year averages per 100,000 inhabitants, using parent crime codes only so sub-categories aren't counted twice.</li>
+            <li><b>Cities</b> inherit their {region}'s statistics, then override them with city-level data (Numbeo indices, official figures for the city's own area) and live measurements at the exact location (climate, air quality, earthquakes). <b>{country.regionLabel}s</b> aggregate live and Numbeo data from their cities, weighted by population.</li>
+            {(curated?.methodology || []).map((text, i) => <li key={i}><b>{country.name}.</b> {text}</li>)}
+            {!country.curated && <li><b>{country.name}</b> has no curated socio-economic baseline yet: only live environmental and risk data is scored.</li>}
             <li><b>Climate comfort</b> rates each month from 0–100: ideal mean temperature 16–24 °C; penalties for heat (&gt;30 °C highs), frost, months over 100 mm of rain, snow and fewer than 4 sunshine hours a day.</li>
           </ol>
 
           <h3 className="eyebrow">Indicators</h3>
           <div className="table-wrap">
             <table className="data-table">
-              <thead><tr><th>Category</th><th>Indicator</th><th>Best → worst</th><th>Source</th></tr></thead>
+              <thead><tr><th>Category</th><th>Indicator</th><th>Best → worst</th><th>Source in {country.name}</th></tr></thead>
               <tbody>
                 {CATEGORIES.map((c) =>
                   INDICATORS.filter((i) => i.category === c.id && i.better).map((i, k) => (
@@ -40,7 +43,7 @@ export function Methodology({ onClose, weights, onSources }) {
                       <td>{k === 0 ? `${c.label} (${Math.round((weights[c.id] / total) * 100)}%)` : ''}</td>
                       <td>{i.label}</td>
                       <td className="num">{i.better === 'low' ? `${i.domain[0]} → ${i.domain[1]}` : `${i.domain[1]} → ${i.domain[0]}`} {i.unit}</td>
-                      <td>{i.source}</td>
+                      <td>{sourceOf(i.id, country.iso3) || <span className="faint">not available</span>}</td>
                     </tr>
                   )),
                 )}
@@ -58,7 +61,7 @@ export function Methodology({ onClose, weights, onSources }) {
             ))}
           </ul>
           <p className="hint">
-            Curated statistics are approximate snapshots of the latest published figures and should be verified for decisions.
+            Imported official statistics are used exactly as published; hand-entered statistics are approximate snapshots of the latest published figures and should be verified for decisions.
             Numbeo blocks cross-origin requests and automated scraping, so MapStats ships a snapshot of its city indices and links to the live Numbeo pages from each city report.
             Live data is cached in your browser (climate 30 days, air quality 1 day, earthquakes 7 days).
           </p>

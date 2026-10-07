@@ -8,7 +8,7 @@ export const COUNTRIES = [
   { iso3: 'CHL', iso2: 'CL', bounds: [-76, -56, -66, -17], name: 'Chile', regionLabel: 'Region' },
   { iso3: 'COL', iso2: 'CO', bounds: [-79.5, -4.5, -66.8, 12.6], name: 'Colombia', regionLabel: 'Department' },
   { iso3: 'ECU', iso2: 'EC', bounds: [-81.2, -5.1, -75.1, 1.5], name: 'Ecuador', regionLabel: 'Province' },
-  { iso3: 'FRA', iso2: 'FR', bounds: [-5.2, 41.3, 9.6, 51.1], name: 'France', regionLabel: 'Department' },
+  { iso3: 'FRA', iso2: 'FR', bounds: [-5.2, 41.3, 9.6, 51.1], name: 'France', regionLabel: 'Department', curated: true },
   { iso3: 'DEU', iso2: 'DE', name: 'Germany', regionLabel: 'State' },
   { iso3: 'ITA', iso2: 'IT', name: 'Italy', regionLabel: 'Province' },
   { iso3: 'MEX', iso2: 'MX', name: 'Mexico', regionLabel: 'State' },

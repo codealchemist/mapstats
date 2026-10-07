@@ -71,7 +71,7 @@ export function CompareView({ slots, model, country, theme, sourceMode, live, on
     const body = [
       ['MapStats score', '/100', ...filled.flatMap(({ e }) => [round1(e.score), familyById[sourceMode].short]), round1(model.national.score)],
       ...CATEGORIES.map((c) => [c.label, '/100', ...filled.flatMap(({ e }) => [round1(e.categories[c.id]), '']), round1(model.national.categories[c.id])]),
-      ...rows.map((i) => [i.label, i.unit, ...filled.flatMap(({ e }) => [e.values[i.id], e.inherited?.has(i.id) ? 'province' : e.values[i.id] != null ? 'own' : '']), model.national.values[i.id]]),
+      ...rows.map((i) => [i.label, i.unit, ...filled.flatMap(({ e }) => [e.values[i.id], e.inherited?.has(i.id) ? country.regionLabel.toLowerCase() : e.values[i.id] != null ? 'own' : '']), model.national.values[i.id]]),
     ]
     downloadBlob(new Blob(['﻿' + [head, ...body].map((r) => r.map(esc).join(',')).join('\n')], { type: 'text/csv;charset=utf-8' }), 'mapstats-compare.csv')
     toast('CSV downloaded')
@@ -152,7 +152,7 @@ export function CompareView({ slots, model, country, theme, sourceMode, live, on
       </header>
 
       {mode === 'side' ? (
-        <SideBySide places={places} header={header} national={model.national} tk={t} onFocus={focus} query={query}
+        <SideBySide places={places} header={header} national={model.national} curated={model.curated} country={country} tk={t} onFocus={focus} query={query}
           scrollRef={sideScrollRef} initialScroll={sideScroll.current} flashKey={flashKey} onFlashDone={() => setFlashKey(null)} />
       ) : (
         <div className="fullview-body focus-body">
@@ -167,7 +167,7 @@ export function CompareView({ slots, model, country, theme, sourceMode, live, on
               : <span key={k} className="pill static muted"><Plus size={11} /> empty slot</span>))}
             <button className="link small" onClick={() => switchMode('side')}>Add or remove places</button>
           </div>
-          <FocusChart places={filled} national={model.national} theme={theme} measureId={measureId} onMeasure={setMeasureId} query={query} />
+          <FocusChart places={filled} national={model.national} curated={model.curated} country={country} theme={theme} measureId={measureId} onMeasure={setMeasureId} query={query} />
         </div>
       )}
     </div>

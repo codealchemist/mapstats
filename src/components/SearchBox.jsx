@@ -5,7 +5,11 @@ import { fetchAqiBatch, fetchClimateBatch, geocode } from '../lib/live.js'
 import { PRIORITY } from '../lib/meteoQueue.js'
 import { countQuakesNear } from '../lib/scoring.js'
 import { pointInFeature } from '../lib/geo.js'
+import { familyById } from '../data/sources.js'
 import { useDismiss } from '../hooks/useDismiss.js'
+
+// Official statistical series the place itself has (a city showing its region's series gets no tag).
+const officialTags = (e) => Object.entries(e.official || {}).filter(([, b]) => b.series && (e.type !== 'city' || b.level !== 'region')).map(([f]) => familyById[f])
 
 export function SearchBox({ model, country, live, geo, onSelect }) {
   const [q, setQ] = useState('')
@@ -116,7 +120,7 @@ export function SearchBox({ model, country, live, geo, onSelect }) {
                     <div>{it.e.name}</div>
                     <small>{it.e.type === 'city' ? it.e.provinceName : country.regionLabel}</small>
                   </div>
-                  {it.e.snic && <span className="sr-tag src" title="Official SNIC crime statistics">SNIC</span>}
+                  {officialTags(it.e).map((f) => <span key={f.id} className="sr-tag src" title={f.label}>{f.short}</span>)}
                   {it.e.numbeo && <span className="sr-tag src" title="Numbeo city data">Numbeo</span>}
                   {it.e.score != null && <span className="sr-score">{Math.round(it.e.score)}</span>}
                 </>
