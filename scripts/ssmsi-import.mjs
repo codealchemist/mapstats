@@ -16,6 +16,10 @@
 //  - 3-year averages need all three annual rates; the "Usage de stupéfiants" AFD / hors AFD
 //    sub-splits are skipped (the total is kept).
 //  - Mayotte's population is frozen at the 2017 census in the source, so its rates use it as published.
+//  - One composite is computed, `propertyCrime` (the indicator it feeds): the seven theft and robbery categories added up per
+//    department and year, over the population (burglaries included by count, not by dwelling rate).
+//    The categories are disjoint in the SSMSI nomenclature; it is the French counterpart of SNIC's
+//    "robberies + thefts" and the only sum in this file.
 import path from 'node:path'
 import fs from 'node:fs'
 import { DEP_TO_MAP, DEP_NAMES, csvRows, download, fileInfo, hasFlag, meanOf, num, round, today, writeJson } from './lib/fr.mjs'
@@ -43,8 +47,9 @@ export const METRICS = {
   drugUse: { indicator: 'Usage de stupéfiants', label: 'Drug use (persons charged)', per: 'insee_pop' },
   drugTrafficking: { indicator: 'Trafic de stupéfiants', label: 'Drug trafficking (persons charged)', per: 'insee_pop' },
   fraud: { indicator: 'Escroqueries et fraudes aux moyens de paiement', label: 'Fraud and payment fraud (victims, by residence)', per: 'insee_pop' },
+  propertyCrime: { indicator: null, label: 'Thefts and robberies, 7 categories combined', per: 'insee_pop', series: true, composite: ['armedRobbery', 'violentTheft', 'theftFromPersons', 'burglary', 'vehicleTheft', 'theftFromVehicles', 'vehicleAccessoryTheft'] },
 }
-const byIndicator = Object.fromEntries(Object.entries(METRICS).map(([k, m]) => [m.indicator, k]))
+const byIndicator = Object.fromEntries(Object.entries(METRICS).filter(([, m]) => m.indicator).map(([k, m]) => [m.indicator, k]))
 
 async function main() {
   if (hasFlag('--download')) await download(RESOURCE, path.join(RAW, 'donnee-dep-data.gouv.csv'))
@@ -67,6 +72,16 @@ async function main() {
     const y = num(r.annee)
     ;((data[dep] ||= {})[y] ||= {})[k] = { n: num(r.nombre), rate: num(r.taux_pour_mille), pop: num(r.insee_pop), log: num(r.insee_log) }
     rows++
+  }
+  for (const [k, m] of Object.entries(METRICS).filter(([, m]) => m.composite)) {
+    for (const byYear of Object.values(data)) {
+      for (const row of Object.values(byYear)) {
+        const parts = m.composite.map((p) => row[p])
+        if (parts.some((p) => p?.n == null)) continue
+        const n = parts.reduce((s, p) => s + p.n, 0)
+        row[k] = { n, rate: parts[0].pop ? (n / parts[0].pop) * 1000 : null, pop: parts[0].pop, log: null }
+      }
+    }
   }
   const years = [...new Set(Object.values(data).flatMap((d) => Object.keys(d).map(Number)))].sort((a, b) => a - b)
   const latest = years.at(-1)
@@ -105,7 +120,7 @@ async function main() {
     importedAt: today(),
     origin: 'official download from data.gouv.fr (Licence Ouverte 2.0)',
     files: [fileInfo(file)],
-    metrics: Object.fromEntries(Object.entries(METRICS).map(([k, m]) => [k, { indicator: m.indicator, label: m.label, unit: m.per === 'insee_log' ? 'per 100k dwellings' : 'per 100k' }])),
+    metrics: Object.fromEntries(Object.entries(METRICS).map(([k, m]) => [k, { indicator: m.indicator, label: m.label, unit: m.per === 'insee_log' ? 'per 100k dwellings' : 'per 100k', ...(m.composite ? { composite: m.composite } : {}) }])),
     years, latestYear: latest,
     national: summarise(national),
     departments,

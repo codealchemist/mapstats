@@ -30,6 +30,11 @@ export const SOURCES = {
   'INSEE unemployment': { name: 'INSEE – localised unemployment', url: 'https://www.insee.fr/fr/statistiques/2012804', covers: 'ILO unemployment rate by département, annual average' },
   'INSEE Filosofi': { name: 'INSEE – Filosofi', url: 'https://www.insee.fr/fr/statistiques/8984752', covers: 'Relative poverty rate (60% of the median) and median standard of living, départements and communes' },
   DREES: { name: 'DREES – physician demography (RPPS)', url: 'https://data.drees.solidarites-sante.gouv.fr/explore/dataset/la-demographie-des-professionnels-de-sante-depuis-2012/information/', covers: 'Physicians per 100,000 inhabitants by département at 1 January' },
+  'INSEE life expectancy': { name: 'INSEE – life expectancy', url: 'https://www.insee.fr/fr/statistiques/series/103039135', covers: 'Life expectancy at birth by département, women and men' },
+  'INSEE census': { name: 'INSEE – population census (RP)', url: 'https://www.insee.fr/fr/metadonnees/source/serie/s1321', covers: 'Commuters by main mode of transport, départements and communes' },
+  ARCEP: { name: 'ARCEP – Ma connexion internet', url: 'https://www.data.gouv.fr/datasets/ma-connexion-internet', covers: 'Fixed-broadband eligibility of premises (fibre, ≥ 30 Mbit/s) by département and commune' },
+  Géorisques: { name: 'Géorisques – seismic zoning', url: 'https://www.georisques.gouv.fr/donnees/bases-de-donnees/zonage-sismique', covers: 'Regulatory seismic zoning of every commune (zones 1–5)' },
+  GASPAR: { name: 'GASPAR – risk procedures (Géorisques)', url: 'https://www.data.gouv.fr/datasets/base-nationale-de-gestion-assistee-des-procedures-administratives-relatives-aux-risques-gaspar', covers: 'Natural-disaster declarations (CatNat), prevention plans (PPR) and DDRM risk listings by commune' },
   'Open-Meteo ERA5 (live)': { name: 'Open-Meteo · ERA5', url: 'https://open-meteo.com/en/docs/historical-weather-api', covers: 'Historical weather: temperature, rain, snow, sunshine, wind' },
   'Open-Meteo CAMS (live)': { name: 'Open-Meteo · CAMS', url: 'https://open-meteo.com/en/docs/air-quality-api', covers: 'Air quality (European AQI, pollutants)' },
   'Open-Meteo DEM (live)': { name: 'Open-Meteo · Elevation', url: 'https://open-meteo.com/en/docs/elevation-api', covers: 'Elevation' },
@@ -76,6 +81,11 @@ export const SOURCE_META = {
   'INSEE unemployment': { types: ['society'], access: 'import', cadence: 'Annual average of quarterly rates', scope: 'France · département (not Mayotte)' },
   'INSEE Filosofi': { types: ['society'], access: 'import', cadence: 'Annual', scope: 'Metropolitan France & La Réunion · département & commune' },
   DREES: { types: ['society'], access: 'import', cadence: 'Annual (1 January)', scope: 'France · département' },
+  'INSEE life expectancy': { types: ['society'], access: 'import', cadence: 'Annual, provisional for the latest years', scope: 'France · département' },
+  'INSEE census': { types: ['society'], access: 'import', cadence: 'Annual census results', scope: 'France excl. Mayotte · département & commune' },
+  ARCEP: { types: ['society'], access: 'import', cadence: 'Quarterly', scope: 'France · département & commune' },
+  Géorisques: { types: ['hazards'], access: 'import', cadence: 'Regulatory zoning (2010, revised 2015)', scope: 'France · commune' },
+  GASPAR: { types: ['hazards'], access: 'import', cadence: 'Continuous; snapshot at import', scope: 'France · commune' },
   'SNIC mirror': { types: ['crime'], access: 'once', cadence: 'Copy of the 2000–2025 bases', scope: 'Argentina' },
   Numbeo: { types: ['crime', 'society', 'air'], access: 'snapshot', cadence: 'Crowd-sourced, continuously updated', scope: 'Cities worldwide' },
   'Open-Meteo ERA5 (live)': { types: ['climate'], access: 'live', cadence: 'Daily, ~5-day delay', scope: 'Global grid ≈ 25 km' },
@@ -140,8 +150,12 @@ export const SOURCE_FAMILIES = [
   { id: 'ssmsi', label: 'SSMSI · official crime statistics', short: 'SSMSI', countries: ['FRA'] },
   { id: 'onisr', label: 'ONISR · road deaths', short: 'ONISR', countries: ['FRA'] },
   {
-    id: 'insee', label: 'INSEE & DREES · official statistics', short: 'INSEE/DREES', countries: ['FRA'],
+    id: 'insee', label: 'INSEE, DREES & ARCEP · official statistics', short: 'INSEE/DREES', countries: ['FRA'],
     status: 'Official statistics', note: 'Official figures as published for the département, each with its reference period.',
+  },
+  {
+    id: 'georisques', label: 'Géorisques · seismic zoning & risk records', short: 'Géorisques', countries: ['FRA'],
+    status: 'Official records, MapStats exposure classes', note: 'Seismic zones are the regulatory classification; flood and forest-fire exposure classes are MapStats estimates derived from GASPAR records (see methodology).',
   },
   { id: 'numbeo', label: 'Numbeo · crowd-sourced indices', short: 'Numbeo' },
   { id: 'openmeteo', label: 'Open-Meteo · live climate & air', short: 'Open-Meteo' },
@@ -161,6 +175,7 @@ export const isMultiSource = (mode) => mode === 'combined' || mode === 'weighted
 const FAMILY_BY_SOURCE = {
   SNIC: 'snic', Numbeo: 'numbeo',
   SSMSI: 'ssmsi', ONISR: 'onisr', 'INSEE unemployment': 'insee', 'INSEE Filosofi': 'insee', DREES: 'insee',
+  'INSEE life expectancy': 'insee', 'INSEE census': 'insee', ARCEP: 'insee', Géorisques: 'georisques', GASPAR: 'georisques',
   'Censo / Natural Earth': 'base', 'INSEE population': 'base', // population: context, not a scored source
 }
 

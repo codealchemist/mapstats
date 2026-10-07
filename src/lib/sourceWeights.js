@@ -11,6 +11,7 @@ export const BASE = {
   ssmsi: { w: 1.0, why: 'official register of recorded cases' },
   onisr: { w: 1.0, why: 'official road-accident register' },
   insee: { w: 1.0, why: 'official statistics' },
+  georisques: { w: 0.6, why: 'official zoning and risk records, exposure classes estimated by MapStats' },
   openmeteo: { w: 1.0, why: 'physical measurement / reanalysis' },
   usgs: { w: 1.0, why: 'instrumental earthquake catalogue' },
   numbeo: { w: 0.5, why: 'crowd-sourced perception survey' },
