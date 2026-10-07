@@ -1,10 +1,11 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Search, MapPin, Building2, Globe, LoaderCircle, X } from 'lucide-react'
 import { fold } from '../lib/format.js'
 import { fetchAqiBatch, fetchClimateBatch, geocode } from '../lib/live.js'
 import { PRIORITY } from '../lib/meteoQueue.js'
 import { countQuakesNear } from '../lib/scoring.js'
 import { pointInFeature } from '../lib/geo.js'
+import { useDismiss } from '../hooks/useDismiss.js'
 
 export function SearchBox({ model, country, live, geo, onSelect }) {
   const [q, setQ] = useState('')
@@ -37,11 +38,7 @@ export function SearchBox({ model, country, live, geo, onSelect }) {
     return () => { cancelled = true; clearTimeout(t) }
   }, [q])
 
-  useEffect(() => {
-    const close = (e) => !boxRef.current?.contains(e.target) && setOpen(false)
-    document.addEventListener('pointerdown', close)
-    return () => document.removeEventListener('pointerdown', close)
-  }, [])
+  useDismiss(boxRef, open, useCallback(() => setOpen(false), []))
 
   const known = new Set(local.map((e) => fold(e.name)))
   const items = [

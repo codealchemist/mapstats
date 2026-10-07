@@ -1,5 +1,5 @@
 import { forwardRef, useEffect, useImperativeHandle, useRef } from 'react'
-import { Map as MLMap, NavigationControl, ScaleControl, Popup, Marker, setWorkerUrl } from 'maplibre-gl'
+import { Map as MLMap, AttributionControl, NavigationControl, ScaleControl, Popup, Marker, setWorkerUrl } from 'maplibre-gl'
 import 'maplibre-gl/dist/maplibre-gl.css'
 // MapLibre 6 derives its worker URL at runtime, which bundlers can't see; let Vite bundle it explicitly.
 import workerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url'
@@ -7,6 +7,9 @@ import workerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url'
 setWorkerUrl(workerUrl)
 import { fmtIndicator, fmtScore } from '../lib/format.js'
 import { addCustomLayers, syncAll, FLOOD_LEVELS } from './mapLayers.js'
+import { NARROW_QUERY, chromeTop, isNarrow } from '../lib/viewport.js'
+// Named import: Vite bundles only this field of package.json.
+import { version } from '../../package.json'
 
 const STYLES = {
   light: 'https://basemaps.cartocdn.com/gl/positron-gl-style/style.json',
@@ -50,12 +53,22 @@ export const MapView = forwardRef(function MapView(
       zoom: 3.4,
       minZoom: 1.5,
       maxPitch: 60,
-      attributionControl: { compact: true },
+      attributionControl: false,
       canvasContextAttributes: { preserveDrawingBuffer: true, antialias: true },
     })
     map.current = m
     m.addControl(new NavigationControl({ visualizePitch: true }), 'bottom-right')
     m.addControl(new ScaleControl({ unit: 'metric' }), 'bottom-right')
+    // The attribution label also shows the app version. On narrow screens it moves to the bottom
+    // left, where CSS stacks it above the legend instead of overlapping it.
+    const attribution = new AttributionControl({ compact: true, customAttribution: `MapStats v${version}` })
+    const narrowMq = window.matchMedia(NARROW_QUERY)
+    const placeAttribution = () => {
+      if (m.hasControl(attribution)) m.removeControl(attribution)
+      m.addControl(attribution, narrowMq.matches ? 'bottom-left' : 'bottom-right')
+    }
+    placeAttribution()
+    narrowMq.addEventListener('change', placeAttribution)
     hoverPopup.current = new Popup({ closeButton: false, closeOnClick: false, className: 'ms-popup', offset: 10, maxWidth: '260px' })
 
     m.on('style.load', () => {
@@ -116,7 +129,7 @@ export const MapView = forwardRef(function MapView(
       if (city) latest.current.onSelect({ type: 'city', id: city.properties.id })
       else if (prov) latest.current.onSelect({ type: 'province', id: prov.properties.id })
     })
-    return () => m.remove()
+    return () => { narrowMq.removeEventListener('change', placeAttribution); m.remove() }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
@@ -153,8 +166,8 @@ export const MapView = forwardRef(function MapView(
 })
 
 function fitPadding() {
-  const narrow = window.innerWidth < 820
-  return narrow ? { top: 130, bottom: 40, left: 20, right: 20 } : { top: 90, bottom: 40, left: 370, right: 40 }
+  const top = chromeTop() + 12
+  return isNarrow() ? { top, bottom: 40, left: 20, right: 20 } : { top, bottom: 40, left: 370, right: 40 }
 }
 
 function escapeHtml(s) {

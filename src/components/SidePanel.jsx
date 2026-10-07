@@ -29,11 +29,12 @@ export function SidePanel(props) {
           </button>
         ))}
       </nav>
-      <div className="panel-scroll">
+      {/* Not rendered while hidden: the tabs scan every place on each live-data update. */}
+      {!props.hidden && <div className="panel-scroll">
         {tab === 'layers' && <LayersTab {...props} />}
         {tab === 'ranking' && <RankingTab {...props} />}
         {tab === 'weights' && <WeightsTab {...props} />}
-      </div>
+      </div>}
     </aside>
   )
 }
@@ -64,10 +65,13 @@ function LayersTab({ model, live, metricId, onMetric, overlays, onOverlays, onIn
     return Object.entries(g)
   }, [sourceMode]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  const available = (m) => {
-    if (!model || m.kind === 'score') return true
-    return [...model.provinces, ...model.cities].some((e) => e.values[m.id] != null)
-  }
+  // Indicator ids that at least one place has a value for (one pass instead of one per metric).
+  const withData = useMemo(() => {
+    const ids = new Set()
+    if (model) for (const e of [...model.provinces, ...model.cities]) for (const [id, v] of Object.entries(e.values)) if (v != null) ids.add(id)
+    return ids
+  }, [model])
+  const available = (m) => !model || m.kind === 'score' || withData.has(m.id)
   const pending = (m) => {
     if (m.kind === 'score') return false
     const ind = indicatorById[m.id]
@@ -239,7 +243,7 @@ function WeightsTab({ weights, onWeights, onInfo, country }) {
 function SourcePicker({ mode, onChange, onClose }) {
   return (
     <div className="source-picker">
-      <div className="source-picker-head">
+      <div className="row-between">
         <label htmlFor="source-mode" className="eyebrow">Data source</label>
         {onClose && <button className="icon-btn panel-close" onClick={onClose} title="Close panel"><X size={18} /></button>}
       </div>

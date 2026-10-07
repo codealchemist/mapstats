@@ -27,7 +27,7 @@ export function SideBySide({ places, header, national, tk, onFocus, query = '', 
       if (scrollRef.current !== el && initialScroll) { el.scrollTop = initialScroll.top; el.scrollLeft = initialScroll.left }
       scrollRef.current = el
     }}>
-      <div className="sbs-grid" style={{ '--cols': places.length, '--ncols': spare.filter((s) => !s).length }}>
+      <div className="sbs-grid" style={{ '--cols': places.length, '--ncols': places.length - spare.filter(Boolean).length }}>
         <div className="sbs-corner sbs-sticky-top sbs-sticky-left" />
         {places.map((p, k) => <div key={k} className={`sbs-head sbs-sticky-top${spare[k] ? ' spare' : ''}`}>{header(k)}</div>)}
 
