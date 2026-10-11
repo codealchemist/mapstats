@@ -1,7 +1,7 @@
 import { ExternalLink } from 'lucide-react'
-import { SOURCES } from '../data/sources.js'
+import { providerById } from '../core/providers.js'
 
-// Small link buttons that open the sources behind a category, section or layer.
+// Small link buttons that open the sources (provider ids) behind a category, section or layer.
 // `entity` lets sources deep-link to a specific place (e.g. a city's Numbeo page).
 export function SourceButtons({ keys, entity, category, label = 'Sources' }) {
   if (!keys?.length) return null
@@ -9,7 +9,7 @@ export function SourceButtons({ keys, entity, category, label = 'Sources' }) {
     <div className="src-btns">
       {label && <span className="src-label">{label}</span>}
       {keys.map((k) => {
-        const s = SOURCES[k]
+        const s = providerById(k)
         const href = s.urlFor?.(entity, category) || s.url
         return href ? (
           <a key={k} className="src-btn" href={href} target="_blank" rel="noreferrer" title={`${s.name} — ${s.covers}`}>

@@ -5,7 +5,7 @@ import { fmtIndicator, fmtScore } from '../lib/format.js'
 import { NO_DATA } from '../lib/colors.js'
 import { FLOOD_LEVELS } from './mapLayers.js'
 import { SourceButtons } from './SourceButtons.jsx'
-import { sourcesForCategory, sourcesForIndicators, familyById } from '../data/sources.js'
+import { sourcesForCategory, sourcesForIndicators, familyById } from '../core/providers.js'
 
 export function Legend({ metric, scale, overlays, theme, national, shifted, sourceMode = 'combined', surface, surfaceVar }) {
   const isScore = metric.kind === 'score'

@@ -3,7 +3,8 @@
 import fs from 'node:fs'
 import { buildEntities, adHocEntity, baseCities, livePoints } from '../src/lib/scoring.js'
 import { countryByIso } from '../src/core/countries.js'
-import { DEFAULT_WEIGHTS } from '../src/data/metrics.js'
+import { DEFAULT_WEIGHTS, INDICATORS } from '../src/data/metrics.js'
+import { SOURCE_FAMILIES, familyOf } from './sources.adapter.mjs'
 
 const UPDATE = process.argv.includes('--update')
 const MODES = ['combined', 'weighted', 'snic', 'numbeo', 'openmeteo', 'usgs', 'provincial']
@@ -41,7 +42,7 @@ const round = (o) => JSON.parse(JSON.stringify(o, (k, v) => r6(v)))
 const pick = (e) => ({
   id: e.id, type: e.type, score: e.score, rank: e.rank, rankOf: e.rankOf, coverage: e.coverage,
   categories: e.categories, bySource: e.bySource, spread: e.spread,
-  sourceWeights: Object.fromEntries(Object.entries(e.sourceWeights || {}).map(([c, fs]) => [c, Object.fromEntries(Object.entries(fs).map(([f, x]) => [f, x.w]))])),
+  sourceWeights: e.sourceWeights,
 })
 
 function snapshot(iso3) {
@@ -56,6 +57,8 @@ function snapshot(iso3) {
     out.entities[e.id] = { name: e.name, province: e.province, values: e.values, inherited: e.inherited ? [...e.inherited].sort() : null, snic: e.snic?.level || null, numbeo: e.numbeo?.source || null }
   }
   out.ranges = base.ranges
+  out.families = Object.fromEntries(SOURCE_FAMILIES.map((f) => [f.id, f.label]))
+  out.indicators = Object.fromEntries(INDICATORS.map((i) => [i.id, { family: familyOf(i.id) }]))
   WEIGHTS.forEach((weights, w) => {
     for (const mode of MODES) {
       const m = buildEntities({ country, provincesGeo: geo, cities, live, weights, sourceMode: mode })

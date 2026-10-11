@@ -6,6 +6,7 @@ import { SURVEY } from '../../data/numbeoSurvey.js'
 import { baseOptions, barStyle, lineStyle } from '../charts/theme.js'
 import { fmtIndicator, fmtScore, MONTHS } from '../../lib/format.js'
 import { meterScale, isOwnValue } from '../../lib/scoring.js'
+import { providerOf } from '../../core/providers.js'
 import { floodLevel } from '../mapLayers.js'
 import { matches } from './match.js'
 
@@ -132,7 +133,7 @@ function buildRows(filled, national, ranges) {
     const best = bestOf(ind)
     const pos = meterScale(ranges[ind.id], [...filled.map(({ e }) => e.values[ind.id]), national.values[ind.id]])
     return {
-      key: `ind:${ind.id}`, label: ind.label, sub: ind.source, focus: `ind:${ind.id}`,
+      key: `ind:${ind.id}`, label: ind.label, sub: providerOf(ind.id)?.short, focus: `ind:${ind.id}`,
       cell: ({ e }) => {
         const v = e.values[ind.id]
         if (v == null) return null

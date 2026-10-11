@@ -1,7 +1,7 @@
 import { useEffect } from 'react'
 import { X, ExternalLink } from 'lucide-react'
 import { CATEGORIES, INDICATORS } from '../data/metrics.js'
-import { sourceList } from '../data/sources.js'
+import { PROVIDERS, providerOf } from '../core/providers.js'
 
 export function Methodology({ onClose, weights, onSources }) {
   useEffect(() => {
@@ -40,7 +40,7 @@ export function Methodology({ onClose, weights, onSources }) {
                       <td>{k === 0 ? `${c.label} (${Math.round((weights[c.id] / total) * 100)}%)` : ''}</td>
                       <td>{i.label}</td>
                       <td className="num">{i.better === 'low' ? `${i.domain[0]} → ${i.domain[1]}` : `${i.domain[1]} → ${i.domain[0]}`} {i.unit}</td>
-                      <td>{i.source}</td>
+                      <td>{providerOf(i.id)?.short}</td>
                     </tr>
                   )),
                 )}
@@ -50,8 +50,8 @@ export function Methodology({ onClose, weights, onSources }) {
 
           <h3 className="eyebrow">Data sources {onSources && <button className="link small" onClick={onSources}>· open the full sources view</button>}</h3>
           <ul className="sources">
-            {sourceList.map((s) => (
-              <li key={s.key}>
+            {PROVIDERS.map((s) => (
+              <li key={s.id}>
                 {s.url ? <a href={s.url} target="_blank" rel="noreferrer">{s.name} <ExternalLink size={12} /></a> : <b>{s.name}</b>}
                 <span>{s.covers}</span>
               </li>

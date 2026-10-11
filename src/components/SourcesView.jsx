@@ -1,28 +1,9 @@
 import { useEffect, useMemo, useState } from 'react'
 import { X, ExternalLink, Search, Database } from 'lucide-react'
 import { INDICATORS } from '../data/metrics.js'
-import { SOURCES, SOURCE_META, DATA_TYPES, ACCESS, familyOf } from '../data/sources.js'
-import { BASE } from '../lib/sourceWeights.js'
+import { PROVIDERS, providerOf, familyOf, familyBase } from '../core/providers.js'
+import { ACCESS, DATA_TYPES } from '../core/define.js'
 import { fold } from '../lib/format.js'
-
-// What sources without indicators are used for.
-const USED_FOR = {
-  'SNIC mirror': 'Files behind the current SNIC import (replace with the official downloads)',
-  Departments: 'Matching each city to its SNIC department',
-  Terrain: 'Terrain & elevation overlay',
-  CARTO: 'Base map',
-  Geocoding: 'Search for places outside the city list',
-  'Natural Earth': 'Region boundaries; city list for countries without curated data',
-  'Open-Meteo UV (live)': 'UV today and the 3-month UV chart in reports',
-  'Open-Meteo ERA5 (live)': 'Climate charts, comfort model, climate surfaces',
-  'Open-Meteo CAMS (live)': 'Air-quality charts in reports',
-  'USGS (live)': 'Earthquake overlay and report charts',
-  'Open-Meteo GloFAS (live)': 'River flood watch overlay',
-  'Open-Meteo UV history (live)': 'UV climate surface',
-  'Google News RSS': '“In the news” section of reports (never used in scores)',
-  'Outlet RSS': '“In the news” section of reports',
-  'News service': 'Article excerpts and images in “In the news”',
-}
 
 export function SourcesView({ onClose, snicOrigin }) {
   const [q, setQ] = useState('')
@@ -34,11 +15,10 @@ export function SourcesView({ onClose, snicOrigin }) {
     return () => window.removeEventListener('keydown', onKey)
   }, [onClose])
 
-  const sources = useMemo(() => Object.entries(SOURCES).map(([key, s]) => {
-    const meta = SOURCE_META[key] || { types: ['geo'], access: 'bundled' }
-    const indicators = INDICATORS.filter((i) => i.source === key)
+  const sources = useMemo(() => PROVIDERS.map((p) => {
+    const indicators = INDICATORS.filter((i) => providerOf(i.id) === p)
     const family = indicators.length ? familyOf(indicators[0].id) : null
-    return { key, ...s, ...meta, indicators, weight: BASE[family]?.w ?? null }
+    return { ...p, key: p.id, indicators, weight: familyBase(family)?.w ?? null }
   }), [])
 
   const needle = fold(q.trim())
@@ -102,12 +82,12 @@ export function SourcesView({ onClose, snicOrigin }) {
                       {s.scope && <><dt>Coverage</dt><dd>{s.scope}</dd></>}
                       {s.cadence && <><dt>Updates</dt><dd>{s.cadence}</dd></>}
                       {s.weight != null && <><dt>Reliability</dt><dd>×{s.weight.toFixed(1)} in the weighted score</dd></>}
-                      {s.key === 'SNIC' && snicOrigin && <><dt>Files</dt><dd>{snicOrigin}</dd></>}
+                      {s.id === 'ARG/snic' && snicOrigin && <><dt>Files</dt><dd>{snicOrigin}</dd></>}
                     </dl>
-                    {(s.indicators.length > 0 || USED_FOR[s.key]) && (
+                    {(s.indicators.length > 0 || s.usedFor) && (
                       <div className="src-used">
                         <span className="muted small">Used for</span>
-                        {USED_FOR[s.key] && <span className="pill static">{USED_FOR[s.key]}</span>}
+                        {s.usedFor && <span className="pill static">{s.usedFor}</span>}
                         {s.indicators.map((i) => <span key={i.id} className="pill static">{i.label}</span>)}
                       </div>
                     )}

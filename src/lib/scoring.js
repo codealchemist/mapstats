@@ -10,7 +10,7 @@
 import { CATEGORIES, INDICATORS, indicatorById } from '../data/metrics.js'
 import { PROVINCES as AR_PROVINCES, CITIES as AR_CITIES, SNIC } from '../data/argentina.js'
 import { haversineKm, labelPoint } from './geo.js'
-import { familyOf, isMultiSource } from '../data/sources.js'
+import { familyOf, isMultiSource } from '../core/providers.js'
 import { sourceWeight, percentile } from './sourceWeights.js'
 import { isCurated } from '../core/countries.js'
 

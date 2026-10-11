@@ -17,12 +17,11 @@ import { scoreTone } from '../lib/colors.js'
 import { useToast } from './Toast.jsx'
 import { SURVEY, SURVEY_SAFER_HIGH } from '../data/numbeoSurvey.js'
 import { valuesBySource, fmtExact } from '../lib/provenance.js'
-import { familyById, SOURCE_FAMILIES, isMultiSource } from '../data/sources.js'
+import { familyById, SOURCE_FAMILIES, isMultiSource, sourcesForIndicators } from '../core/providers.js'
 import { agreementOf } from '../lib/sourceWeights.js'
 import { floodLevel } from './mapLayers.js'
 import { NewsSection } from './NewsSection.jsx'
 import { SourceButtons } from './SourceButtons.jsx'
-import { sourcesForIndicators } from '../data/sources.js'
 
 const EAQI = [
   [20, 'Good', 'good'], [40, 'Fair', 'good'], [60, 'Moderate', 'warning'],

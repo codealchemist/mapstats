@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { X, Maximize2, Minimize2, Plus, FileSpreadsheet, Columns3, MapPin, Building2, ChartLine, Search, ArrowLeft } from 'lucide-react'
 import { CATEGORIES, INDICATORS } from '../data/metrics.js'
-import { familyById } from '../data/sources.js'
+import { familyById } from '../core/providers.js'
 import { TOKENS } from './charts/theme.js'
 import { useEntityDetail } from '../hooks/useEntityDetail.js'
 import { fmtScore, fold } from '../lib/format.js'

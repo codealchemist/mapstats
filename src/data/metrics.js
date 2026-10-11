@@ -3,6 +3,7 @@
 // across countries and don't shift when one province's data changes.
 //
 // better: 'high' | 'low' | null (null = descriptive only, not scored)
+// The provider behind each indicator is declared by the provider (`provides`), see src/core/providers.js.
 
 export const CATEGORIES = [
   { id: 'safety', label: 'Safety', icon: 'ShieldAlert', weight: 25 },
@@ -17,50 +18,50 @@ export const DEFAULT_WEIGHTS = Object.fromEntries(CATEGORIES.map((c) => [c.id, c
 
 export const INDICATORS = [
   // Safety
-  { id: 'crimeIndex', label: 'Crime index', unit: '', category: 'safety', better: 'low', domain: [20, 80], source: 'Numbeo', digits: 1 },
+  { id: 'crimeIndex', label: 'Crime index', unit: '', category: 'safety', better: 'low', domain: [20, 80], digits: 1 },
   // SNIC rates are 3-year averages; domains span roughly the 5th–95th percentile of departments (2024).
-  { id: 'homicide', label: 'Homicide rate (3-yr avg)', unit: '/100k', category: 'safety', better: 'low', domain: [0, 8], source: 'SNIC', digits: 1 },
-  { id: 'propertyCrime', label: 'Robberies + thefts (3-yr avg)', unit: '/100k', category: 'safety', better: 'low', domain: [350, 3300], source: 'SNIC', digits: 0 },
-  { id: 'roadDeaths', label: 'Road deaths (3-yr avg)', unit: '/100k', category: 'safety', better: 'low', domain: [0, 30], source: 'SNIC', digits: 1 },
+  { id: 'homicide', label: 'Homicide rate (3-yr avg)', unit: '/100k', category: 'safety', better: 'low', domain: [0, 8], digits: 1 },
+  { id: 'propertyCrime', label: 'Robberies + thefts (3-yr avg)', unit: '/100k', category: 'safety', better: 'low', domain: [350, 3300], digits: 0 },
+  { id: 'roadDeaths', label: 'Road deaths (3-yr avg)', unit: '/100k', category: 'safety', better: 'low', domain: [0, 30], digits: 1 },
   // Natural risks
-  { id: 'seismicZone', label: 'Seismic zone', unit: '/4', category: 'hazards', better: 'low', domain: [0, 4], source: 'INPRES', digits: 0 },
-  { id: 'quakes', label: 'Earthquakes M5+ ≤200 km', unit: '', category: 'hazards', better: 'low', domain: [0, 120], source: 'USGS (live)', digits: 0, live: true },
-  { id: 'fireRisk', label: 'Wildfire exposure', unit: '/5', category: 'hazards', better: 'low', domain: [1, 5], source: 'SNMF', digits: 0 },
-  { id: 'floodRisk', label: 'Flood exposure', unit: '/5', category: 'hazards', better: 'low', domain: [1, 5], source: 'INA', digits: 0 },
+  { id: 'seismicZone', label: 'Seismic zone', unit: '/4', category: 'hazards', better: 'low', domain: [0, 4], digits: 0 },
+  { id: 'quakes', label: 'Earthquakes M5+ ≤200 km', unit: '', category: 'hazards', better: 'low', domain: [0, 120], digits: 0, live: true },
+  { id: 'fireRisk', label: 'Wildfire exposure', unit: '/5', category: 'hazards', better: 'low', domain: [1, 5], digits: 0 },
+  { id: 'floodRisk', label: 'Flood exposure', unit: '/5', category: 'hazards', better: 'low', domain: [1, 5], digits: 0 },
   // Environment
-  { id: 'aqi', label: 'Air quality (EAQI, 30-day)', unit: '', category: 'environment', better: 'low', domain: [10, 70], source: 'Open-Meteo CAMS (live)', digits: 0, live: true },
-  { id: 'pollutionIndex', label: 'Pollution index', unit: '', category: 'environment', better: 'low', domain: [20, 80], source: 'Numbeo', digits: 1 },
-  { id: 'climateComfort', label: 'Climate comfort', unit: '/100', category: 'environment', better: 'high', domain: [20, 90], source: 'Open-Meteo ERA5 (live)', digits: 0, live: true },
+  { id: 'aqi', label: 'Air quality (EAQI, 30-day)', unit: '', category: 'environment', better: 'low', domain: [10, 70], digits: 0, live: true },
+  { id: 'pollutionIndex', label: 'Pollution index', unit: '', category: 'environment', better: 'low', domain: [20, 80], digits: 1 },
+  { id: 'climateComfort', label: 'Climate comfort', unit: '/100', category: 'environment', better: 'high', domain: [20, 90], digits: 0, live: true },
   // Services
-  { id: 'healthcareIndex', label: 'Healthcare index', unit: '', category: 'services', better: 'high', domain: [40, 80], source: 'Numbeo', digits: 1 },
-  { id: 'doctors', label: 'Physicians', unit: '/1k', category: 'services', better: 'high', domain: [1.5, 6], source: 'REFEPS', digits: 1 },
-  { id: 'water', label: 'Running water', unit: '%', category: 'services', better: 'high', domain: [70, 100], source: 'Censo 2022', digits: 0 },
-  { id: 'sewer', label: 'Sewer network', unit: '%', category: 'services', better: 'high', domain: [20, 100], source: 'Censo 2022', digits: 0 },
-  { id: 'internet', label: 'Fixed internet', unit: '/100 hh', category: 'services', better: 'high', domain: [25, 100], source: 'ENACOM', digits: 0 },
+  { id: 'healthcareIndex', label: 'Healthcare index', unit: '', category: 'services', better: 'high', domain: [40, 80], digits: 1 },
+  { id: 'doctors', label: 'Physicians', unit: '/1k', category: 'services', better: 'high', domain: [1.5, 6], digits: 1 },
+  { id: 'water', label: 'Running water', unit: '%', category: 'services', better: 'high', domain: [70, 100], digits: 0 },
+  { id: 'sewer', label: 'Sewer network', unit: '%', category: 'services', better: 'high', domain: [20, 100], digits: 0 },
+  { id: 'internet', label: 'Fixed internet', unit: '/100 hh', category: 'services', better: 'high', domain: [25, 100], digits: 0 },
   // Infrastructure & transport
-  { id: 'roadPaved', label: 'Paved road network', unit: '%', category: 'infrastructure', better: 'high', domain: [30, 100], source: 'DNV', digits: 0 },
-  { id: 'transit', label: 'Public transport', unit: '/100', category: 'infrastructure', better: 'high', domain: [20, 100], source: 'MapStats est.', digits: 0 },
-  { id: 'trafficIndex', label: 'Commute time index', unit: '', category: 'infrastructure', better: 'low', domain: [20, 50], source: 'Numbeo', digits: 0 },
+  { id: 'roadPaved', label: 'Paved road network', unit: '%', category: 'infrastructure', better: 'high', domain: [30, 100], digits: 0 },
+  { id: 'transit', label: 'Public transport', unit: '/100', category: 'infrastructure', better: 'high', domain: [20, 100], digits: 0 },
+  { id: 'trafficIndex', label: 'Commute time index', unit: '', category: 'infrastructure', better: 'low', domain: [20, 50], digits: 0 },
   // Economy & wellbeing
-  { id: 'poverty', label: 'Poverty', unit: '%', category: 'economy', better: 'low', domain: [15, 60], source: 'EPH', digits: 0 },
-  { id: 'unemployment', label: 'Unemployment', unit: '%', category: 'economy', better: 'low', domain: [2, 10], source: 'EPH', digits: 1 },
-  { id: 'purchasingPower', label: 'Purchasing power', unit: '', category: 'economy', better: 'high', domain: [20, 60], source: 'Numbeo', digits: 0 },
-  { id: 'lifeExp', label: 'Life expectancy', unit: 'yrs', category: 'economy', better: 'high', domain: [74, 79], source: 'INDEC', digits: 1 },
-  { id: 'hdi', label: 'Human development', unit: '', category: 'economy', better: 'high', domain: [0.75, 0.9], source: 'PNUD', digits: 3 },
+  { id: 'poverty', label: 'Poverty', unit: '%', category: 'economy', better: 'low', domain: [15, 60], digits: 0 },
+  { id: 'unemployment', label: 'Unemployment', unit: '%', category: 'economy', better: 'low', domain: [2, 10], digits: 1 },
+  { id: 'purchasingPower', label: 'Purchasing power', unit: '', category: 'economy', better: 'high', domain: [20, 60], digits: 0 },
+  { id: 'lifeExp', label: 'Life expectancy', unit: 'yrs', category: 'economy', better: 'high', domain: [74, 79], digits: 1 },
+  { id: 'hdi', label: 'Human development', unit: '', category: 'economy', better: 'high', domain: [0.75, 0.9], digits: 3 },
   // Descriptive (not scored)
-  { id: 'meanTemp', label: 'Mean temperature', unit: '°C', category: 'climate', better: null, source: 'Open-Meteo ERA5 (live)', digits: 1, live: true },
-  { id: 'annualPrecip', label: 'Annual precipitation', unit: 'mm', category: 'climate', better: null, source: 'Open-Meteo ERA5 (live)', digits: 0, live: true , ramp: 'blue' },
-  { id: 'snowfall', label: 'Annual snowfall', unit: 'cm', category: 'climate', better: null, source: 'Open-Meteo ERA5 (live)', digits: 0, live: true , ramp: 'violet' },
-  { id: 'sunshine', label: 'Sunshine', unit: 'h/yr', category: 'climate', better: null, source: 'Open-Meteo ERA5 (live)', digits: 0, live: true },
-  { id: 'tempMaxAnnual', label: 'Hottest day (annual max)', unit: '°C', category: 'climate', better: null, source: 'Open-Meteo ERA5 (live)', digits: 1, live: true , ramp: 'red' },
-  { id: 'tempMinAnnual', label: 'Coldest night (annual min)', unit: '°C', category: 'climate', better: null, source: 'Open-Meteo ERA5 (live)', digits: 1, live: true , ramp: 'blue-rev' },
-  { id: 'uvMean', label: 'UV index (mean daily max)', unit: '', category: 'climate', better: null, source: 'Open-Meteo UV history (live)', digits: 1, live: true , ramp: 'orange' },
-  { id: 'floodWatch', label: 'River flood watch (30-day peak ÷ usual high water)', unit: '×', category: 'climate', better: null, source: 'Open-Meteo GloFAS (live)', digits: 2, live: true , ramp: 'red' },
-  { id: 'floodPeakPast', label: 'Past-year river peak ÷ usual high water', unit: '×', category: 'climate', better: null, source: 'Open-Meteo GloFAS (live)', digits: 2, live: true , ramp: 'red' },
-  { id: 'elevation', label: 'Elevation', unit: 'm', category: 'climate', better: null, source: 'Open-Meteo DEM (live)', digits: 0, live: true },
-  { id: 'costOfLiving', label: 'Cost of living', unit: '', category: 'economy', better: null, source: 'Numbeo', digits: 0 },
-  { id: 'qualityOfLife', label: 'Numbeo quality of life', unit: '', category: 'economy', better: null, source: 'Numbeo', digits: 0 },
-  { id: 'pop', label: 'Population', unit: '', category: 'economy', better: null, source: 'Censo / Natural Earth', digits: 0 },
+  { id: 'meanTemp', label: 'Mean temperature', unit: '°C', category: 'climate', better: null, digits: 1, live: true },
+  { id: 'annualPrecip', label: 'Annual precipitation', unit: 'mm', category: 'climate', better: null, digits: 0, live: true , ramp: 'blue' },
+  { id: 'snowfall', label: 'Annual snowfall', unit: 'cm', category: 'climate', better: null, digits: 0, live: true , ramp: 'violet' },
+  { id: 'sunshine', label: 'Sunshine', unit: 'h/yr', category: 'climate', better: null, digits: 0, live: true },
+  { id: 'tempMaxAnnual', label: 'Hottest day (annual max)', unit: '°C', category: 'climate', better: null, digits: 1, live: true , ramp: 'red' },
+  { id: 'tempMinAnnual', label: 'Coldest night (annual min)', unit: '°C', category: 'climate', better: null, digits: 1, live: true , ramp: 'blue-rev' },
+  { id: 'uvMean', label: 'UV index (mean daily max)', unit: '', category: 'climate', better: null, digits: 1, live: true , ramp: 'orange' },
+  { id: 'floodWatch', label: 'River flood watch (30-day peak ÷ usual high water)', unit: '×', category: 'climate', better: null, digits: 2, live: true , ramp: 'red' },
+  { id: 'floodPeakPast', label: 'Past-year river peak ÷ usual high water', unit: '×', category: 'climate', better: null, digits: 2, live: true , ramp: 'red' },
+  { id: 'elevation', label: 'Elevation', unit: 'm', category: 'climate', better: null, digits: 0, live: true },
+  { id: 'costOfLiving', label: 'Cost of living', unit: '', category: 'economy', better: null, digits: 0 },
+  { id: 'qualityOfLife', label: 'Numbeo quality of life', unit: '', category: 'economy', better: null, digits: 0 },
+  { id: 'pop', label: 'Population', unit: '', category: 'economy', better: null, digits: 0 },
 ]
 
 export const indicatorById = Object.fromEntries(INDICATORS.map((i) => [i.id, i]))

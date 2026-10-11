@@ -1,21 +1,9 @@
 // Reliability weights for the "weighted" integration mode.
 //
-// weight = base (kind of source) × geographic match × quality × recency
-// The numbers are judgement calls, kept in one place so they can be tuned and are
-// shown verbatim in the report and methodology.
-
-const YEAR = new Date().getFullYear()
-
-export const BASE = {
-  snic: { w: 1.0, why: 'official register of recorded cases' },
-  openmeteo: { w: 1.0, why: 'physical measurement / reanalysis' },
-  usgs: { w: 1.0, why: 'instrumental earthquake catalogue' },
-  numbeo: { w: 0.5, why: 'crowd-sourced perception survey' },
-  provincial: { w: 0.3, why: 'hand-entered approximations' },
-}
-
-// Full weight within a year of the reference period, then −15% per extra year, floor 50%.
-const recency = (year) => (year == null ? 1 : Math.max(0.5, 1 - 0.15 * Math.max(0, YEAR - year - 1)))
+// weight = base (kind of source) × provider factors (quality, recency) × geographic match
+// The numbers are judgement calls, kept with each kind (src/core/define.js KINDS) and provider
+// (`weightFactors`), and shown verbatim in the report and methodology.
+import { familyBase, familyProviders } from '../core/providers.js'
 
 /**
  * @param family  source family id
@@ -24,24 +12,16 @@ const recency = (year) => (year == null ? 1 : Math.max(0.5, 1 - 0.15 * Math.max(
  * @returns { w, factors: [[label, multiplier]] }
  */
 export function sourceWeight(family, ctx = {}, borrowed = false) {
-  const base = BASE[family]
+  const base = familyBase(family)
   if (!base) return { w: 0, factors: [] }
+  const providers = familyProviders(family)
   const factors = [[base.why, base.w]]
-  if (family === 'snic') {
-    if (ctx.type === 'city' && ctx.snic?.level === 'department') factors.push(['department, not city boundary', 0.9])
-    const r = recency(ctx.snic?.latestYear)
-    if (r < 1) factors.push([`data from ${ctx.snic.latestYear}`, r])
-  }
-  if (family === 'numbeo' && ctx.numbeo) {
-    const n = ctx.numbeo
-    if (n.source === 'snapshot') factors.push(['approximate snapshot, unverified', 0.4])
-    else if (n.contributors != null) factors.push([`${n.contributors} contributors (full weight at 50+)`, Math.min(1, Math.max(0.2, n.contributors / 50))])
-    else factors.push(['contributor count unknown', 0.7])
-    const r = recency(n.fetchedAt ? +n.fetchedAt.slice(0, 4) : null)
-    if (r < 1) factors.push([`collected ${n.fetchedAt}`, r])
-  }
-  if (family === 'provincial' && ctx.type === 'city') factors.push(['province-wide figure', 0.5])
-  if (borrowed && family !== 'provincial') factors.push(['borrowed from the province', 0.5])
+  for (const p of providers) if (p.weightFactors) factors.push(...p.weightFactors(ctx))
+  // Families that only publish province-wide figures are discounted for a city; any other family's
+  // value copied from the province is discounted as borrowed.
+  const regionOnly = providers.every((p) => p.levels.every((l) => l === 'region'))
+  if (regionOnly && ctx.type === 'city') factors.push(['province-wide figure', 0.5])
+  if (borrowed && !regionOnly) factors.push(['borrowed from the province', 0.5])
   return { w: factors.reduce((p, [, m]) => p * m, 1), factors }
 }
 

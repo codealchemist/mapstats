@@ -1,6 +1,7 @@
 import { CATEGORIES, INDICATORS } from '../data/metrics.js'
 import { fmtIndicator, fmtScore, MONTHS, slug } from './format.js'
 import { isOwnValue } from './scoring.js'
+import { providerOf } from '../core/providers.js'
 
 // ---------- Images & clipboard ----------
 
@@ -60,7 +61,7 @@ export function reportCsv(entity, detail, sourceGroups = []) {
   CATEGORIES.forEach((c) => rows.push(['score', c.label, round(entity.categories[c.id], 1), '/100', 'MapStats', own]))
   INDICATORS.forEach((i) => {
     const scope = isOwnValue(entity, i.id) ? own : entity.inherited?.has(i.id) ? `${entity.provinceName} (province, no city data)` : 'no data'
-    rows.push(['indicator', i.label, round(entity.values[i.id], 3), i.unit, i.source, scope])
+    rows.push(['indicator', i.label, round(entity.values[i.id], 3), i.unit, providerOf(i.id)?.short, scope])
   })
   if (detail?.climate) {
     detail.climate.monthly.forEach((m, k) =>
@@ -134,7 +135,7 @@ export async function reportPdf({ entity, national, charts, countryName, sourceG
     startY: doc.lastAutoTable.finalY + 16,
     head: [['Indicator', 'Value', 'Country avg.', 'Source']],
     body: INDICATORS.filter((i) => isOwnValue(entity, i.id)).map((i) => [
-      i.label, fmtIndicator(i.id, entity.values[i.id]), fmtIndicator(i.id, national?.values[i.id]), i.source,
+      i.label, fmtIndicator(i.id, entity.values[i.id]), fmtIndicator(i.id, national?.values[i.id]), providerOf(i.id)?.short,
     ]),
   })
 
