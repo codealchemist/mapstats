@@ -38,9 +38,11 @@ export function rawStore(iso3, provider, { root = process.env.MAPSTATS_RAW || 'd
   const manifest = fs.existsSync(manifestFile) ? JSON.parse(fs.readFileSync(manifestFile, 'utf8')) : { files: {} }
   const save = () => { fs.mkdirSync(dir, { recursive: true }); fs.writeFileSync(manifestFile, JSON.stringify(manifest, null, 2) + '\n') }
   const ref = (name) => ({ name, ...(manifest.files[name].url && { url: manifest.files[name].url }), sha256: manifest.files[name].sha256, retrievedAt: manifest.files[name].retrievedAt })
+  // `changed`: the file on disk is no longer the one the manifest describes (replaced by hand under the same name).
   const read = (name) => {
     const buf = fs.readFileSync(path.join(dir, name))
-    return { path: path.join(dir, name), buffer: buf, get text() { return buf.toString('utf8') }, ref: ref(name) }
+    const changed = !!manifest.files[name] && manifest.files[name].sha256 !== sha256(buf)
+    return { path: path.join(dir, name), buffer: buf, changed, get text() { return buf.toString('utf8') }, ref: ref(name) }
   }
 
   return {
@@ -63,12 +65,17 @@ export function rawStore(iso3, provider, { root = process.env.MAPSTATS_RAW || 'd
       save()
       return read(name)
     },
-    /** Registers a file put in `dir` by hand (e.g. downloaded in a browser); `note` says from where. Its date is the file's. */
+    /**
+     * Registers a file put in `dir` by hand (e.g. downloaded in a browser); `note` says from where. Its date is the
+     * file's. Re-registering a file whose contents changed records its new hash and date.
+     */
     add(name, { url = null, note = null } = {}) {
       const file = path.join(dir, name)
       const buf = fs.readFileSync(file)
+      const prev = manifest.files[name]
+      const same = prev?.sha256 === sha256(buf)
       const saved = fs.statSync(file).mtime.toISOString().slice(0, 10)
-      manifest.files[name] = { ...(url && { url }), ...(note && { note }), retrievedAt: manifest.files[name]?.retrievedAt || saved, sha256: sha256(buf), bytes: buf.length }
+      manifest.files[name] = { ...(url && { url }), ...(note && { note }), retrievedAt: (same && prev.retrievedAt) || saved, sha256: sha256(buf), bytes: buf.length }
       save()
       return read(name)
     },

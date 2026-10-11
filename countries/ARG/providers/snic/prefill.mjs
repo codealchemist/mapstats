@@ -25,6 +25,11 @@ export async function prefill({ args, log }) {
   const unregistered = names.filter((n) => !raw.manifest.files[n])
   if (unregistered.length && !args.origin) throw new Error(`Say where ${unregistered.join(', ')} came from: --origin "…" (stored with the dataset)`)
   for (const n of unregistered) raw.add(n, { note: args.origin })
+  // A base replaced by hand under the same name: record the new file (same origin unless --origin says otherwise).
+  for (const n of names.filter((x) => raw.read(x).changed)) {
+    log(`${n} changed since it was registered: recording its new hash and date`)
+    raw.add(n, { note: args.origin || raw.manifest.files[n].note })
+  }
 
   const state = createState()
   const files = []

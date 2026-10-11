@@ -457,7 +457,7 @@ function IndicatorGroup({ category, entity, national, ranges }) {
           <div key={i.id} className="ind-row">
             <div className="ind-label">{i.label}</div>
             <div className="ind-val">{fmtIndicator(i.id, v)}</div>
-            <div className="meter" title={n != null && range ? `Lowest to highest in the country: ${fmtIndicator(i.id, range[0])} – ${fmtIndicator(i.id, range[1])} (${i.better === 'low' ? 'lower' : 'higher'} is better)` : 'Not scored'}>
+            <div className={`meter dir-${i.better}`} title={n != null && range ? `Lowest to highest in the country: ${fmtIndicator(i.id, range[0])} – ${fmtIndicator(i.id, range[1])} (${i.better === 'low' ? 'lower' : 'higher'} is better)` : 'Not scored'}>
               {n != null && <span style={{ width: `${n}%` }} />}
               {na != null && <i style={{ left: `${na}%` }} title="Country average" />}
             </div>

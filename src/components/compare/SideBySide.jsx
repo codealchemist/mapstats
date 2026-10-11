@@ -141,7 +141,7 @@ function buildRows(filled, national, ranges) {
           <div className={`sbs-value ${best?.has(e.id) ? 'best' : ''}${tint ? ' tint' : ''}`}>
             <b>{best?.has(e.id) && <Check size={12} />} {fmtIndicator(ind.id, v)}</b>
             {e.inherited?.has(ind.id) && <span className="tag" title="Province figure, not this place's own">prov.</span>}
-            {n != null && <span className="meter"><span style={{ width: `${n}%` }} />{national.values[ind.id] != null && <i style={{ left: `${pos(national.values[ind.id])}%` }} />}</span>}
+            {n != null && <span className={`meter dir-${ind.better}`} title={ind.better === 'low' ? 'Lower is better' : 'Higher is better'}><span style={{ width: `${n}%` }} />{national.values[ind.id] != null && <i style={{ left: `${pos(national.values[ind.id])}%` }} />}</span>}
           </div>
         )
       },

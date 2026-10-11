@@ -7,6 +7,7 @@ import path from 'node:path'
 import mapshaper from 'mapshaper'
 import { COUNTRIES, findCountry } from '../src/core/countries.js'
 import { pointInFeature } from '../src/lib/geo.js'
+import { uniqueCityIds } from './unique-ids.mjs'
 
 const NE_DIR = process.env.NE_DIR
 if (!NE_DIR) throw new Error('Set NE_DIR to the folder holding the Natural Earth GeoJSON files')
@@ -58,6 +59,6 @@ for (const { iso3, geo } of targets) {
         capital: p.properties.adm0cap === 1,
       }
     })
-  fs.writeFileSync(path.join(OUT, 'cities.json'), JSON.stringify(cities))
+  fs.writeFileSync(path.join(OUT, 'cities.json'), JSON.stringify(uniqueCityIds(cities)))
   console.log(iso3, feats.length, 'regions', cities.length, 'cities', (fs.statSync(path.join(OUT, 'regions.json')).size / 1024).toFixed(0) + 'KB')
 }

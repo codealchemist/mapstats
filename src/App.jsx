@@ -38,7 +38,11 @@ export default function App() {
   // Bumped by the logo (home view) to remount stateful panels: search text, side-panel tab.
   const [homeKey, setHomeKey] = useState(0)
   const [weights, setWeights] = useState(() => ({ ...DEFAULT_WEIGHTS, ...store.get('weights', {}) }))
-  const [sourceMode, setSourceMode] = useState(() => store.get('sourceMode', 'combined'))
+  // A mode remembered by an older build may name a source that no longer exists, or one the country lacks.
+  const [sourceMode, setSourceMode] = useState(() => {
+    const mode = store.get('sourceMode', 'combined')
+    return familiesFor(countryByIso(store.get('country', 'ARG'))).some((f) => f.id === mode) ? mode : 'combined'
+  })
   const [selected, setSelected] = useState(null) // { type, id } | { type: 'adhoc', entityInput }
   const [panelOpen, setPanelOpen] = useState(() => !isNarrow())
   const [showInfo, setShowInfo] = useState(false)
