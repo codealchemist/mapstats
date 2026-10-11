@@ -1,8 +1,9 @@
 // Matching a source's place names and points to MapStats places.
 import { pointInFeature } from '../../src/lib/geo.js'
+import { fold as foldName } from '../../src/lib/news.js'
 
-/** Accent-insensitive, lowercase, trimmed name. */
-export const fold = (s) => String(s ?? '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/\s+/g, ' ').trim()
+/** Accent-insensitive, lowercase, trimmed name, with runs of spaces collapsed. */
+export const fold = (s) => foldName(s).replace(/\s+/g, ' ')
 
 /**
  * Name → id matcher that reports what it could not match, instead of guessing.

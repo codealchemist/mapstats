@@ -15,7 +15,8 @@ import { FEED_PATHS, candidateHomes, uncoveredRegions } from '../netlify/news/ou
 import { parseFeed, discoverFeeds } from '../netlify/news/rss.mjs'
 import { robotsAllows } from '../netlify/news/robots.mjs'
 import { KEYWORDS, newsQuery } from '../src/lib/news.js'
-import { COUNTRIES, newsSettings } from '../src/core/countries.js'
+import { findCountry, newsSettings } from '../src/core/countries.js'
+import { parseArgs } from '../tools/cli/args.mjs'
 import { googleNewsItems } from '../netlify/news/googleNews.mjs'
 import { relevance } from '../netlify/news/rank.mjs'
 import { Deadline } from '../netlify/news/http.mjs'
@@ -40,13 +41,13 @@ const report = { startedAt: new Date().toISOString(), node: process.version, pip
 const saveJson = () => fs.writeFileSync(JSON_OUT, JSON.stringify({ ...report, finishedAt: new Date().toISOString() }, null, 2))
 process.on('uncaughtException', (e) => { console.error('probe crashed:', e); report.error = String(e?.stack || e); saveJson(); process.exit(1) })
 
-const args = process.argv.slice(2)
-const outletsOnly = args.includes('--outlets-only')
-const iso3 = (args.find((a) => a.startsWith('--country='))?.slice(10) || 'ARG').toUpperCase()
-const country = COUNTRIES.find((c) => c.iso3 === iso3)
-if (!country) throw new Error(`Unknown country ${iso3} (not in countries/index.js)`)
+const args = parseArgs()
+const outletsOnly = !!args['outlets-only']
+const country = findCountry(args.country || 'ARG')
+if (!country) throw new Error(`Unknown country ${args.country} (not in countries/index.js)`)
+const { iso3 } = country
 const VERIFIED = country.news.outlets.verified
-const [place = iso3 === 'ARG' ? 'Tandil' : null, region = iso3 === 'ARG' ? 'Buenos Aires' : null] = args.filter((a) => !a.startsWith('--'))
+const [place = iso3 === 'ARG' ? 'Tandil' : null, region = iso3 === 'ARG' ? 'Buenos Aires' : null] = args._
 if (!place && !outletsOnly) throw new Error('Pass a place and its region (or --outlets-only)')
 const OUR_UA = process.env.NEWS_USER_AGENT || 'Mozilla/5.0 (compatible; MapStatsNews/1.0; +https://github.com/mapstats)'
 const BROWSER_UA = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0 Safari/537.36'

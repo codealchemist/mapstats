@@ -143,11 +143,9 @@ Optional fields present your data without writing UI (examples in `countries/ARG
 | Field | Gives you |
 |---|---|
 | `report.trends` + `series` in the dataset | trend charts and a latest-rates table in the report, compare line charts |
-| `report.survey` + `details.survey` | survey charts in the report and compare |
-| `report.facts`, `report.note` | key figures and caveats in the report section |
 | `provenance(ctx)` | your group in "values by source" (report, CSV, PDF) |
 | `weightFactors(ctx)` | extra reliability factors from your details (sample size, recency…) |
-| `urlFor`, `links` | deep links to the source's page for a place |
+| `links` | links to the source's own pages about a place |
 
 `prefill.mjs` (full version in the [template](../countries/_template/providers/example-stats/prefill.mjs)):
 

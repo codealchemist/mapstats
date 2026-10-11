@@ -59,21 +59,6 @@ const trendMeasures = (provider) => (provider.report?.trends?.charts || []).map(
   }),
 }))
 
-// Survey answers a provider publishes (its report.survey).
-const surveyMeasures = (provider) => {
-  const s = provider.report?.survey
-  if (!s) return []
-  const answers = (p) => p.e.details?.[provider.id]?.survey
-  return [{
-    id: `survey:${provider.id}`, group: s.compare.group, label: s.compare.label, unit: '0–100',
-    available: (ps) => ps.some(answers),
-    build: ({ places, tk }) => {
-      const keys = s.questions.filter(([k]) => places.some((p) => answers(p)?.[k] != null))
-      return groupedBars({ places, tk, labels: keys.map(([, l]) => l), horizontal: true, max: 100, series: (p) => answers(p) && keys.map(([k]) => answers(p)[k] ?? null) })
-    },
-  }]
-}
-
 export function buildMeasures() {
   const list = [
     {
@@ -87,7 +72,6 @@ export function buildMeasures() {
       build: ({ places, tk }) => groupedBars({ places, tk, labels: CATEGORIES.map((c) => c.label), series: (p) => CATEGORIES.map((c) => r1(p.e.categories[c.id])), horizontal: true, max: 100 }),
     },
     ...localFirst(PROVIDERS).flatMap(trendMeasures),
-    ...localFirst(PROVIDERS).flatMap(surveyMeasures),
     monthly('tmax', 'Average daily maximum', '°C'),
     monthly('tmin', 'Average daily minimum', '°C'),
     monthly('precip', 'Precipitation', 'mm', 'bar'),

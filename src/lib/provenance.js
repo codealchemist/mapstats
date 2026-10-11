@@ -2,19 +2,12 @@
 // publishes it, with the geographic level and period it refers to. Nothing here
 // is averaged across sources or borrowed from another area without saying so.
 import { INDICATORS } from '../data/metrics.js'
-import { KINDS } from '../core/define.js'
-import { providerById, providerOf, providersFor, localFirst, familyOf, familyProviders } from '../core/providers.js'
+import { providerById, providerOf, providersFor, localFirst, familyOf, familyBase, isRegionOnly } from '../core/providers.js'
 
 const POLLUTANTS = [['pm2_5', 'PM2.5'], ['pm10', 'PM10'], ['nitrogen_dioxide', 'NO₂'], ['ozone', 'O₃'], ['sulphur_dioxide', 'SO₂']]
 
 const row = (label, value, unit = '') => ({ label, value, unit })
 const src = (id) => providerById(id)
-
-// Families whose figures are only published per region and entered by hand (e.g. provincial statistics).
-const regionOnlyManual = (family) => {
-  const ps = familyProviders(family)
-  return ps.length > 0 && ps.every((p) => p.kind === 'manual' && p.levels.every((l) => l === 'region'))
-}
 
 /**
  * @returns [{ key, name, url, level, area, period, status, note, rows: [{ label, value, unit }] }]
@@ -27,7 +20,7 @@ export function valuesBySource({ entity, model, country, detail, quakes, live = 
   // ---- The country's datasets: each provider describes its own figures ----
   for (const p of localFirst(providersFor(country))) {
     const g = p.provenance?.({ entity, detail: entity.details?.[p.id], meta: model.datasets?.[p.id], country })
-    if (g) groups.push({ key: p.short, name: p.name, url: p.urlFor?.(entity, 'safety') || p.url, ...g })
+    if (g) groups.push({ key: p.short, name: p.name, url: p.url, ...g })
   }
 
   // ---- Open-Meteo: climate (ERA5) ----
@@ -108,13 +101,16 @@ export function valuesBySource({ entity, model, country, detail, quakes, live = 
   }
 
   // ---- Statistics only available for the whole region (cities) / the region's own figures ----
-  const provRows = INDICATORS.filter((i) => regionOnlyManual(familyOf(i.id)))
+  const regionWide = INDICATORS.filter((i) => isRegionOnly(familyOf(i.id)))
+  const provRows = regionWide
     .filter((i) => (isCity ? entity.inherited?.has(i.id) : entity.values[i.id] != null))
     .map((i) => ({ ...row(i.label, entity.values[i.id], i.unit), source: providerOf(i.id).short }))
   if (provRows.length) {
+    const family = familyOf(regionWide[0].id)
+    const why = familyBase(family)?.why || ''
     groups.push({
       key: 'province', name: `${country.regionLabel}-level statistics${isCity ? ` (${entity.provinceName})` : ''}`,
-      level: country.regionLabel, area: isCity ? entity.provinceName : entity.name, status: `${KINDS.manual.why[0].toUpperCase()}${KINDS.manual.why.slice(1)}`,
+      level: country.regionLabel, area: isCity ? entity.provinceName : entity.name, status: why && `${why[0].toUpperCase()}${why.slice(1)}`,
       rows: provRows,
       note: isCity
         ? `Not published for ${entity.name}; shown for transparency because the score uses them. Each row names its reference source.`

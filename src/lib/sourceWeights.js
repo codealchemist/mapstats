@@ -3,7 +3,7 @@
 // weight = base (kind of source) × provider factors (quality, recency) × geographic match
 // The numbers are judgement calls, kept with each kind (src/core/define.js KINDS) and provider
 // (`weightFactors`), and shown verbatim in the report and methodology.
-import { familyBase, familyProviders } from '../core/providers.js'
+import { familyBase, familyProviders, isRegionOnly } from '../core/providers.js'
 
 /**
  * @param family  source family id
@@ -14,15 +14,14 @@ import { familyBase, familyProviders } from '../core/providers.js'
 export function sourceWeight(family, ctx = {}, borrowed = false) {
   const base = familyBase(family)
   if (!base) return { w: 0, factors: [] }
-  const providers = familyProviders(family)
   const factors = [[base.why, base.w]]
-  for (const p of providers) {
+  for (const p of familyProviders(family)) {
     const d = ctx.details?.[p.id]
     if (p.weightFactors) factors.push(...p.weightFactors({ type: ctx.type, level: d?.level, detail: d }))
   }
   // Families that only publish province-wide figures are discounted for a city; any other family's
   // value copied from the province is discounted as borrowed.
-  const regionOnly = providers.every((p) => p.levels.every((l) => l === 'region'))
+  const regionOnly = isRegionOnly(family)
   if (regionOnly && ctx.type === 'city') factors.push(['province-wide figure', 0.5])
   if (borrowed && !regionOnly) factors.push(['borrowed from the province', 0.5])
   return { w: factors.reduce((p, [, m]) => p * m, 1), factors }

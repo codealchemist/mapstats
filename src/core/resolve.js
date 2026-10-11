@@ -9,7 +9,7 @@
 // Extensive quantities (population) are never borrowed.
 import { INDICATORS } from '../data/metrics.js'
 
-const LEVELS = ['national', 'region', 'subregion', 'city']
+export const LEVELS = ['national', 'region', 'subregion', 'city']
 const NOT_INHERITED = new Set(['pop'])
 
 /** Population-weighted mean of `key` over places that have it (weight 1 when the population is unknown). */
@@ -86,10 +86,9 @@ export function resolvePlaces({ regionIds, places, datasets }) {
 
   const regions = {}
   for (const id of regionIds) {
-    const own = at.region[id]?.values || {}
-    const agg = aggregate(id)
-    const inheritable = Object.fromEntries(Object.entries({ ...own, ...agg }).filter(([k]) => !NOT_INHERITED.has(k)))
-    regions[id] = { values: { ...own, ...agg }, aggregated: new Set(Object.keys(agg)), inheritable, details: detailsAt(at.region[id], 'region') }
+    const values = { ...at.region[id]?.values, ...aggregate(id) }
+    const inheritable = Object.fromEntries(Object.entries(values).filter(([k]) => !NOT_INHERITED.has(k)))
+    regions[id] = { values, inheritable, details: detailsAt(at.region[id], 'region') }
   }
 
   const cities = {}

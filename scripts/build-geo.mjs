@@ -5,32 +5,20 @@
 import fs from 'node:fs'
 import path from 'node:path'
 import mapshaper from 'mapshaper'
-import { COUNTRIES } from '../src/core/countries.js'
+import { COUNTRIES, findCountry } from '../src/core/countries.js'
+import { pointInFeature } from '../src/lib/geo.js'
 
 const NE_DIR = process.env.NE_DIR
 if (!NE_DIR) throw new Error('Set NE_DIR to the folder holding the Natural Earth GeoJSON files')
 const only = process.argv.slice(2).map((a) => a.toUpperCase())
 const targets = only.length
-  ? only.map((iso3) => COUNTRIES.find((c) => c.iso3 === iso3) || fail(iso3))
+  ? only.map((iso3) => findCountry(iso3) || fail(iso3))
   : COUNTRIES
 function fail(iso3) { throw new Error(`Unknown country ${iso3} (not in countries/index.js)`) }
 
 const read = (f) => JSON.parse(fs.readFileSync(path.join(NE_DIR, f), 'utf8'))
 const adm1 = read('ne_10m_admin_1_states_provinces.geojson')
 const places = read('ne_10m_populated_places_simple.geojson')
-
-function pointInRing([x, y], ring) {
-  let inside = false
-  for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) {
-    const [xi, yi] = ring[i], [xj, yj] = ring[j]
-    if ((yi > y) !== (yj > y) && x < ((xj - xi) * (y - yi)) / (yj - yi) + xi) inside = !inside
-  }
-  return inside
-}
-function pointInFeature(pt, f) {
-  const polys = f.geometry.type === 'Polygon' ? [f.geometry.coordinates] : f.geometry.coordinates
-  return polys.some((p) => pointInRing(pt, p[0]) && !p.slice(1).some((h) => pointInRing(pt, h)))
-}
 
 for (const { iso3, geo } of targets) {
   const OUT = path.resolve(`countries/${iso3}/geo`)

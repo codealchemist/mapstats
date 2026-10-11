@@ -11,12 +11,21 @@ export const PROVIDERS = [...GLOBAL_PROVIDERS, ...COUNTRIES.flatMap((c) => c.pro
 const byId = Object.fromEntries(PROVIDERS.map((p) => [p.id, p]))
 export const providerById = (id) => byId[id] || null
 
+// Per-country lists, computed once per country (components ask on every render).
+const perCountry = (fn) => {
+  const cache = new WeakMap()
+  return (country) => {
+    if (!cache.has(country)) cache.set(country, fn(country))
+    return cache.get(country)
+  }
+}
+
 /** Providers serving a country: the always-on globals, plus the globals and own providers its config lists. */
-export function providersFor(country) {
+export const providersFor = perCountry((country) => {
   const listed = country.providers.map((p) => (typeof p === 'string' ? providerById(p) : p))
   for (const p of listed) if (!p) throw new Error(`${country.iso3}: unknown provider in country.config.js`)
   return [...ALWAYS_ON.map(providerById), ...listed]
-}
+})
 
 /** The country's own providers first (local, usually official, data), then global ones. */
 export const localFirst = (providers) => [...providers.filter((p) => p.country), ...providers.filter((p) => !p.country)]
@@ -56,10 +65,10 @@ export const familyById = Object.fromEntries(SOURCE_FAMILIES.map((f) => [f.id, f
 for (const p of PROVIDERS) if (familyIdOf(p) && !familyById[familyIdOf(p)]) throw new Error(`Provider ${p.id}: unknown family ${familyIdOf(p)}`)
 
 /** The source-selector entries for a country: the integration modes, then the families its providers belong to. */
-export function familiesFor(country) {
+export const familiesFor = perCountry((country) => {
   const ids = new Set(providersFor(country).map(familyIdOf).filter(Boolean))
   return SOURCE_FAMILIES.filter((f) => isMultiSource(f.id) || ids.has(f.id))
-}
+})
 
 // Modes that integrate every source (vs. a single-source view).
 export const isMultiSource = (mode) => mode === 'combined' || mode === 'weighted'
@@ -70,14 +79,26 @@ export const familyOf = (indicatorId) => {
   return p ? familyIdOf(p) : null
 }
 
-/** Base reliability of a family, from its kind: { w, why }. A family may word `why` more precisely. */
-export const familyBase = (familyId) => {
-  const f = familyById[familyId], kind = KINDS[f?.kind]
-  return kind ? { w: kind.w, why: f.why || kind.why } : null
-}
+// What scoring needs per family, computed once: base reliability, providers, and whether it only publishes
+// region-wide figures (then a city's value is the region's, compared among regions and discounted for cities).
+const families = Object.fromEntries(SOURCE_FAMILIES.filter((f) => !isMultiSource(f.id)).map((f) => {
+  const providers = PROVIDERS.filter((p) => familyIdOf(p) === f.id)
+  const kind = KINDS[f.kind]
+  return [f.id, {
+    base: kind ? { w: kind.w, why: f.why || kind.why } : null, // a family may word `why` more precisely
+    providers,
+    regionOnly: providers.length > 0 && providers.every((p) => p.levels.length > 0 && p.levels.every((l) => l === 'region')),
+  }]
+}))
+
+/** Base reliability of a family, from its kind: { w, why }. */
+export const familyBase = (familyId) => families[familyId]?.base || null
 
 /** Providers of a family, e.g. to apply their weight factors. */
-export const familyProviders = (familyId) => PROVIDERS.filter((p) => familyIdOf(p) === familyId)
+export const familyProviders = (familyId) => families[familyId]?.providers || []
+
+/** True when a family only publishes region-wide figures (e.g. hand-entered provincial statistics). */
+export const isRegionOnly = (familyId) => !!families[familyId]?.regionOnly
 
 // ---------- Lookups for UI ----------
 
@@ -85,6 +106,9 @@ const uniq = (ids) => [...new Set(ids)].filter(Boolean)
 
 /** Provider ids behind a list of indicators. */
 export const sourcesForIndicators = (ids) => uniq(ids.map((id) => providerOf(id)?.id))
+
+/** The country's providers that present data in a report category (`report.category`), its own first. */
+export const reportProviders = (country, category) => localFirst(providersFor(country)).filter((p) => p.report?.category === category)
 
 /** Provider ids behind a category's indicators. */
 export const sourcesForCategory = (categoryId) => sourcesForIndicators(INDICATORS.filter((i) => i.category === categoryId).map((i) => i.id))

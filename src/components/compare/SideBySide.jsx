@@ -120,7 +120,7 @@ function buildRows(filled, national, ranges) {
   const rows = []
   const bestOf = (ind) => {
     if (!ind.better || filled.length < 2) return null
-    const own = filled.filter(({ e }) => e.values[ind.id] != null && (isOwnValue(e, ind.id) || e.type === 'province'))
+    const own = filled.filter(({ e }) => isOwnValue(e, ind.id))
     if (own.length < 2) return null
     // Real values in the indicator's direction: normalised scores clamp at the domain ends and would tie.
     const vals = own.map(({ e }) => e.values[ind.id])
@@ -163,7 +163,7 @@ function buildRows(filled, national, ranges) {
   for (const c of CATEGORIES) {
     const extra = []
     if (c.id === 'safety') {
-      // Yearly series and survey answers from the providers that publish them (their report metadata).
+      // Yearly series from the providers that publish them (their report.trends).
       for (const p of localFirst(PROVIDERS).filter((x) => x.report?.category === c.id)) {
         const of = (e) => e.details?.[p.id]
         const t = p.report.trends
@@ -176,14 +176,6 @@ function buildRows(filled, national, ranges) {
               cell: ({ e, i }, tk) => of(e)?.series && <MiniChart cfg={mini(tk, { labels: years, data: of(e).series[chart.indicator], color: tk.series[i], scale })} />,
             })
           }
-        }
-        const s = p.report.survey
-        const keys = s ? s.questions.filter(([k]) => filled.some(({ e }) => of(e)?.survey?.[k] != null)) : []
-        if (keys.length) {
-          extra.push({
-            key: `survey:${p.id}`, label: s.compare.row, sub: s.compare.sub, chart: true, focus: `survey:${p.id}`, na: `No ${p.short} survey`,
-            cell: ({ e, i }, tk) => of(e)?.survey && <MiniChart height={keys.length * 18 + 30} cfg={mini(tk, { type: 'bar', horizontal: true, labels: keys.map(([, l]) => l.replace(/^(Worries|Problem): /, '')), data: keys.map(([k]) => of(e).survey[k] ?? null), color: tk.series[i], scale: { min: 0, max: 100 } })} />,
-          })
         }
       }
     }

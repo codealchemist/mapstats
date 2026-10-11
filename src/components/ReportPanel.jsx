@@ -16,8 +16,8 @@ import { slug } from '../lib/format.js'
 import { scoreTone } from '../lib/colors.js'
 import { useToast } from './Toast.jsx'
 import { valuesBySource, fmtExact } from '../lib/provenance.js'
-import { familyById, SOURCE_FAMILIES, isMultiSource, sourcesForIndicators, providersFor } from '../core/providers.js'
-import { reportProviders, hasBlock, TrendBlock, SurveyBlock, ProviderFacts, ProviderNotes } from './report/ProviderBlocks.jsx'
+import { familyById, SOURCE_FAMILIES, isMultiSource, sourcesForIndicators, providersFor, reportProviders } from '../core/providers.js'
+import { hasBlock, TrendBlock } from './report/ProviderBlocks.jsx'
 import { agreementOf } from '../lib/sourceWeights.js'
 import { floodLevel } from './mapLayers.js'
 import { NewsSection } from './NewsSection.jsx'
@@ -148,6 +148,7 @@ export function ReportPanel({ entity, model, country, live, theme, onClose, onSe
 
   // Providers presenting safety data for this place (official series, surveys…), and their external pages.
   const safetyProviders = reportProviders(country, 'safety')
+  const ownSafety = SAFETY_KEYS.filter((k) => isOwnValue(entity, k))
   const links = providersFor(country).flatMap((p) => p.links?.(entity) || [])
 
   const sourceGroups = useMemo(() => valuesBySource({ entity, model, country, detail, quakes, live }), [entity, model, country, detail, quakes, live])
@@ -282,19 +283,16 @@ export function ReportPanel({ entity, model, country, live, theme, onClose, onSe
           <section id="sec-safety" className="report-section">
             <SectionHead icon={ShieldAlert} title="Safety"
               sub={safetyProviders.filter((p) => hasBlock(p, entity)).map((p) => p.report.label).join(' · ') || (isCity ? 'City-level crime data' : 'Province crime statistics')}
-              sources={sourcesForIndicators(['homicide', 'propertyCrime', 'roadDeaths'].filter((k) => isOwnValue(entity, k)))} entity={entity} category="safety" />
-            {['homicide', 'propertyCrime', 'roadDeaths'].some((k) => isOwnValue(entity, k)) && (
+              sources={sourcesForIndicators(ownSafety)} />
+            {ownSafety.length > 0 && (
               <div className="kv">
-                {['homicide', 'propertyCrime', 'roadDeaths'].filter((k) => isOwnValue(entity, k)).map((k) => (
+                {ownSafety.map((k) => (
                   <span key={k}>{indicatorById[k].label} <b>{fmtIndicator(k, entity.values[k])}</b> <span className="faint">avg {fmtIndicator(k, national.values[k])}</span></span>
                 ))}
-                <ProviderFacts providers={safetyProviders} entity={entity} />
               </div>
             )}
-            <ProviderNotes providers={safetyProviders} entity={entity} />
             {safetyProviders.map((p) => <TrendBlock key={p.id} provider={p} entity={entity} model={model} country={country} theme={theme} />)}
-            {safetyProviders.map((p) => <SurveyBlock key={p.id} provider={p} entity={entity} theme={theme} />)}
-            <MissingStats entity={entity} ids={['homicide', 'propertyCrime', 'roadDeaths'].filter((k) => !isOwnValue(entity, k))} category="safety" />
+            <MissingStats entity={entity} ids={SAFETY_KEYS.filter((k) => !isOwnValue(entity, k))} />
           </section>
 
           <NewsSection entity={entity} country={country} model={model} />
@@ -393,7 +391,7 @@ export function ReportPanel({ entity, model, country, live, theme, onClose, onSe
 
 const round1 = (v) => (v == null ? null : Math.round(v * 10) / 10)
 
-function SectionHead({ icon: Icon, title, sub, status, sources, entity, category }) {
+function SectionHead({ icon: Icon, title, sub, status, sources }) {
   return (
     <>
       <div className="section-head">
@@ -405,7 +403,7 @@ function SectionHead({ icon: Icon, title, sub, status, sources, entity, category
         {status === 'loading' && <LoaderCircle size={15} className="spin muted push" />}
         {status === 'error' && <span className="push err small"><CircleAlert size={13} /> unavailable</span>}
       </div>
-      <SourceButtons keys={sources} entity={entity} category={category} />
+      <SourceButtons keys={sources} />
     </>
   )
 }
@@ -449,7 +447,7 @@ function IndicatorGroup({ category, entity, national, ranges }) {
         <span><Icon size={14} /> {category.label}</span>
         <span className="muted small">{fmtScore(entity.categories[category.id])} <span className="faint">/ avg {fmtScore(national.categories[category.id])}</span></span>
       </div>
-      <SourceButtons keys={sourcesForIndicators(rows.map((i) => i.id))} entity={entity} category={category.id} label={null} />
+      <SourceButtons keys={sourcesForIndicators(rows.map((i) => i.id))} label={null} />
       {rows.map((i) => {
         const v = entity.values[i.id], avg = national.values[i.id], range = ranges[i.id]
         const pos = meterScale(range, [v, avg])
@@ -466,15 +464,16 @@ function IndicatorGroup({ category, entity, national, ranges }) {
           </div>
         )
       })}
-      <MissingStats entity={entity} ids={missing} category={category.id} />
+      <MissingStats entity={entity} ids={missing} />
     </div>
   )
 }
 
 const HAZARD_KEYS = ['seismicZone', 'fireRisk', 'floodRisk']
+const SAFETY_KEYS = ['homicide', 'propertyCrime', 'roadDeaths']
 
 // Notice for indicators with no city-level data, with links to where they could be found.
-function MissingStats({ entity, ids, category }) {
+function MissingStats({ entity, ids }) {
   if (entity.type !== 'city' || !ids.length) return null
   const fallback = ids.filter((id) => entity.inherited?.has(id))
   return (
@@ -486,7 +485,7 @@ function MissingStats({ entity, ids, category }) {
           The score uses province-level figures{entity.provinceName ? ` (${entity.provinceName})` : ''} for {fallback.length === ids.length ? 'these' : fallback.map((id) => indicatorById[id].label.toLowerCase()).join(', ')}.
         </div>
       )}
-      <SourceButtons keys={sourcesForIndicators(ids)} entity={entity} category={category} label="Look up" />
+      <SourceButtons keys={sourcesForIndicators(ids)} label="Look up" />
     </div>
   )
 }

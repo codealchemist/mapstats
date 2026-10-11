@@ -10,8 +10,8 @@ export default [
   }),
   defineProvider({
     id: 'outlet-rss', short: 'Outlet RSS', name: 'Local outlets’ RSS feeds', url: null,
-    covers: 'Feeds of ~40 Argentine regional newspapers (El Eco, La Voz, La Capital, Los Andes…), matched by place and crime keywords',
-    access: 'live', cadence: 'Each outlet’s latest items; cached 24 h', scope: 'Argentina · by province and city', types: ['crime'],
+    covers: 'Feeds of local newspapers listed in each country’s news settings (countries/<ISO3>/news.js), matched by place and crime keywords',
+    access: 'live', cadence: 'Each outlet’s latest items; cached 24 h', scope: 'Per country · by region and city', types: ['crime'],
     usedFor: '“In the news” section of reports',
   }),
   defineProvider({

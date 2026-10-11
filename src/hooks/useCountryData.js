@@ -12,10 +12,14 @@ export function useCountryData(country) {
     let cancelled = false
     setState((s) => ({ ...s, error: null }))
     const urls = geoUrls(country.iso3)
-    Promise.all([fetch(urls.regions).then((r) => r.json()), fetch(urls.cities).then((r) => r.json()), loadCountryData(country.iso3)])
-      .then(([geo, neCities, { places, datasets }]) => {
+    const getJson = (url) => fetch(url).then((r) => r.json())
+    // The Natural Earth city list is only needed when the country ships no places of its own.
+    const data = loadCountryData(country.iso3)
+    const places = data.then((d) => d.places || getJson(urls.cities))
+    Promise.all([getJson(urls.regions), places, data])
+      .then(([geo, list, { datasets }]) => {
         if (cancelled) return
-        const cities = normalisePlaces(places || neCities).filter((c) => c.region)
+        const cities = normalisePlaces(list).filter((c) => c.region)
         setState({ iso3: country.iso3, geo, cities, datasets, bbox: country.bounds || collectionBbox(geo), error: null })
       })
       .catch((error) => !cancelled && setState((s) => ({ ...s, error })))

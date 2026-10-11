@@ -14,7 +14,7 @@ import { DEFAULT_WEIGHTS, metricById } from './data/metrics.js'
 import { familyOf, familiesFor, isMultiSource } from './core/providers.js'
 import { useCountryData } from './hooks/useCountryData.js'
 import { useLiveData } from './hooks/useLiveData.js'
-import { adHocEntity, buildEntities, ownValue } from './lib/scoring.js'
+import { adHocEntity, buildEntities, ownValue, resolveCountry } from './lib/scoring.js'
 import { colorAt, scaleFor } from './lib/colors.js'
 import { renderSurface, surfaceSamples, surfaceVarById } from './lib/surface.js'
 import { livePoints } from './lib/scoring.js'
@@ -61,9 +61,11 @@ export default function App() {
   // rebuild the model and the map.
   const { climate, aqi, quakes, uv, flood } = live
   const liveData = useMemo(() => ({ climate, aqi, quakes, uv, flood }), [climate, aqi, quakes, uv, flood])
+  // Dataset values per place change only with the country; scores also change with weights, mode and live data.
+  const base = useMemo(() => (data.geo ? resolveCountry(data.geo, data.cities, data.datasets) : null), [data.geo, data.cities, data.datasets])
   const model = useMemo(
-    () => (data.geo ? buildEntities({ provincesGeo: data.geo, cities: data.cities, datasets: data.datasets, live: liveData, weights, sourceMode }) : null),
-    [data.geo, data.cities, data.datasets, liveData, weights, sourceMode],
+    () => (base ? buildEntities({ provincesGeo: data.geo, cities: data.cities, base, live: liveData, weights, sourceMode }) : null),
+    [base, data.geo, data.cities, liveData, weights, sourceMode],
   )
 
   // Ad-hoc (searched) places are rescored when weights change.

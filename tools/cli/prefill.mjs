@@ -8,7 +8,7 @@ import { pathToFileURL } from 'node:url'
 import { parseArgs } from './args.mjs'
 import { countryOrExit, loadCountry, countryDir, ROOT } from './context.mjs'
 import { providerById } from '../../src/core/providers.js'
-import { checkDataset } from '../sdk/dataset.mjs'
+import { writeDataset } from '../sdk/dataset.mjs'
 
 /** Provider folders of a country that have a prefill. */
 export const prefillIds = (country) => {
@@ -21,20 +21,14 @@ export async function runPrefill(country, id, args = {}) {
   const provider = providerById(`${country.iso3}/${id}`) || providerById(id)
   if (!provider) throw new Error(`providers/${id}: no provider "${country.iso3}/${id}" or "${id}" (country.config.js)`)
   const mod = await import(pathToFileURL(path.join(countryDir(country.iso3), 'providers', id, 'prefill.mjs')))
-  const out = await mod.prefill({ country, args, log: (...a) => console.log(`  ${a.join(' ')}`) })
-  const ds = out.schema ? out : { schema: 1, provider: provider.id, country: country.iso3, generatedAt: new Date().toISOString(), ...out }
+  const parts = await mod.prefill({ country, args, log: (...a) => console.log(`  ${a.join(' ')}`) })
   const { regionIds, places } = await loadCountry(country)
-  const report = checkDataset(ds, { country, regionIds, places })
-  for (const w of report.warnings) console.log(`  ⚠ ${w}`)
-  if (report.errors.length) throw new Error(`${provider.id}: dataset not written\n  ${report.errors.join('\n  ')}`)
   const file = path.resolve(args.out || path.join(countryDir(country.iso3), 'data', `${id}.json`))
-  const compact = JSON.stringify(ds)
-  // Small datasets are indented so yearly updates review well; large ones stay compact.
-  fs.mkdirSync(path.dirname(file), { recursive: true })
-  fs.writeFileSync(file, (compact.length > 200_000 ? compact : JSON.stringify(ds, null, 1)) + '\n')
-  const counts = Object.entries(ds.values).map(([l, v]) => `${Object.keys(v).length} ${l}`).join(' · ')
+  const { dataset, warnings } = writeDataset(parts, { country, provider: provider.id, regionIds, places, out: file })
+  for (const w of warnings) console.log(`  ⚠ ${w}`)
+  const counts = Object.entries(dataset.values).map(([l, v]) => `${Object.keys(v).length} ${l}`).join(' · ')
   console.log(`✓ ${path.relative(ROOT, file)}: ${counts} (${(fs.statSync(file).size / 1024).toFixed(0)} KB)`)
-  return { file, dataset: ds, report }
+  return { file, dataset }
 }
 
 if (import.meta.url === pathToFileURL(process.argv[1]).href) {

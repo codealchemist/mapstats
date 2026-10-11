@@ -59,7 +59,7 @@ export const KINDS = {
 // How the app gets a source's data (sources view).
 export const ACCESS = {
   live: { label: 'Live API', detail: 'fetched in your browser, cached locally' },
-  import: { label: 'Imported file', detail: 'downloaded once, converted offline (npm run snic:import)' },
+  import: { label: 'Imported file', detail: 'downloaded once, converted offline (npm run prefill)' },
   link: { label: 'Link only', detail: 'linked from reports; no data stored or shown' },
   manual: { label: 'Hand-entered', detail: 'approximate values typed from the publication; verify before relying on them' },
   bundled: { label: 'Bundled', detail: 'shipped with the app' },
@@ -91,15 +91,14 @@ export const DATA_TYPES = [
  * @property {string[]} [provides]       indicator ids
  * @property {keyof ACCESS} access
  * @property {string} [cadence]           how often it publishes, in words (sources view)
+ * @property {boolean} [optIn]          global providers only: serves just the countries that list it
  * @property {'year' | 'quarter' | 'month'} [refresh]  how often its dataset should be refreshed (npm run prefill:due)
  * @property {string} [scope]
  * @property {string[]} types            DATA_TYPES ids
  * @property {string} [usedFor]          what it is used for when it provides no indicator
- * @property {(entity: object, category: string) => string | null} [urlFor]  deep link for a place
  * @property {object} [report]            how the report and compare views present its details (src/components/report/)
  *   { category, label, trends: { group, unit, charts: [{ indicator, title, subtitle, digits, focusOnly }] },
- *     latestTable: { title, unit, rows }, footnote, facts: [{ key, label, digits }], note(detail, entity),
- *     survey: { heading, status(detail), questions, saferHigh, worse, safer, compare } }
+ *     latestTable: { title, unit, rows }, footnote }
  * @property {(e: object) => Array<{ label: string, url: string }>} [links]  external pages about a place
  * @property {(ctx: { entity: object, detail?: object, meta?: object, country: object }) => object | null} [provenance]
  *   its group in "values by source": { level, area, period, status, rows: [{ label, value, unit }], note }

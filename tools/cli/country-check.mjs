@@ -6,7 +6,7 @@ import fs from 'node:fs'
 import path from 'node:path'
 import { spawnSync } from 'node:child_process'
 import { parseArgs } from './args.mjs'
-import { countryOrExit, loadCountry, countryDir, ROOT } from './context.mjs'
+import { countryOrExit, loadCountry, countryDir, providerTests, ROOT } from './context.mjs'
 import { providersFor, providerById } from '../../src/core/providers.js'
 import { CATEGORIES, indicatorById } from '../../src/data/metrics.js'
 import { checkDataset } from '../sdk/dataset.mjs'
@@ -61,9 +61,7 @@ for (const ds of datasets) {
 if (!datasets.length) line('datasets', 'none yet: live global data only')
 
 // ---------- provider tests ----------
-const tests = fs.existsSync(path.join(dir, 'providers'))
-  ? fs.readdirSync(path.join(dir, 'providers')).map((p) => path.join(dir, 'providers', p, 'provider.test.mjs')).filter((f) => fs.existsSync(f))
-  : []
+const tests = providerTests(country.iso3)
 for (const t of tests) {
   const r = spawnSync(process.execPath, [t], { cwd: ROOT, encoding: 'utf8' })
   const name = path.relative(dir, t)

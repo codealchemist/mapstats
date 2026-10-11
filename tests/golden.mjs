@@ -1,14 +1,14 @@
 // npm run golden — the scoring pipeline's output for fixed inputs, compared against tests/golden/*.json.
 // Guards refactors that must not change any score. After an intended change: npm run golden -- --update
 import fs from 'node:fs'
-import { buildEntities, adHocEntity, livePoints } from '../src/lib/scoring.js'
+import { buildEntities, adHocEntity, livePoints, resolveCountry } from '../src/lib/scoring.js'
 import { countryByIso } from '../src/core/countries.js'
 import { DEFAULT_WEIGHTS, INDICATORS } from '../src/data/metrics.js'
-import { SOURCE_FAMILIES, familyOf } from './sources.adapter.mjs'
-import { countryData } from './places.adapter.mjs'
+import { SOURCE_FAMILIES, familyOf } from '../src/core/providers.js'
+import { loadCountry } from '../tools/cli/context.mjs'
 
 const UPDATE = process.argv.includes('--update')
-const MODES = ['combined', 'weighted', 'snic', 'numbeo', 'openmeteo', 'usgs', 'provincial']
+const MODES = ['combined', 'weighted', 'snic', 'openmeteo', 'usgs', 'provincial']
 const WEIGHTS = [DEFAULT_WEIGHTS, { ...DEFAULT_WEIGHTS, safety: 60, economy: 0 }]
 const dir = new URL('./golden/', import.meta.url)
 
@@ -41,8 +41,8 @@ function fakeLive(points) {
 // Null and absent mean the same to every consumer, so only values that exist are compared.
 const present = (values) => Object.fromEntries(Object.entries(values).filter(([, v]) => v != null))
 const borrowed = (e) => (e.inherited ? [...e.inherited].filter((k) => e.values[k] != null).sort() : null)
-// Which providers have data for the place, at which level (and, for surveys, from what kind of copy).
-const detailLevels = (e) => Object.fromEntries(Object.entries(e.details || {}).map(([p, d]) => [p, [d.level, d.source || null]]))
+// Which providers have data for the place, at which level.
+const detailLevels = (e) => Object.fromEntries(Object.entries(e.details || {}).map(([p, d]) => [p, d.level]))
 const r6 = (v) => (typeof v === 'number' ? +v.toFixed(6) : v)
 const round = (o) => JSON.parse(JSON.stringify(o, (k, v) => r6(v)))
 const pick = (e) => ({
@@ -53,13 +53,12 @@ const pick = (e) => ({
 
 async function snapshot(iso3) {
   const country = countryByIso(iso3)
-  const geo = JSON.parse(fs.readFileSync(new URL(`../countries/${iso3}/geo/regions.json`, import.meta.url)))
-  const neCities = JSON.parse(fs.readFileSync(new URL(`../countries/${iso3}/geo/cities.json`, import.meta.url)))
-  const { places, datasets } = await countryData(iso3)
-  const cities = places(neCities)
+  const { geo, places, datasets } = await loadCountry(country)
+  const cities = places.filter((c) => c.region) // as the app loads them (useCountryData)
+  const resolved = resolveCountry(geo, cities, datasets)
   const live = fakeLive(livePoints(geo, cities))
   const out = { entities: {}, runs: {} }
-  const base = buildEntities({ country, provincesGeo: geo, cities, datasets, live, weights: DEFAULT_WEIGHTS })
+  const base = buildEntities({ provincesGeo: geo, cities, base: resolved, live, weights: DEFAULT_WEIGHTS })
   for (const e of [...base.provinces, ...base.cities, base.national]) {
     out.entities[e.id] = { name: e.name, province: e.province, values: present(e.values), inherited: borrowed(e), details: detailLevels(e) }
   }
@@ -68,7 +67,7 @@ async function snapshot(iso3) {
   out.indicators = Object.fromEntries(INDICATORS.map((i) => [i.id, { family: familyOf(i.id) }]))
   WEIGHTS.forEach((weights, w) => {
     for (const mode of MODES) {
-      const m = buildEntities({ country, provincesGeo: geo, cities, datasets, live, weights, sourceMode: mode })
+      const m = buildEntities({ provincesGeo: geo, cities, base: resolved, live, weights, sourceMode: mode })
       out.runs[`w${w}:${mode}`] = [...m.provinces, ...m.cities, m.national].map(pick)
       // A searched place inside the first region, scored with the first city's live values.
       const prov = m.provinces[0], c0 = base.cities[0]

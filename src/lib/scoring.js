@@ -9,7 +9,7 @@
 
 import { CATEGORIES, INDICATORS, indicatorById, scoreRange } from '../data/metrics.js'
 import { haversineKm, labelPoint } from './geo.js'
-import { familyOf, isMultiSource } from '../core/providers.js'
+import { familyOf, isMultiSource, isRegionOnly } from '../core/providers.js'
 import { sourceWeight, percentile } from './sourceWeights.js'
 import { resolvePlaces, weightedMean } from '../core/resolve.js'
 
@@ -45,7 +45,7 @@ export function meterScale(range, shown = []) {
   return (v) => (v == null ? null : hi === lo ? 50 : ((v - lo) / (hi - lo)) * 100)
 }
 
-export function normalise(id, v) {
+function normalise(id, v) {
   const ind = indicatorById[id]
   if (v == null || !ind?.better) return null
   const [lo, hi] = scoreRange(id).range
@@ -70,8 +70,8 @@ const median = (a) => {
  *    (lib/sourceWeights.js) and `spread` is the weighted standard deviation between sources.
  *  - '<family>': only that family, fixed-domain normalisation.
  * Only values measured for the place itself vote. Values borrowed from the province (`inherited`)
- * fill a category only when no source has local data for it. Provincial statistics are
- * province-level by nature and always count.
+ * fill a category only when no source has local data for it. Region-only families (e.g. provincial
+ * statistics) are region-level by nature and always count.
  * ctx: { type, details, dist } — dist[type][indicator] = sorted own values (for percentiles).
  */
 export function scoreValues(values, weights, mode = 'combined', inherited = null, ctx = {}) {
@@ -88,7 +88,7 @@ export function scoreValues(values, weights, mode = 'combined', inherited = null
       if (v == null) continue
       const n = mode === 'weighted' ? percentileScore(i, v, f, ctx) : normalise(i.id, v)
       if (n == null) continue
-      const isBorrowed = inherited?.has(i.id) && f !== 'provincial'
+      const isBorrowed = inherited?.has(i.id) && !isRegionOnly(f)
       ;((isBorrowed ? borrowed : own)[f] ||= []).push(n)
     }
     // Single-source views never show borrowed values; combined views use them only as a fallback.
@@ -125,7 +125,7 @@ export function scoreValues(values, weights, mode = 'combined', inherited = null
 // when fewer than 3 places have the value (a percentile of 1–2 places says nothing).
 function percentileScore(ind, v, family, ctx) {
   // Province-level statistics are compared against provinces, even when shown for a city.
-  const type = family === 'provincial' ? 'province' : ctx.type
+  const type = isRegionOnly(family) ? 'province' : ctx.type
   const sorted = ctx.dist?.[type]?.[ind.id]
   if (!sorted || sorted.length < 3) return normalise(ind.id, v)
   const p = percentile(sorted, v)
@@ -154,6 +154,10 @@ export function countQuakesNear(quakes, lat, lon, km = 200) {
   for (const q of quakes) if (Math.abs(q.lat - lat) < 2.5 && haversineKm(lat, lon, q.lat, q.lon) <= km) n++
   return n
 }
+
+/** Dataset values per place for a country: depends only on its boundaries, places and datasets. */
+export const resolveCountry = (provincesGeo, cities, datasets = []) =>
+  resolvePlaces({ regionIds: provincesGeo.features.map((f) => f.properties.id), places: cities, datasets })
 
 // Points that need live data: every city, plus provinces that have no city to aggregate from.
 export function livePoints(provincesGeo, cities) {
@@ -191,14 +195,14 @@ export function liveValuesFor(id, lat, lon, live) {
  * @param provincesGeo  region boundaries (FeatureCollection, properties.id / name)
  * @param cities        places: the country's curated list or Natural Earth's ({ id, name, region, lat, lon, pop, codes })
  * @param datasets      the country's datasets (countries/<ISO3>/data), see src/core/resolve.js
+ * @param base          resolvePlaces() of the same geo, cities and datasets, when the caller keeps it between builds
  * @param live          live layers (useLiveData)
  */
-export function buildEntities({ provincesGeo, cities, datasets = [], live, weights, sourceMode = 'combined' }) {
-  const base = resolvePlaces({ regionIds: provincesGeo.features.map((f) => f.properties.id), places: cities, datasets })
-
-  // Cities: dataset values (own or borrowed from the region) + live.
+export function buildEntities({ provincesGeo, cities, datasets = [], base = resolveCountry(provincesGeo, cities, datasets), live, weights, sourceMode = 'combined' }) {
+  // Cities: dataset values (own or borrowed from the region) + live. Copied: `base` outlives this build.
   const cityEntities = cities.map((c) => {
-    const { values, inherited, details } = base.cities[c.id]
+    const b = base.cities[c.id]
+    const values = { ...b.values }, inherited = new Set(b.inherited), details = b.details
     const lv = liveValuesFor(c.id, c.lat, c.lon, live)
     for (const k of LIVE_KEYS) values[k] = lv[k]
     return {

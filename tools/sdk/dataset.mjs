@@ -4,8 +4,7 @@ import fs from 'node:fs'
 import path from 'node:path'
 import { indicatorById, scoreRange } from '../../src/data/metrics.js'
 import { providersFor } from '../../src/core/providers.js'
-
-const LEVELS = ['national', 'region', 'subregion', 'city']
+import { LEVELS } from '../../src/core/resolve.js'
 
 /**
  * @param ctx { country, regionIds: string[], places: [{ id, codes }] }
@@ -63,16 +62,18 @@ export function checkDataset(ds, { country, regionIds, places }) {
 }
 
 /**
- * Completes a prefill's output into a dataset, checks it and writes countries/<ISO3>/data/<file>.json.
- * @param parts  { period, origin, values, names?, series?, details?, quality? } from the provider's prefill()
- * @param ctx    { country, provider (full id), file, regionIds, places }
+ * Completes a prefill's output into a dataset, checks it and writes it; nothing is written when the check finds
+ * errors. Small datasets are indented so yearly updates review well; large ones stay compact.
+ * @param parts  a complete dataset, or { period, origin, values, names?, series?, details? } from a prefill()
+ * @param ctx    { country, provider (full id), regionIds, places, out (file path) }
+ * @returns { dataset, errors, warnings, indicators }
  */
-export function writeDataset(parts, { country, provider, file, regionIds, places, root = process.cwd() }) {
-  const ds = { schema: 1, provider, country: country.iso3, generatedAt: new Date().toISOString(), ...parts }
-  const report = checkDataset(ds, { country, regionIds, places })
-  if (report.errors.length) throw Object.assign(new Error(`Dataset not written:\n  ${report.errors.join('\n  ')}`), { report })
-  const out = path.join(root, 'countries', country.iso3, 'data', `${file}.json`)
+export function writeDataset(parts, { country, provider, regionIds, places, out }) {
+  const dataset = parts.schema ? parts : { schema: 1, provider, country: country.iso3, generatedAt: new Date().toISOString(), ...parts }
+  const report = checkDataset(dataset, { country, regionIds, places })
+  if (report.errors.length) throw Object.assign(new Error(`${provider}: dataset not written\n  ${report.errors.join('\n  ')}`), { report })
+  const compact = JSON.stringify(dataset)
   fs.mkdirSync(path.dirname(out), { recursive: true })
-  fs.writeFileSync(out, JSON.stringify(ds, null, 1) + '\n')
-  return { path: out, ...report }
+  fs.writeFileSync(out, (compact.length > 200_000 ? compact : JSON.stringify(dataset, null, 1)) + '\n')
+  return { dataset, ...report }
 }

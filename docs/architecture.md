@@ -72,7 +72,7 @@ src/
     countryData.js      browser: lazy loader of countries/<ISO3>/country.data.js
     geoAssets.js        browser: hashed URLs of countries/<ISO3>/geo/*.json
   providers/            global providers: open-meteo/ usgs/ numbeo/ natural-earth/ basemaps/ news/
-  components/           UI; report/ProviderBlocks.jsx draws any provider's trends and survey
+  components/           UI; report/ProviderBlocks.jsx draws any provider's yearly series
   data/metrics.js       indicator catalogue and scoring categories
   lib/                  scoring, reliability weights, live APIs and queue, provenance, exports
 
@@ -149,7 +149,7 @@ export default defineCountry({
 })
 ```
 
-Global live providers (Open-Meteo, USGS, Natural Earth, basemaps, news) serve every country without being listed. The country's own providers are namespaced `ARG/<id>`. A country is **curated** when it lists any provider.
+Global live providers (Open-Meteo, USGS, Natural Earth, basemaps, news) serve every country without being listed. The country's own providers are namespaced `ARG/<id>`. A country is **curated** when it has providers of its own (opting into a link-only global provider does not count).
 
 ### 3.3 Provider
 
@@ -178,8 +178,9 @@ defineProvider({
 | `kind`, `family`, `levels` | Reliability weights and the single-source selector; required for scored data |
 | `access`, `cadence`, `scope`, `types`, `usedFor` | The sources view |
 | `refresh` | `prefill:due` (year · quarter · month) |
-| `urlFor(entity, category)`, `links(entity)` | Deep links and external pages for a place |
-| `report` | How the report and compare views present its details: trend charts and latest-rates table, survey questions, facts, caveats |
+| `links(entity)` | The source's own pages about a place (e.g. Numbeo, links only) |
+| `optIn` | Global providers only: serves just the countries that list it |
+| `report` | How the report and compare views present its details: category, heading label, trend charts and latest-rates table |
 | `provenance(ctx)` | Its group in "values by source" |
 | `weightFactors(ctx)` | Extra reliability factors, from its details for the place |
 
@@ -255,8 +256,6 @@ There are no per-country components. Generic UI draws whatever the country's pro
 |---|---|
 | `values` | Indicator rows, meters, scores, compare rows, exports |
 | `details.series` + `report.trends` | "Official statistics" block: trend charts (place, its region, the country) and the latest-rates table; compare line charts and side-by-side rows |
-| `details.survey` + `report.survey` | Survey charts in the report; compare bars and side-by-side rows |
-| `report.facts`, `report.note` | Key figures and caveats in the section |
 | `provenance()` | Its group in "values by source" (report, CSV, PDF) |
 | any details | A source tag on the place in search results |
 

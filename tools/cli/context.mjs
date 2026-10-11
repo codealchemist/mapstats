@@ -2,20 +2,28 @@
 import fs from 'node:fs'
 import path from 'node:path'
 import { pathToFileURL } from 'node:url'
-import { COUNTRIES } from '../../src/core/countries.js'
+import { findCountry } from '../../src/core/countries.js'
 import { normalisePlaces } from '../../src/core/resolve.js'
 
 export const ROOT = path.resolve(new URL('../..', import.meta.url).pathname)
 export const countryDir = (iso3) => path.join(ROOT, 'countries', iso3)
 
 export function countryOrExit(code) {
-  const iso3 = String(code || '').toUpperCase()
-  const country = COUNTRIES.find((c) => c.iso3 === iso3)
+  const country = findCountry(code)
   if (!country) {
-    console.error(code ? `Unknown country ${iso3}: add it to countries/index.js (npm run country:new).` : 'Which country? e.g. npm run country:check -- ARG')
+    console.error(code ? `Unknown country ${String(code).toUpperCase()}: add it to countries/index.js (npm run country:new).` : 'Which country? e.g. npm run country:check -- ARG')
     process.exit(1)
   }
   return country
+}
+
+// Every provider test (countries/<ISO3>/providers/<id>/provider.test.mjs) of one country, or of all of them.
+export function providerTests(iso3) {
+  const dirs = iso3 ? [iso3] : fs.readdirSync(path.join(ROOT, 'countries'), { withFileTypes: true }).filter((d) => d.isDirectory()).map((d) => d.name)
+  return dirs.flatMap((d) => {
+    const dir = path.join(countryDir(d), 'providers')
+    return fs.existsSync(dir) ? fs.readdirSync(dir).map((p) => path.join(dir, p, 'provider.test.mjs')).filter((f) => fs.existsSync(f)) : []
+  })
 }
 
 export async function loadCountry(country) {
