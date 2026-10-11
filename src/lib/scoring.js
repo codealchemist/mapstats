@@ -23,6 +23,29 @@ export const isOwnValue = (entity, id) => entity.values[id] != null && !entity.i
 // City-level value or null: never falls back to the province baseline.
 export const ownValue = (entity, id) => (isOwnValue(entity, id) ? entity.values[id] : null)
 
+// Real-value [min, max] of every indicator over the country's places (own values, as on the map legend).
+function valueRanges(entities) {
+  const ranges = {}
+  for (const e of entities) {
+    for (const i of INDICATORS) {
+      const v = ownValue(e, i.id)
+      if (v == null) continue
+      const r = (ranges[i.id] ||= [v, v])
+      if (v < r[0]) r[0] = v
+      if (v > r[1]) r[1] = v
+    }
+  }
+  return ranges
+}
+
+// Meter position (0–100) of a real value on the country's range, widened to include the values shown
+// (an ad-hoc place or the national average can fall outside it). Domains are for scores only.
+export function meterScale(range, shown = []) {
+  const vs = [...(range || []), ...shown.filter((v) => v != null)]
+  const lo = Math.min(...vs), hi = Math.max(...vs)
+  return (v) => (v == null ? null : hi === lo ? 50 : ((v - lo) / (hi - lo)) * 100)
+}
+
 export function normalise(id, v) {
   const ind = indicatorById[id]
   if (v == null || !ind?.better) return null
@@ -252,7 +275,7 @@ export function buildEntities({ country, provincesGeo, cities, live, weights, so
 
   const national = nationalAverage(provEntities, weights, sourceMode, dist)
   if (country.iso3 === 'ARG' && SNIC.national) national.snic = { ...SNIC.national, years: SNIC.years }
-  return { provinces: provEntities, cities: cityEntities, national, dist, snicOrigin: country.iso3 === 'ARG' ? SNIC.origin || null : null }
+  return { provinces: provEntities, cities: cityEntities, national, dist, ranges: valueRanges(all), snicOrigin: country.iso3 === 'ARG' ? SNIC.origin || null : null }
 }
 
 function rank(list) {

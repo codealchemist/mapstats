@@ -9,7 +9,7 @@ import { ChartCard, ChartRegistry, renderOffscreen } from './charts/ChartCard.js
 import { baseOptions, barStyle, lineStyle } from './charts/theme.js'
 import { useEntityDetail } from '../hooks/useEntityDetail.js'
 import { fmtIndicator, fmtNum, fmtScore, MONTHS } from '../lib/format.js'
-import { normalise, isOwnValue } from '../lib/scoring.js'
+import { meterScale, isOwnValue } from '../lib/scoring.js'
 import { haversineKm } from '../lib/geo.js'
 import { downloadBlob, reportCsv, reportPdf } from '../lib/export.js'
 import { slug } from '../lib/format.js'
@@ -462,8 +462,8 @@ export function ReportPanel({ entity, model, country, live, theme, onClose, onSe
 
           {/* ---------- Indicators ---------- */}
           <section id="sec-indicators" className="report-section">
-            <SectionHead icon={Info} title="All indicators" sub="Value · country average · normalised score" />
-            {CATEGORIES.map((c) => <IndicatorGroup key={c.id} category={c} entity={entity} national={national} />)}
+            <SectionHead icon={Info} title="All indicators" sub="Value · position between the lowest and highest in the country · country average" />
+            {CATEGORIES.map((c) => <IndicatorGroup key={c.id} category={c} entity={entity} national={national} ranges={model.ranges} />)}
           </section>
         </ChartRegistry>
       </div>
@@ -523,7 +523,7 @@ function Coverage({ value = 0 }) {
   )
 }
 
-function IndicatorGroup({ category, entity, national }) {
+function IndicatorGroup({ category, entity, national, ranges }) {
   const Icon = ICONS[category.icon]
   const isCity = entity.type === 'city'
   const inCategory = INDICATORS.filter((i) => i.category === category.id)
@@ -539,13 +539,15 @@ function IndicatorGroup({ category, entity, national }) {
       </div>
       <SourceButtons keys={sourcesForIndicators(rows.map((i) => i.id))} entity={entity} category={category.id} label={null} />
       {rows.map((i) => {
-        const n = normalise(i.id, entity.values[i.id])
-        const na = normalise(i.id, national.values[i.id])
+        const v = entity.values[i.id], avg = national.values[i.id], range = ranges[i.id]
+        const pos = meterScale(range, [v, avg])
+        const n = i.better ? pos(v) : null
+        const na = i.better ? pos(avg) : null
         return (
           <div key={i.id} className="ind-row">
             <div className="ind-label">{i.label}</div>
-            <div className="ind-val">{fmtIndicator(i.id, entity.values[i.id])}</div>
-            <div className="meter" title={n != null ? `Normalised score ${Math.round(n)}/100` : 'Not scored'}>
+            <div className="ind-val">{fmtIndicator(i.id, v)}</div>
+            <div className="meter" title={n != null && range ? `Lowest to highest in the country: ${fmtIndicator(i.id, range[0])} – ${fmtIndicator(i.id, range[1])} (${i.better === 'low' ? 'lower' : 'higher'} is better)` : 'Not scored'}>
               {n != null && <span style={{ width: `${n}%` }} />}
               {na != null && <i style={{ left: `${na}%` }} title="Country average" />}
             </div>

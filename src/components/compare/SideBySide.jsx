@@ -5,7 +5,7 @@ import { CATEGORIES, INDICATORS } from '../../data/metrics.js'
 import { SURVEY } from '../../data/numbeoSurvey.js'
 import { baseOptions, barStyle, lineStyle } from '../charts/theme.js'
 import { fmtIndicator, fmtScore, MONTHS } from '../../lib/format.js'
-import { normalise, isOwnValue } from '../../lib/scoring.js'
+import { meterScale, isOwnValue } from '../../lib/scoring.js'
 import { floodLevel } from '../mapLayers.js'
 import { matches } from './match.js'
 
@@ -14,9 +14,9 @@ import { matches } from './match.js'
  * columns always scroll together and line up. Charts in a row share one axis range.
  * places: fixed-length array (3) of { e, i, d, flood } or null for an empty slot.
  */
-export function SideBySide({ places, header, national, tk, onFocus, query = '', scrollRef, initialScroll, flashKey, onFlashDone }) {
+export function SideBySide({ places, header, national, ranges, tk, onFocus, query = '', scrollRef, initialScroll, flashKey, onFlashDone }) {
   const filled = places.filter(Boolean)
-  const rows = filterRows(buildRows(filled, national), query)
+  const rows = filterRows(buildRows(filled, national, ranges), query)
   // Phones hide every empty slot but the first, so the filled places get the width.
   const firstEmpty = places.findIndex((p) => !p)
   const spare = places.map((p, k) => !p && k !== firstEmpty)
@@ -116,30 +116,32 @@ function MiniChart({ cfg, height = 140 }) {
 }
 
 // ---------- rows ----------
-function buildRows(filled, national) {
+function buildRows(filled, national, ranges) {
   const rows = []
   const bestOf = (ind) => {
     if (!ind.better || filled.length < 2) return null
-    const own = filled.filter(({ e }) => isOwnValue(e, ind.id) || e.type === 'province')
+    const own = filled.filter(({ e }) => e.values[ind.id] != null && (isOwnValue(e, ind.id) || e.type === 'province'))
     if (own.length < 2) return null
-    const vals = own.map(({ e }) => normalise(ind.id, e.values[ind.id]))
-    const top = Math.max(...vals)
+    // Real values in the indicator's direction: normalised scores clamp at the domain ends and would tie.
+    const vals = own.map(({ e }) => e.values[ind.id])
+    const top = ind.better === 'high' ? Math.max(...vals) : Math.min(...vals)
     return new Set(own.filter((_, k) => vals[k] === top).map(({ e }) => e.id))
   }
   // tint: the value itself takes the place's colour (climate rows mostly have no meter to carry it).
   const indicatorRow = (ind, { tint = false } = {}) => {
     const best = bestOf(ind)
+    const pos = meterScale(ranges[ind.id], [...filled.map(({ e }) => e.values[ind.id]), national.values[ind.id]])
     return {
       key: `ind:${ind.id}`, label: ind.label, sub: ind.source, focus: `ind:${ind.id}`,
       cell: ({ e }) => {
         const v = e.values[ind.id]
         if (v == null) return null
-        const n = normalise(ind.id, v)
+        const n = ind.better ? pos(v) : null
         return (
           <div className={`sbs-value ${best?.has(e.id) ? 'best' : ''}${tint ? ' tint' : ''}`}>
             <b>{best?.has(e.id) && <Check size={12} />} {fmtIndicator(ind.id, v)}</b>
             {e.inherited?.has(ind.id) && <span className="tag" title="Province figure, not this place's own">prov.</span>}
-            {n != null && <span className="meter"><span style={{ width: `${n}%` }} />{national.values[ind.id] != null && <i style={{ left: `${normalise(ind.id, national.values[ind.id])}%` }} />}</span>}
+            {n != null && <span className="meter"><span style={{ width: `${n}%` }} />{national.values[ind.id] != null && <i style={{ left: `${pos(national.values[ind.id])}%` }} />}</span>}
           </div>
         )
       },
