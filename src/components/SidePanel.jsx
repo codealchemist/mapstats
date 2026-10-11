@@ -10,6 +10,7 @@ import { SourceButtons } from './SourceButtons.jsx'
 import { sourcesForIndicators, SOURCE_FAMILIES, familyOf, familyById, isMultiSource } from '../data/sources.js'
 import { INDICATORS } from '../data/metrics.js'
 import { SURFACE_VARS } from '../lib/surface.js'
+import { isCurated } from '../core/countries.js'
 
 const TABS = [
   { id: 'layers', label: 'Layers', icon: Layers },
@@ -211,7 +212,7 @@ function WeightsTab({ weights, onWeights, onInfo, country }) {
     <>
       <p className="hint">
         Tune how much each category counts in the MapStats score. Weights are relative — they're normalised to 100%.
-        {!country.curated && <> {country.name} has no curated socio-economic baseline yet, so only environmental and risk data is scored.</>}
+        {!isCurated(country) && <> {country.name} has no curated socio-economic baseline yet, so only environmental and risk data is scored.</>}
       </p>
       <div className="weights">
         {CATEGORIES.map((c) => {

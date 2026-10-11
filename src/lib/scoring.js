@@ -12,6 +12,7 @@ import { PROVINCES as AR_PROVINCES, CITIES as AR_CITIES, SNIC } from '../data/ar
 import { haversineKm, labelPoint } from './geo.js'
 import { familyOf, isMultiSource } from '../data/sources.js'
 import { sourceWeight, percentile } from './sourceWeights.js'
+import { isCurated } from '../core/countries.js'
 
 const SCORED = INDICATORS.filter((i) => i.better)
 const NUMBEO_KEYS = ['crimeIndex', 'healthcareIndex', 'pollutionIndex', 'trafficIndex', 'costOfLiving', 'purchasingPower', 'qualityOfLife']
@@ -201,7 +202,7 @@ export function liveValuesFor(id, lat, lon, live) {
 
 // Base (curated) data for cities in a country. Non-curated countries use Natural Earth cities.
 export function baseCities(country, neCities) {
-  return country.curated && country.iso3 === 'ARG' ? AR_CITIES : neCities
+  return isCurated(country) && country.iso3 === 'ARG' ? AR_CITIES : neCities
 }
 
 export function buildEntities({ country, provincesGeo, cities, live, weights, sourceMode = 'combined' }) {

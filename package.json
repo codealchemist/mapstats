@@ -3,6 +3,12 @@
   "private": true,
   "version": "1.1.1",
   "type": "module",
+  "imports": {
+    "#core/*": "./src/core/*",
+    "#providers/*": "./src/providers/*",
+    "#sdk": "./tools/sdk/index.mjs",
+    "#sdk/*": "./tools/sdk/*"
+  },
   "scripts": {
     "dev": "vite",
     "build": "vite build",

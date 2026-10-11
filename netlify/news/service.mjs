@@ -4,7 +4,7 @@
 // When the time budget runs out before every picked article is read, the partial result is
 // cached with complete:false and the next request continues where this one stopped.
 import { newsQuery, fold } from '../../src/lib/news.js'
-import { newsSettings, countryByIso } from '../../src/data/countries.js'
+import { newsSettings, countryByIso } from '../../src/core/countries.js'
 import { Deadline, fetchText, hostOf } from './http.mjs'
 import { googleNewsItems, decodeGoogleNewsUrl } from './googleNews.mjs'
 import { outletItems } from './feeds.mjs'

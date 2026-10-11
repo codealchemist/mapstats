@@ -84,7 +84,7 @@ These scripts regenerate the data files shipped with the app. The app itself nev
 
 | Command | What it does |
 |---|---|
-| `npm run geo` | Rebuild boundaries and city lists in `public/geo/` from Natural Earth (`NE_DIR=/path/to/natural-earth node scripts/build-geo.mjs`) |
+| `npm run geo` | Rebuild boundaries and city lists in `countries/<ISO3>/geo/` from Natural Earth, with each country's `geo` settings (`NE_DIR=/path/to/natural-earth npm run geo -- ARG`; no country = all) |
 | `npm run snic:import` | Import official SNIC crime statistics into `src/data/snic-argentina.json` (see the header of `scripts/snic-import.mjs`) |
 | `npm run numbeo:fetch` | Download the Numbeo pages that were never requested (each page is fetched at most once), then build |
 | `npm run numbeo:build` | Rebuild `src/data/numbeo-argentina.json` from the stored pages, offline |
@@ -97,11 +97,13 @@ src/
   components/        map, top bar, side panel, legend, reports, compare and sources views
   components/charts/ Chart.js cards and theme
   components/compare/side-by-side grid, focus chart and their measures
-  data/              countries, indicators and categories, sources, curated datasets
+  core/              country registry and contracts (defineCountry)
+  data/              indicators and categories, sources, curated datasets
   hooks/             data loading (country data, live data, place details, news)
   lib/               scoring, colours, formatting, live APIs and request queue, exports
 netlify/             /api/news function and the news pipeline
-public/geo/          per-country boundaries and city lists
+countries/<ISO3>/    one folder per country: country.config.js (manifest), geo/ (boundaries, city list)
+tests/               golden scoring snapshot
 scripts/             data import and build scripts
 ```
 

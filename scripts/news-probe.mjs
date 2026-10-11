@@ -14,7 +14,7 @@ import { VERIFIED, FEED_PATHS, ARG_REGIONS, candidateHomes } from '../netlify/ne
 import { parseFeed, discoverFeeds } from '../netlify/news/rss.mjs'
 import { robotsAllows } from '../netlify/news/robots.mjs'
 import { fold, newsQuery } from '../src/lib/news.js'
-import { newsSettings } from '../src/data/countries.js'
+import { newsSettings } from '../src/core/countries.js'
 import { googleNewsItems } from '../netlify/news/googleNews.mjs'
 import { relevance } from '../netlify/news/rank.mjs'
 import { Deadline } from '../netlify/news/http.mjs'

@@ -2,7 +2,7 @@
 // Guards refactors that must not change any score. After an intended change: npm run golden -- --update
 import fs from 'node:fs'
 import { buildEntities, adHocEntity, baseCities, livePoints } from '../src/lib/scoring.js'
-import { countryByIso } from '../src/data/countries.js'
+import { countryByIso } from '../src/core/countries.js'
 import { DEFAULT_WEIGHTS } from '../src/data/metrics.js'
 
 const UPDATE = process.argv.includes('--update')
@@ -46,8 +46,8 @@ const pick = (e) => ({
 
 function snapshot(iso3) {
   const country = countryByIso(iso3)
-  const geo = JSON.parse(fs.readFileSync(new URL(`../public/geo/${iso3}.json`, import.meta.url)))
-  const neCities = JSON.parse(fs.readFileSync(new URL(`../public/geo/${iso3}-cities.json`, import.meta.url)))
+  const geo = JSON.parse(fs.readFileSync(new URL(`../countries/${iso3}/geo/regions.json`, import.meta.url)))
+  const neCities = JSON.parse(fs.readFileSync(new URL(`../countries/${iso3}/geo/cities.json`, import.meta.url)))
   const cities = baseCities(country, neCities).filter((c) => c.province)
   const live = fakeLive(livePoints(geo, cities))
   const out = { entities: {}, runs: {} }

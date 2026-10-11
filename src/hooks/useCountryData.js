@@ -1,8 +1,7 @@
 import { useEffect, useState } from 'react'
 import { baseCities } from '../lib/scoring.js'
 import { collectionBbox } from '../lib/geo.js'
-
-const geoUrl = (file) => `${import.meta.env.BASE_URL}geo/${file}`
+import { geoUrls } from '../core/geoAssets.js'
 
 // Loads province boundaries + city list for a country.
 export function useCountryData(country) {
@@ -11,10 +10,8 @@ export function useCountryData(country) {
   useEffect(() => {
     let cancelled = false
     setState((s) => ({ ...s, error: null }))
-    Promise.all([
-      fetch(geoUrl(`${country.iso3}.json`)).then((r) => r.json()),
-      fetch(geoUrl(`${country.iso3}-cities.json`)).then((r) => r.json()),
-    ])
+    const urls = geoUrls(country.iso3)
+    Promise.all([fetch(urls.regions).then((r) => r.json()), fetch(urls.cities).then((r) => r.json())])
       .then(([geo, neCities]) => {
         if (cancelled) return
         const cities = baseCities(country, neCities).filter((c) => c.province)

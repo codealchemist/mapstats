@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { fetchNews, newsQuery, needsRegion, fold } from '../lib/news.js'
-import { newsSettings } from '../data/countries.js'
+import { newsSettings } from '../core/countries.js'
 
 // Recent crime news for the selected place (city, region, or a searched place), from our
 // /api/news function (RSS discovery + article excerpts, cached 24 h server-side).
