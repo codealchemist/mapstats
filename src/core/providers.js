@@ -38,7 +38,13 @@ export const providerOf = (indicatorId) => indicatorProvider[indicatorId] || nul
 // ---------- Source families (the source selector's groups) ----------
 
 const familyIdOf = (p) => (p.family == null ? null : typeof p.family === 'string' ? p.family : p.family.id)
-const owners = PROVIDERS.filter((p) => p.family && typeof p.family === 'object')
+// Providers that declare a family; countries may share one by declaring the same id, label and short.
+const owners = []
+for (const p of PROVIDERS.filter((x) => x.family && typeof x.family === 'object')) {
+  const same = owners.find((o) => o.family.id === p.family.id)
+  if (!same) owners.push(p)
+  else if (same.family.label !== p.family.label || same.family.short !== p.family.short) throw new Error(`Family ${p.family.id} is declared differently by ${same.id} and ${p.id}`)
+}
 
 /** Modes that integrate every source, then one entry per family (country providers first). */
 export const SOURCE_FAMILIES = [
@@ -48,6 +54,12 @@ export const SOURCE_FAMILIES = [
 ]
 export const familyById = Object.fromEntries(SOURCE_FAMILIES.map((f) => [f.id, f]))
 for (const p of PROVIDERS) if (familyIdOf(p) && !familyById[familyIdOf(p)]) throw new Error(`Provider ${p.id}: unknown family ${familyIdOf(p)}`)
+
+/** The source-selector entries for a country: the integration modes, then the families its providers belong to. */
+export function familiesFor(country) {
+  const ids = new Set(providersFor(country).map(familyIdOf).filter(Boolean))
+  return SOURCE_FAMILIES.filter((f) => isMultiSource(f.id) || ids.has(f.id))
+}
 
 // Modes that integrate every source (vs. a single-source view).
 export const isMultiSource = (mode) => mode === 'combined' || mode === 'weighted'

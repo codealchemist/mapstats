@@ -11,7 +11,7 @@ import { CompareView } from './components/CompareView.jsx'
 import { ToastProvider } from './components/Toast.jsx'
 import { COUNTRIES, countryByIso } from './core/countries.js'
 import { DEFAULT_WEIGHTS, metricById } from './data/metrics.js'
-import { familyOf, isMultiSource } from './core/providers.js'
+import { familyOf, familiesFor, isMultiSource } from './core/providers.js'
 import { useCountryData } from './hooks/useCountryData.js'
 import { useLiveData } from './hooks/useLiveData.js'
 import { adHocEntity, buildEntities, ownValue } from './lib/scoring.js'
@@ -218,6 +218,8 @@ export default function App() {
   const changeCountry = (next) => {
     setCompare([null, null, null])
     setSelected(null)
+    // A single-source view of a source the next country doesn't have would show nothing.
+    if (!familiesFor(countryByIso(next)).some((f) => f.id === sourceMode)) setSourceMode('combined')
     setIso3(next)
   }
 

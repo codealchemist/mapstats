@@ -7,7 +7,7 @@ import { downloadBlob, rankingCsv, rankingPdf } from '../lib/export.js'
 import { slug } from '../lib/format.js'
 import { useToast } from './Toast.jsx'
 import { SourceButtons } from './SourceButtons.jsx'
-import { sourcesForIndicators, SOURCE_FAMILIES, familyOf, familyById, isMultiSource } from '../core/providers.js'
+import { sourcesForIndicators, familiesFor, familyOf, familyById, isMultiSource } from '../core/providers.js'
 import { INDICATORS } from '../data/metrics.js'
 import { SURFACE_VARS } from '../lib/surface.js'
 import { isCurated } from '../core/countries.js'
@@ -22,7 +22,7 @@ export function SidePanel(props) {
   const [tab, setTab] = useState('layers')
   return (
     <aside className="side-panel glass" hidden={props.hidden}>
-      <SourcePicker mode={props.sourceMode} onChange={props.onSourceMode} onClose={props.onClose} />
+      <SourcePicker mode={props.sourceMode} onChange={props.onSourceMode} onClose={props.onClose} country={props.country} />
       <nav className="tabs" role="tablist">
         {TABS.map((t) => (
           <button key={t.id} role="tab" aria-selected={tab === t.id} className={tab === t.id ? 'active' : ''} onClick={() => setTab(t.id)}>
@@ -241,7 +241,7 @@ function WeightsTab({ weights, onWeights, onInfo, country }) {
   )
 }
 
-function SourcePicker({ mode, onChange, onClose }) {
+function SourcePicker({ mode, onChange, onClose, country }) {
   return (
     <div className="source-picker">
       <div className="row-between">
@@ -250,7 +250,7 @@ function SourcePicker({ mode, onChange, onClose }) {
       </div>
       <div className="select-wrap">
         <select id="source-mode" value={mode} onChange={(e) => onChange(e.target.value)}>
-          {SOURCE_FAMILIES.map((f) => <option key={f.id} value={f.id}>{f.label}</option>)}
+          {familiesFor(country).map((f) => <option key={f.id} value={f.id}>{f.label}</option>)}
         </select>
       </div>
       <p className="hint">
