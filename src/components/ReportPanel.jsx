@@ -380,7 +380,7 @@ export function ReportPanel({ entity, model, country, live, theme, onClose, onSe
 
           {/* ---------- Climate ---------- */}
           <section id="sec-climate" className="report-section">
-            <SectionHead icon={Thermometer} title="Climate" sub={clim ? `ERA5 reanalysis, ${clim.period}` : 'ERA5 reanalysis, last 10 years'} status={detail.status.climate} sources={['Open-Meteo ERA5 (live)']} />
+            <SectionHead icon={Thermometer} title="Climate" sub={clim ? `ERA5 reanalysis, ${clim.period}` : 'ERA5 reanalysis, last 10 years'} status={detail.status.climate} sources={['open-meteo-era5']} />
             {clim && (
               <>
                 <div className="kv">
@@ -411,7 +411,7 @@ export function ReportPanel({ entity, model, country, live, theme, onClose, onSe
 
           {/* ---------- Air & UV ---------- */}
           <section id="sec-air" className="report-section">
-            <SectionHead icon={Wind} title="Air quality & UV" sub="Copernicus CAMS via Open-Meteo, last 92 days" status={detail.status.air} sources={['Open-Meteo CAMS (live)', 'Open-Meteo UV (live)']} />
+            <SectionHead icon={Wind} title="Air quality & UV" sub="Copernicus CAMS via Open-Meteo, last 92 days" status={detail.status.air} sources={['open-meteo-cams', 'open-meteo-uv']} />
             {air && (
               <>
                 <ChartCard id="aqi" title="Daily air quality" subtitle="European AQI, daily mean" theme={theme} build={buildAqi}
@@ -429,7 +429,7 @@ export function ReportPanel({ entity, model, country, live, theme, onClose, onSe
           {/* ---------- Risks ---------- */}
           <section id="sec-risks" className="report-section">
             <SectionHead icon={Activity} title="Natural risks" sub="USGS earthquakes M5+ within 200 km since 1980" status={live.status.quakes}
-              sources={['USGS (live)']} />
+              sources={['usgs']} />
             {HAZARD_KEYS.some((k) => isOwnValue(entity, k)) && (
               <div className="kv">
                 {HAZARD_KEYS.filter((k) => isOwnValue(entity, k)).map((k) => (

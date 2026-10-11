@@ -103,7 +103,7 @@ function LayersTab({ model, live, metricId, onMetric, overlays, onOverlays, onIn
             </select>
           </div>
         )}
-        <SourceButtons keys={['Natural Earth', 'USGS (live)', 'Terrain', 'Open-Meteo GloFAS (live)', 'Open-Meteo ERA5 (live)', 'Open-Meteo UV history (live)']} />
+        <SourceButtons keys={['natural-earth', 'usgs', 'terrain', 'open-meteo-glofas', 'open-meteo-era5', 'open-meteo-uv-history']} />
       </section>
       {groups.map(([group, metrics]) => (
         <section className="section" key={group}>
