@@ -15,7 +15,9 @@
     "news:test": "node netlify/news/test/run.mjs",
     "news:probe": "node scripts/news-probe.mjs",
     "live:test": "node src/lib/test/live.mjs",
-    "deploy": "npm run lint && npm run news:test && npm run live:test && npx -y -p netlify-cli netlify deploy --prod",
+    "golden": "node tests/golden.mjs",
+    "test": "npm run news:test && npm run live:test && npm run golden",
+    "deploy": "npm run lint && npm test && npx -y -p netlify-cli netlify deploy --prod",
     "deploy:preview": "npx -y -p netlify-cli netlify deploy",
     "dev:netlify": "npx -y -p netlify-cli netlify dev"
   },
