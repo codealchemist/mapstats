@@ -1,12 +1,14 @@
 // Local, permanent store of every Numbeo page we have requested.
 //
-//   data/numbeo/pages/*.html   raw HTML, kept indefinitely
-//   data/numbeo/manifest.json  one entry per URL ever requested (hits AND misses),
+//   <store>/pages/*.html   raw HTML, kept indefinitely
+//   <store>/manifest.json  one entry per URL ever requested (hits AND misses),
 //                              so no URL is requested twice unless explicitly refreshed
 import fs from 'node:fs'
 import path from 'node:path'
 
-export const STORE = path.resolve(process.env.NUMBEO_STORE || 'data/numbeo')
+// data/raw/ARG/numbeo; data/numbeo from before the migration still works.
+const DEFAULT = !fs.existsSync('data/raw/ARG/numbeo') && fs.existsSync('data/numbeo') ? 'data/numbeo' : 'data/raw/ARG/numbeo'
+export const STORE = path.resolve(process.env.NUMBEO_STORE || DEFAULT)
 const PAGES = path.join(STORE, 'pages')
 const MANIFEST = path.join(STORE, 'manifest.json')
 

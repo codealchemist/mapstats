@@ -1,7 +1,9 @@
 # Exampleland (XXX)
 
-> Template. `npm run country:new -- <ISO3>` copies this folder to `countries/<ISO3>/` and replaces `XXX`, `XX` and the names.
-> Sample file paths are the target layout ([architecture](../../architecture.md#31-folder-layout)); imports use the `#core` and `#sdk` aliases, so they work from either location.
+> **Template and worked example** ([country guide](../../docs/country-guide.md)): a complete fictional country with one
+> provider, its fixture and test (run by `npm test`). It is not registered in `countries/index.js`, so the app never shows it.
+> Start a real country with `npm run country:new -- <ISO3> …`, then copy what you need from here. This README is the
+> shape of the one each country keeps.
 
 | | |
 |---|---|

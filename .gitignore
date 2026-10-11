@@ -5,3 +5,7 @@ data/numbeo
 data/snic/raw
 .netlify
 logs
+# Downloaded source files stay local (licences, size); their manifests (URL, date, SHA-256) are committed.
+data/raw/**
+!data/raw/**/
+!data/raw/**/manifest.json

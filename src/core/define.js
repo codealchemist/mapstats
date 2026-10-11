@@ -90,7 +90,8 @@ export const DATA_TYPES = [
  * @property {string[]} [levels]         geographic levels of its values: 'point' | 'city' | 'subregion' | 'region'
  * @property {string[]} [provides]       indicator ids
  * @property {keyof ACCESS} access
- * @property {string} [cadence]
+ * @property {string} [cadence]           how often it publishes, in words (sources view)
+ * @property {'year' | 'quarter' | 'month'} [refresh]  how often its dataset should be refreshed (npm run prefill:due)
  * @property {string} [scope]
  * @property {string[]} types            DATA_TYPES ids
  * @property {string} [usedFor]          what it is used for when it provides no indicator

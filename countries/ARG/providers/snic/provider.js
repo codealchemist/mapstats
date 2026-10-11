@@ -21,7 +21,7 @@ export default [
     kind: 'register', levels: ['region', 'subregion', 'city'],
     family: { id: 'snic', label: 'SNIC · official crime statistics', short: 'SNIC' },
     provides: ['homicide', 'propertyCrime', 'roadDeaths'],
-    access: 'import', cadence: 'Annual (2000–latest year)', scope: 'Argentina · province & department', types: ['crime'],
+    access: 'import', cadence: 'Annual (2000–latest year)', refresh: 'year', scope: 'Argentina · province & department', types: ['crime'],
     report: {
       category: 'safety',
       label: 'Official SNIC statistics',

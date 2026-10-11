@@ -31,7 +31,7 @@ export function toDataset(snic) {
     country: 'ARG',
     generatedAt: `${snic.importedAt}T00:00:00Z`,
     period: { latest: snic.latestYear, aggregation: `mean of ${snic.latestYear - 2}–${snic.latestYear} (per 100,000)` },
-    origin: { files: snic.files.map((f) => ({ name: f.file, sha256: f.sha256, retrievedAt: snic.importedAt, note: f.kind })), notes: snic.origin },
+    origin: { files: snic.files.map((f) => ({ name: f.file, sha256: f.sha256, retrievedAt: f.retrievedAt || snic.importedAt, note: f.kind })), notes: snic.origin },
     values, names, series, details,
   }
 }

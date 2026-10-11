@@ -13,4 +13,5 @@ export default defineCountry({
   geo: { simplify: '18%' },
   providers: ['numbeo', snic, provincialStats],
   news,
+  maintainers: ['@codealchemist'],
 })

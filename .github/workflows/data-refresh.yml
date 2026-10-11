@@ -1,0 +1,29 @@
+# Monthly: opens an issue listing the datasets older than their providers' refresh period (npm run prefill:due),
+# for the countries' maintainers to run the prefill and send a PR.
+name: Data refresh calendar
+on:
+  schedule:
+    - cron: '0 9 1 * *'
+  workflow_dispatch:
+permissions:
+  contents: read
+  issues: write
+jobs:
+  due:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - run: npm run --silent prefill:due -- --markdown > due.md
+      - name: Open an issue when something is due
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if [ -s due.md ]; then
+            gh label create data-refresh --color 0e8a16 --description "Datasets due for a prefill" --force
+            gh issue create --title "Datasets due for refresh ($(date +%Y-%m))" --body-file due.md --label data-refresh
+          fi

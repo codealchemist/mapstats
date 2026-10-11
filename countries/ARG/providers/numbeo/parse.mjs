@@ -2,7 +2,7 @@
 // header names rather than exact markup, and understand both the English
 // (www.numbeo.com) and Spanish (es.numbeo.com) pages.
 import { load } from 'cheerio'
-import { SURVEY } from '../../src/providers/numbeo/survey.js'
+import { SURVEY } from '../../../../src/providers/numbeo/survey.js'
 
 export const fold = (s) => s.normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/\s+/g, ' ').trim().toLowerCase()
 

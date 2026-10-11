@@ -1,5 +1,5 @@
 // One-time Numbeo download for Argentina. Every page is requested at most once:
-// results (including misses) are stored permanently in data/numbeo, and later
+// results (including misses) are stored permanently in data/raw/ARG/numbeo (store.mjs), and later
 // runs only fetch URLs that were never requested. The app never calls Numbeo.
 //
 //   npm run numbeo:fetch                       # fetch what's missing, then build
@@ -11,10 +11,12 @@
 // Requests: robots.txt honoured, one at a time, 5 s apart, capped per run
 // (--max, default 60), stops at the first 403/429. Numbeo's terms restrict
 // automated collection and republication; check them (or use the Numbeo API) first.
-import { CITIES } from '../countries/ARG/places.js'
-import { parseCountryTable, robotsAllows } from './numbeo/parse.mjs'
-import { loadManifest, readPage, record, saveManifest } from './numbeo/store.mjs'
-import { build, cityPath, COUNTRY_TABLES, matchCity } from './numbeo-build.mjs'
+import { CITIES } from '../../places.js'
+import { parseCountryTable, robotsAllows } from './parse.mjs'
+import { loadManifest, readPage, record, saveManifest } from './store.mjs'
+import { cityPath, COUNTRY_TABLES, matchCity } from './prefill.mjs'
+import { runPrefill } from '../../../../tools/cli/prefill.mjs'
+import { countryByIso } from '../../../../src/core/countries.js'
 
 const BASE = process.env.NUMBEO_BASE || 'https://www.numbeo.com'
 const UA = 'MapStats/0.1 (one-time personal research download)'
@@ -102,5 +104,5 @@ try {
   if (requests && !args['dry-run']) m.lastFetchRun = new Date().toISOString()
   if (!args['dry-run']) saveManifest(m)
   console.log(`${requests} request(s) ${args['dry-run'] ? 'would be made' : 'made to Numbeo'} this run.`)
-  if (!args['dry-run']) build()
+  if (!args['dry-run']) await runPrefill(countryByIso('ARG'), 'numbeo')
 }

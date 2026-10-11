@@ -2,7 +2,8 @@
 // provider so values cite it; they share the "provincial" source family and its caveat.
 import { defineProvider } from '#core/define.js'
 
-const manual = { kind: 'manual', levels: ['region'], access: 'manual', scope: 'Argentina · province', types: ['society'], family: 'provincial' }
+// Hand-entered: reviewed yearly against each publication's latest release.
+const manual = { kind: 'manual', levels: ['region'], access: 'manual', scope: 'Argentina · province', types: ['society'], family: 'provincial', refresh: 'year' }
 
 export default [
   defineProvider({

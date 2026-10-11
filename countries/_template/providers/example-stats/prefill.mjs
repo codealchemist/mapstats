@@ -1,6 +1,6 @@
 // Prefill for example-stats: download the yearly regional table once, map it to region ids and indicator
-// units. Run with `npm run prefill -- XXX --provider example-stats [--year 2025] [--offline]`.
-// The CLI adds the dataset header, validates it and writes data/example-stats.json.
+// units. Run with `npm run prefill -- XXX --provider example-stats [--year 2025]`; a stored download is reused.
+// The CLI adds the dataset header, checks it and writes data/example-stats.json.
 import { rawStore, parseCsv, stats } from '#sdk'
 import provider from './provider.js'
 import { REGION_CODES } from '../../places.js'
@@ -32,8 +32,9 @@ export function toValues(csvText, { regionCodes = REGION_CODES } = {}) {
   return { values: { region }, unmatched }
 }
 
-/** Called by the CLI. `year` defaults to the latest release expected by `provider.cadence`. */
-export async function prefill({ year, log }) {
+/** Called by the CLI. --year defaults to last year (released each April). */
+export async function prefill({ args, log }) {
+  const year = +(args.year || new Date().getFullYear() - 1)
   const raw = rawStore('XXX', provider.id)
   const file = await raw.fetchOnce(urlFor(year), { name: `regions-${year}.csv` })
   const { values, unmatched } = toValues(file.text)

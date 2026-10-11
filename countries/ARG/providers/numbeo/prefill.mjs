@@ -1,19 +1,16 @@
-// Builds countries/ARG/data/numbeo.json from the hand-entered snapshot, values copied by hand and locally
-// stored Numbeo pages. Never touches the network: safe to run as often as you like.
+// Prefill for Numbeo in Argentina → countries/ARG/data/numbeo.json, from the hand-entered snapshot
+// (snapshot.json), values copied by hand (manual.json) and locally stored Numbeo pages (npm run numbeo:fetch).
+// Never touches the network: safe to run as often as you like.
 //
 //   npm run numbeo:build
 import fs from 'node:fs'
-import path from 'node:path'
-import { pathToFileURL } from 'node:url'
-import { CITIES } from '../countries/ARG/places.js'
-import { toDataset } from '../countries/ARG/providers/numbeo/dataset.mjs'
-import { fold, parseCityCrime, parseCountryTable } from './numbeo/parse.mjs'
-import { loadManifest, readPage } from './numbeo/store.mjs'
+import { CITIES } from '../../places.js'
+import { toDataset } from './dataset.mjs'
+import { fold, parseCityCrime, parseCountryTable } from './parse.mjs'
+import { loadManifest, readPage } from './store.mjs'
 
-const OUT = path.resolve('countries/ARG/data/numbeo.json')
-const INPUTS = path.resolve('countries/ARG/providers/numbeo')
-const MANUAL = path.join(INPUTS, 'manual.json')
-const SNAPSHOT = path.join(INPUTS, 'snapshot.json')
+const MANUAL = new URL('./manual.json', import.meta.url)
+const SNAPSHOT = new URL('./snapshot.json', import.meta.url)
 
 export const COUNTRY_TABLES = ['/quality-of-life/country_result.jsp?country=Argentina', '/crime/country_result.jsp?country=Argentina']
 export const cityPath = (slug) => `/crime/in/${slug}`
@@ -29,7 +26,7 @@ export const matchCity = (name) => {
 const day = (iso) => iso?.slice(0, 10) || null
 const clean = (o) => Object.fromEntries(Object.entries(o).filter(([, v]) => v != null))
 
-export function build({ quiet = false } = {}) {
+export async function prefill({ log = console.log } = {}) {
   const m = loadManifest()
   const cities = new Map()
   const upsert = (slug, data) => cities.set(slug, { ...(cities.get(slug) || { slug }), ...clean(data) })
@@ -57,13 +54,8 @@ export function build({ quiet = false } = {}) {
 
   const result = { source: 'https://www.numbeo.com', builtFrom: 'data/numbeo (local store)', cities: [...out.values()].sort((a, b) => a.slug.localeCompare(b.slug)) }
   const snapshot = JSON.parse(fs.readFileSync(SNAPSHOT, 'utf8')).cities
-  fs.writeFileSync(OUT, JSON.stringify(toDataset({ snapshot, stored: result.cities }), null, 1) + '\n')
-  if (!quiet) {
-    const unmatched = result.cities.filter((c) => !c.cityId).map((c) => c.name || c.slug)
-    console.log(`Wrote ${path.relative(process.cwd(), OUT)}: ${snapshot.length} snapshot cities, ${result.cities.length} stored (${cities.size} from stored pages, ${manual.length} copied by hand)`)
-    if (unmatched.length) console.log(`Not in MapStats' city list (add coordinates to include them): ${unmatched.join(', ')}`)
-  }
-  return result
+  const unmatched = result.cities.filter((c) => !c.cityId).map((c) => c.name || c.slug)
+  log(`${snapshot.length} snapshot cities, ${result.cities.length} stored (${cities.size} from stored pages, ${manual.length} copied by hand)`)
+  if (unmatched.length) log(`Not in MapStats' city list (add coordinates to include them): ${unmatched.join(', ')}`)
+  return toDataset({ snapshot, stored: result.cities })
 }
-
-if (import.meta.url === pathToFileURL(process.argv[1]).href) build()
