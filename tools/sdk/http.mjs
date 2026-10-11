@@ -17,6 +17,27 @@ const sha256 = (buf) => crypto.createHash('sha256').update(buf).digest('hex')
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms))
 const today = () => new Date().toISOString().slice(0, 10)
 
+// Runs fn holding a lock (a directory: mkdir is atomic) shared by every process; a lock older than 30 s is stale.
+function withLock(lock, fn) {
+  const wait = new Int32Array(new SharedArrayBuffer(4))
+  for (let tries = 0; ; tries++) {
+    try {
+      fs.mkdirSync(lock)
+      break
+    } catch (e) {
+      if (e.code !== 'EEXIST') throw e
+      if (Date.now() - (fs.statSync(lock, { throwIfNoEntry: false })?.mtimeMs ?? Date.now()) > 30000) fs.rmSync(lock, { recursive: true, force: true })
+      else if (tries > 1000) throw new Error(`${lock}: still locked after 20 s`)
+      Atomics.wait(wait, 0, 0, 20)
+    }
+  }
+  try {
+    return fn()
+  } finally {
+    fs.rmSync(lock, { recursive: true, force: true })
+  }
+}
+
 let lastRequest = 0
 const robotsCache = new Map()
 
@@ -39,7 +60,19 @@ export function rawStore(iso3, provider, { delayMs = 5000, dir: custom } = {}) {
   const dir = path.resolve(custom || path.join(COUNTRIES, iso3, 'providers', provider, 'raw'))
   const manifestFile = path.join(dir, 'manifest.json')
   const manifest = fs.existsSync(manifestFile) ? JSON.parse(fs.readFileSync(manifestFile, 'utf8')) : { files: {} }
-  const save = () => { fs.mkdirSync(dir, { recursive: true }); fs.writeFileSync(manifestFile, JSON.stringify(manifest, null, 2) + '\n') }
+  // Saves one entry into the manifest as it is on disk now (several prefills may share a folder, e.g. a global
+  // provider's run for many countries at once), written whole through a rename so readers never see half a file.
+  const save = (name) => {
+    fs.mkdirSync(dir, { recursive: true })
+    withLock(`${manifestFile}.lock`, () => {
+      const disk = fs.existsSync(manifestFile) ? JSON.parse(fs.readFileSync(manifestFile, 'utf8')) : { files: {} }
+      disk.files[name] = manifest.files[name]
+      Object.assign(manifest.files, disk.files)
+      const tmp = `${manifestFile}.${process.pid}.tmp`
+      fs.writeFileSync(tmp, JSON.stringify(disk, null, 2) + '\n')
+      fs.renameSync(tmp, manifestFile)
+    })
+  }
   const ref = (name) => ({ name, ...(manifest.files[name].url && { url: manifest.files[name].url }), sha256: manifest.files[name].sha256, retrievedAt: manifest.files[name].retrievedAt })
   // `changed`: the file on disk is no longer the one the manifest describes (replaced by hand under the same name).
   const read = (name) => {
@@ -65,7 +98,7 @@ export function rawStore(iso3, provider, { delayMs = 5000, dir: custom } = {}) {
       fs.mkdirSync(dir, { recursive: true })
       fs.writeFileSync(path.join(dir, name), buf)
       manifest.files[name] = { url, retrievedAt: today(), sha256: sha256(buf), bytes: buf.length }
-      save()
+      save(name)
       return read(name)
     },
     /**
@@ -79,7 +112,7 @@ export function rawStore(iso3, provider, { delayMs = 5000, dir: custom } = {}) {
       const same = prev?.sha256 === sha256(buf)
       const saved = fs.statSync(file).mtime.toISOString().slice(0, 10)
       manifest.files[name] = { ...(url && { url }), ...(note && { note }), retrievedAt: (same && prev.retrievedAt) || saved, sha256: sha256(buf), bytes: buf.length }
-      save()
+      save(name)
       return read(name)
     },
     /** Stored files (names), optionally filtered by extension: list(/\.xlsx$/i). */

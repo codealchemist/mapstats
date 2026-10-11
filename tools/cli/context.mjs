@@ -6,6 +6,9 @@ import { findCountry } from '../../src/core/countries.js'
 import { normalisePlaces } from '../../src/core/resolve.js'
 
 export const ROOT = path.resolve(new URL('../..', import.meta.url).pathname)
+
+// Local secrets for data tools (.env, gitignored; see .env.example). Variables already set in the shell win.
+if (fs.existsSync(path.join(ROOT, '.env'))) process.loadEnvFile(path.join(ROOT, '.env'))
 export const countryDir = (iso3) => path.join(ROOT, 'countries', iso3)
 
 export function countryOrExit(code) {

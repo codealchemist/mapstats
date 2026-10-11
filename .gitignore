@@ -3,6 +3,10 @@ dist
 .DS_Store
 .netlify
 logs
+# Local secrets (API keys for data tools): see .env.example.
+.env
+.env.*
+!.env.example
 # Downloaded source files stay local (licences, size); their manifests (URL, date, SHA-256) are committed.
 countries/*/providers/*/raw/*
 !countries/*/providers/*/raw/manifest.json
