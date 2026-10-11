@@ -14,7 +14,8 @@ const fail = (who, msg) => { throw new Error(`${who}: ${msg}`) }
  * @property {{ simplify?: string, minCityPop?: number, maxCities?: number }} [geo]  Natural Earth build settings
  * @property {Array<string | object>} [providers]  global provider ids (e.g. 'numbeo') and this country's own
  *   provider definitions (imported from ./providers/); global live providers are always on
- * @property {{ lang?: string, countryName?: string, edition?: { hl: string, gl: string } }} [news]
+ * @property {object} [news]  { lang, countryName, edition: { hl, gl }, ambiguousNames, regionPrefixes, regions,
+ *   outlets: { verified, candidates } } — usually its own countries/<ISO3>/news.js
  * @property {string[]} [maintainers]      GitHub handles
  */
 
@@ -37,7 +38,11 @@ export function defineCountry(c) {
     ...c,
     providers,
     geo: { simplify: '8%', minCityPop: 100_000, maxCities: 120, ...c.geo },
-    news: { lang: 'en', countryName: c.name, edition: { hl: 'en-US', gl: c.iso2 }, ...c.news },
+    news: {
+      lang: 'en', countryName: c.name, edition: { hl: 'en-US', gl: c.iso2 }, ambiguousNames: [], regionPrefixes: [], regions: [],
+      ...c.news,
+      outlets: { verified: [], candidates: [], ...c.news?.outlets },
+    },
   })
 }
 

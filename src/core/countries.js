@@ -8,8 +8,9 @@ export const isCurated = (country) => country.providers.length > 0
 
 export const countryByIso = (iso3) => COUNTRIES.find((c) => c.iso3 === iso3) || COUNTRIES[0]
 
-// News searches: language of the crime keywords and the country's name as local outlets write it.
+// News searches: language of the crime keywords, the country's name as local outlets write it, its Google
+// News edition and the place names that need their region to be unambiguous.
 export const newsSettings = (iso3) => {
-  const { lang, countryName } = countryByIso(iso3).news
-  return { lang, countryName }
+  const { lang, countryName, edition, ambiguousNames } = countryByIso(iso3).news
+  return { lang, countryName, edition, ambiguous: new Set(ambiguousNames) }
 }

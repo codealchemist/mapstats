@@ -9,8 +9,8 @@ import { fetchText } from './http.mjs'
 import { parseFeed } from './rss.mjs'
 import { googleNewsRssUrl } from '../../src/lib/news.js'
 
-export async function googleNewsItems(query, iso2, { deadline, fetchImpl }) {
-  const r = await fetchText(googleNewsRssUrl(query, iso2), { deadline, timeoutMs: 3500, fetchImpl })
+export async function googleNewsItems(query, edition, { deadline, fetchImpl }) {
+  const r = await fetchText(googleNewsRssUrl(query, edition), { deadline, timeoutMs: 3500, fetchImpl })
   if (!r) return []
   return parseFeed(r.text).map((it) => {
     // Titles come as "Headline - Outlet".

@@ -1,20 +1,21 @@
-// npm run news:probe [-- "Tandil" "Buenos Aires"] [-- --outlets-only]
+// npm run news:probe [-- --country=ARG] [-- "Tandil" "Buenos Aires"] [-- --outlets-only]
+// Outlets come from the country's countries/<ISO3>/news.js (default ARG).
 // Output is also saved to logs/news-probe-latest.log (+ a timestamped copy) and the structured
 // results to logs/news-probe-latest.json, so they can be read back without copy-pasting.
 // Run from a machine with internet access (no Netlify needed; in-memory cache):
 //   1. the real news pipeline for one place;
-//   2. health of every VERIFIED (pinned) outlet feed;
-//   3. a diagnosis of every CANDIDATE outlet, with the line to paste into VERIFIED when a feed works;
-//   4. provinces that rely on Google News only.
+//   2. health of every verified (pinned) outlet feed;
+//   3. a diagnosis of every candidate outlet, with the line to paste into VERIFIED when a feed works;
+//   4. regions that rely on Google News only.
 import fs from 'node:fs'
 import path from 'node:path'
 import { getNews } from '../netlify/news/service.mjs'
 import { memoryStore } from '../netlify/news/cache.mjs'
-import { VERIFIED, FEED_PATHS, ARG_REGIONS, candidateHomes } from '../netlify/news/outlets.mjs'
+import { FEED_PATHS, candidateHomes, uncoveredRegions } from '../netlify/news/outlets.mjs'
 import { parseFeed, discoverFeeds } from '../netlify/news/rss.mjs'
 import { robotsAllows } from '../netlify/news/robots.mjs'
-import { fold, newsQuery } from '../src/lib/news.js'
-import { newsSettings } from '../src/core/countries.js'
+import { KEYWORDS, newsQuery } from '../src/lib/news.js'
+import { COUNTRIES, newsSettings } from '../src/core/countries.js'
 import { googleNewsItems } from '../netlify/news/googleNews.mjs'
 import { relevance } from '../netlify/news/rank.mjs'
 import { Deadline } from '../netlify/news/http.mjs'
@@ -41,15 +42,23 @@ process.on('uncaughtException', (e) => { console.error('probe crashed:', e); rep
 
 const args = process.argv.slice(2)
 const outletsOnly = args.includes('--outlets-only')
-const [place = 'Tandil', region = 'Buenos Aires'] = args.filter((a) => !a.startsWith('--'))
+const iso3 = (args.find((a) => a.startsWith('--country='))?.slice(10) || 'ARG').toUpperCase()
+const country = COUNTRIES.find((c) => c.iso3 === iso3)
+if (!country) throw new Error(`Unknown country ${iso3} (not in countries/index.js)`)
+const VERIFIED = country.news.outlets.verified
+const [place = iso3 === 'ARG' ? 'Tandil' : null, region = iso3 === 'ARG' ? 'Buenos Aires' : null] = args.filter((a) => !a.startsWith('--'))
+if (!place && !outletsOnly) throw new Error('Pass a place and its region (or --outlets-only)')
 const OUR_UA = process.env.NEWS_USER_AGENT || 'Mozilla/5.0 (compatible; MapStatsNews/1.0; +https://github.com/mapstats)'
 const BROWSER_UA = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0 Safari/537.36'
-const CRIME = /polic|robo|asalt|homicid|crimen|delit|insegur|detenid|tirote|narco|seguridad/i
+const lang = country.news.lang
+const CRIME = lang === 'es'
+  ? /polic|robo|asalt|homicid|crimen|delit|insegur|detenid|tirote|narco|seguridad/i
+  : new RegExp((KEYWORDS[lang] || KEYWORDS.en).map((w) => w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|'), 'i')
 
 // Raw fetch for diagnostics: keeps status, type and errors (the service's fetch hides them).
 async function probe(url, ua = OUR_UA, timeoutMs = 8000) {
   try {
-    const res = await fetch(url, { redirect: 'follow', signal: AbortSignal.timeout(timeoutMs), headers: { 'User-Agent': ua, Accept: '*/*', 'Accept-Language': 'es-AR,es;q=0.9' } })
+    const res = await fetch(url, { redirect: 'follow', signal: AbortSignal.timeout(timeoutMs), headers: { 'User-Agent': ua, Accept: '*/*', 'Accept-Language': `${lang}-${country.iso2},${lang};q=0.9` } })
     const text = await res.text()
     return { status: res.status, type: res.headers.get('content-type') || '', text, url: res.url }
   } catch (e) {
@@ -67,7 +76,7 @@ const feedInfo = (text) => {
 if (!outletsOnly) {
   console.log(`\n== News for ${place} (${region})`)
   const t0 = Date.now()
-  const r = await getNews({ place, region, type: 'city', countryIso3: 'ARG' }, { store: memoryStore(), budgetMs: 8000 })
+  const r = await getNews({ place, region, type: 'city', countryIso3: iso3 }, { store: memoryStore(), budgetMs: 8000 })
   console.log(`status ${r.status} in ${Date.now() - t0} ms · query: ${r.query}`)
   for (const a of r.articles || []) console.log(`• ${a.title}\n  ${a.source} · ${a.via} · ${a.url}\n  ${a.excerpt ? a.excerpt.slice(0, 160) + '…' : a.note}`)
   if (r.error) console.log('error:', r.error)
@@ -80,13 +89,13 @@ if (!outletsOnly) {
 // when that finds fewer than 3 articles. This compares both on a few cities.
 if (!outletsOnly) {
   console.log('\n== Google News: place + province + country vs place only (relevant / total items)')
-  const SAMPLE = [['Tandil', 'Buenos Aires'], ['Lomas de Zamora', 'Buenos Aires'], ['Rosario', 'Santa Fe'], ['Merlo', 'San Luis'], ['San Carlos de Bariloche', 'Río Negro'], ['Ushuaia', 'Tierra del Fuego'], [place, region]]
-  const settings = newsSettings('ARG')
+  const SAMPLE = [...(iso3 === 'ARG' ? [['Tandil', 'Buenos Aires'], ['Lomas de Zamora', 'Buenos Aires'], ['Rosario', 'Santa Fe'], ['Merlo', 'San Luis'], ['San Carlos de Bariloche', 'Río Negro'], ['Ushuaia', 'Tierra del Fuego']] : []), [place, region]]
+  const settings = newsSettings(iso3)
   report.queryComparison = []
   for (const [name, prov] of [...new Map(SAMPLE.map((x) => [x.join('|'), x])).values()]) {
     const entity = { name, provinceName: prov, type: 'city' }
     const count = async (q) => {
-      const items = await googleNewsItems(q, 'AR', { deadline: new Deadline(10000), fetchImpl: fetch })
+      const items = await googleNewsItems(q, country.news.edition, { deadline: new Deadline(10000), fetchImpl: fetch })
       return { total: items.length, relevant: items.filter((it) => relevance(it, { place: name, region: prov }) > 0).length }
     }
     const scoped = await count(newsQuery(entity, settings))
@@ -154,7 +163,7 @@ saveJson()
 
 // ---------- 3. candidates ----------
 console.log('\n== Candidate outlets (not used at runtime) — diagnosis')
-const results = await Promise.all(candidateHomes().map(async (o) => {
+const results = await Promise.all(candidateHomes(country).map(async (o) => {
   const lines = []
   const ours = await probe(o.home)
   const browser = ours.status === 200 && !challenge(ours) ? ours : await probe(o.home, BROWSER_UA)
@@ -220,11 +229,10 @@ for (const { o, found, lines } of results) {
 }
 
 // ---------- 4. coverage ----------
-const covered = new Set(VERIFIED.flatMap((o) => o.regions))
-const missing = ARG_REGIONS.filter((r) => !covered.has(fold(r)))
+const missing = uncoveredRegions(country)
 report.candidates = results.map(({ o, found, lines }) => ({ domain: o.domain, regions: o.regions, cities: o.cities, feed: found ? { url: found.url, ...found.info } : null, notes: lines }))
 report.coverage = { verified: VERIFIED.length, candidatesWithFeed: results.filter((r) => r.found).length, googleNewsOnly: missing }
 saveJson()
 console.log(`\n== Coverage\n${VERIFIED.length} verified outlets · ${results.filter((r) => r.found).length} candidates now have a working feed`)
-console.log(`Provinces relying on Google News only: ${missing.length ? missing.join(', ') : 'none'}`)
+console.log(`${country.regionLabel}s relying on Google News only: ${missing.length ? missing.join(', ') : 'none'}`)
 console.log(`\nSaved: ${path.relative(process.cwd(), LATEST)} (also ${path.basename(LOG)}) and ${path.relative(process.cwd(), JSON_OUT)}`)

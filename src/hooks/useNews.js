@@ -16,7 +16,8 @@ export function useNews(entity, country, model) {
   }, [model?.cities, model?.provinces])
 
   const name = entity?.name, provinceName = entity?.provinceName, type = entity?.type
-  const disambiguate = name ? needsRegion({ name, provinceName, type }, ambiguous) : false
+  const settings = newsSettings(country.iso3)
+  const disambiguate = name ? needsRegion({ name, provinceName, type }, new Set([...settings.ambiguous, ...ambiguous])) : false
   useEffect(() => {
     if (!name) return
     const ctrl = new AbortController()
@@ -28,6 +29,6 @@ export function useNews(entity, country, model) {
   }, [name, provinceName, type, country, disambiguate, reload])
 
   // The query is known before (and regardless of) the request, e.g. for the Google News link.
-  const query = name ? newsQuery({ name, provinceName, type }, newsSettings(country.iso3), ambiguous) : null
+  const query = name ? newsQuery({ name, provinceName, type }, settings, ambiguous) : null
   return { ...state, query, refresh: () => setReload((n) => n + 1) }
 }
