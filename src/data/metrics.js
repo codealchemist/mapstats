@@ -27,11 +27,11 @@ export const INDICATORS = [
   { id: 'propertyCrime', label: 'Robberies + thefts (3-yr avg)', unit: '/100k', category: 'safety', better: 'low', domain: [350, 3300], digits: 0 },
   { id: 'roadDeaths', label: 'Road deaths (3-yr avg)', unit: '/100k', category: 'safety', better: 'low', domain: [0, 30], digits: 1 },
   // Natural risks
-  { id: 'seismicZone', label: 'Seismic zone', unit: '/4', category: 'hazards', better: 'low', domain: [0, 4], digits: 0 },
-  // GEM seismic hazard (countries that ran its prefill): shown; scoring by hazard standards comes with the data.
-  { id: 'pga475', label: 'Seismic hazard (GEM, PGA 10 % in 50 years)', unit: 'g', category: 'hazards', better: null, digits: 2, ramp: 'red' },
+  { id: 'seismicZone', label: 'Seismic zone', unit: '/4', category: 'hazards', better: null, digits: 0 },
+  // GEM seismic hazard (a complete dataset): scored on data anchors like the other statistics.
+  { id: 'pga475', label: 'Seismic hazard (PGA, 10 % in 50 years)', unit: 'g', category: 'hazards', better: 'low', domain: [0, 0.5], digits: 2 },
   { id: 'pga475Max', label: 'Seismic hazard, highest in the region (GEM)', unit: 'g', category: 'hazards', better: null, digits: 2, ramp: 'red' },
-  { id: 'quakes', label: 'Earthquakes M5+ ≤200 km', unit: '', category: 'hazards', better: 'low', domain: [0, 120], digits: 0, live: true },
+  { id: 'quakes', label: 'Earthquakes M5+ ≤200 km', unit: '', category: 'hazards', better: null, digits: 0, live: true },
   { id: 'fireRisk', label: 'Wildfire exposure', unit: '/5', category: 'hazards', better: 'low', domain: [1, 5], digits: 0 },
   { id: 'floodRisk', label: 'Flood exposure', unit: '/5', category: 'hazards', better: 'low', domain: [1, 5], digits: 0 },
   // Environment
@@ -124,12 +124,6 @@ export const MAP_METRICS = [
   { id: 'sunshine', group: 'Weather', icon: 'Sun' },
   { id: 'tempMaxAnnual', group: 'Weather', icon: 'Thermometer' },
   { id: 'tempMinAnnual', group: 'Weather', icon: 'Thermometer' },
-  // Climate extremes per year (ERA5, last full year; 10-year means in reports): warnings use them, scores don't.
-  { id: 'hotDays', label: 'Very hot days (≥ 35 °C)', unit: 'days', category: 'climate', better: null, digits: 0, live: true, ramp: 'red' },
-  { id: 'tropicalNights', label: 'Tropical nights (min ≥ 20 °C)', unit: 'days', category: 'climate', better: null, digits: 0, live: true, ramp: 'orange' },
-  { id: 'frostDays', label: 'Frost days (min < 0 °C)', unit: 'days', category: 'climate', better: null, digits: 0, live: true, ramp: 'blue' },
-  { id: 'heavyRainDays', label: 'Very heavy rain days (≥ 20 mm)', unit: 'days', category: 'climate', better: null, digits: 0, live: true, ramp: 'blue' },
-  { id: 'drySpell', label: 'Longest dry spell (< 1 mm)', unit: 'days', category: 'climate', better: null, digits: 0, live: true, ramp: 'orange' },
   { id: 'uvMean', group: 'Weather', icon: 'Sun' },
   { id: 'uvRisk', group: 'Environment', icon: 'Sun' },
   { id: 'uvExtremeDays', group: 'Weather', icon: 'Sun' },
@@ -139,9 +133,7 @@ export const MAP_METRICS = [
   { id: 'heavyRainDays', group: 'Terrain & risks', icon: 'CloudRain' },
   { id: 'drySpell', group: 'Terrain & risks', icon: 'Sun' },
   { id: 'elevation', group: 'Terrain & risks', icon: 'Mountain' },
-  // GEM seismic hazard (countries that ran its prefill): shown; scoring by hazard standards comes with the data.
-  { id: 'pga475', label: 'Seismic hazard (GEM, PGA 10 % in 50 years)', unit: 'g', category: 'hazards', better: null, digits: 2, ramp: 'red' },
-  { id: 'pga475Max', label: 'Seismic hazard, highest in the region (GEM)', unit: 'g', category: 'hazards', better: null, digits: 2, ramp: 'red' },
+  { id: 'pga475', group: 'Terrain & risks', icon: 'Activity' },
   { id: 'quakes', group: 'Terrain & risks', icon: 'Activity' },
   { id: 'seismicZone', group: 'Terrain & risks', icon: 'Activity' },
   { id: 'fireRisk', group: 'Terrain & risks', icon: 'Flame' },

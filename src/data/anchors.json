@@ -1,7 +1,22 @@
 {
  "method": "2nd–98th percentile of region values",
  "countries": [
-  "ARG"
+  "ARG",
+  "BOL",
+  "BRA",
+  "CHL",
+  "COL",
+  "DEU",
+  "ECU",
+  "ESP",
+  "FRA",
+  "ITA",
+  "MEX",
+  "PER",
+  "PRT",
+  "PRY",
+  "URY",
+  "USA"
  ],
  "indicators": {
   "homicide": {
@@ -19,10 +34,10 @@
    "hi": 16.6,
    "n": 24
   },
-  "seismicZone": {
+  "pga475": {
    "lo": 0,
-   "hi": 4,
-   "n": 24
+   "hi": 0.6146,
+   "n": 575
   },
   "fireRisk": {
    "lo": 1.46,

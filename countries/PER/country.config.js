@@ -6,5 +6,6 @@ export default defineCountry({
   iso2: 'PE',
   name: 'Peru',
   regionLabel: 'Region',
+  providers: ['gem'],
   news: { lang: 'es', countryName: 'Perú', edition: { hl: 'es-419', gl: 'PE' } },
 })

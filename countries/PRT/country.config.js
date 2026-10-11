@@ -8,5 +8,6 @@ export default defineCountry({
   regionLabel: 'District',
   // Mainland frame: overseas territories / remote islands would zoom the map out too far.
   bounds: [-9.6, 36.9, -6.1, 42.2],
+  providers: ['gem'],
   news: { lang: 'pt', countryName: 'Portugal', edition: { hl: 'pt-150', gl: 'PT' } },
 })

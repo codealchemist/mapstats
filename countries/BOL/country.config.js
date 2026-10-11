@@ -6,5 +6,6 @@ export default defineCountry({
   iso2: 'BO',
   name: 'Bolivia',
   regionLabel: 'Department',
+  providers: ['gem'],
   news: { lang: 'es', countryName: 'Bolivia', edition: { hl: 'es-419', gl: 'BO' } },
 })

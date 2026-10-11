@@ -8,5 +8,6 @@ export default defineCountry({
   regionLabel: 'State',
   // Mainland frame: overseas territories / remote islands would zoom the map out too far.
   bounds: [-125, 24.5, -66.9, 49.5],
+  providers: ['gem'],
   news: { lang: 'en', countryName: 'United States', edition: { hl: 'en-US', gl: 'US' } },
 })

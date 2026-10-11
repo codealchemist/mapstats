@@ -1,0 +1,550 @@
+{
+ "schema": 1,
+ "provider": "gem",
+ "country": "FRA",
+ "generatedAt": "2026-10-11T17:01:34.315Z",
+ "period": {
+  "latest": 2023,
+  "aggregation": "regions: mean of the raster cells inside them; cities: the cell at their point"
+ },
+ "origin": {
+  "files": [
+   {
+    "name": "v2023_1_pga_475_rock_3min.tif",
+    "sha256": "c6928e0edea4d2a03e6a0d6b4aa9699159834f015c20ffb2d8ee8492ff67a5af",
+    "retrievedAt": "2023-09-19"
+   }
+  ],
+  "notes": "GEM Global Seismic Hazard Map v2023.1.0, PGA 475-year return period on rock, 3-arc-minute raster (zenodo.org/records/8409647, doi:10.5281/zenodo.8409647), downloaded 2026-10-11; CC BY-NC-SA 4.0. Licence: as published by GEM (check before redistributing)."
+ },
+ "values": {
+  "region": {
+   "FR-GF": {
+    "pga475": 0.015,
+    "pga475Max": 0.236
+   },
+   "FR-59": {
+    "pga475": 0.025,
+    "pga475Max": 0.063
+   },
+   "FR-08": {
+    "pga475": 0.017,
+    "pga475Max": 0.031
+   },
+   "FR-02": {
+    "pga475": 0.013,
+    "pga475Max": 0.025
+   },
+   "FR-55": {
+    "pga475": 0.012,
+    "pga475Max": 0.018
+   },
+   "FR-54": {
+    "pga475": 0.021,
+    "pga475Max": 0.053
+   },
+   "FR-57": {
+    "pga475": 0.028,
+    "pga475Max": 0.067
+   },
+   "FR-06": {
+    "pga475": 0.118,
+    "pga475Max": 0.199
+   },
+   "FR-04": {
+    "pga475": 0.087,
+    "pga475Max": 0.202
+   },
+   "FR-05": {
+    "pga475": 0.112,
+    "pga475Max": 0.207
+   },
+   "FR-73": {
+    "pga475": 0.092,
+    "pga475Max": 0.129
+   },
+   "FR-74": {
+    "pga475": 0.092,
+    "pga475Max": 0.147
+   },
+   "FR-64": {
+    "pga475": 0.085,
+    "pga475Max": 0.137
+   },
+   "FR-31": {
+    "pga475": 0.046,
+    "pga475Max": 0.093
+   },
+   "FR-65": {
+    "pga475": 0.104,
+    "pga475Max": 0.136
+   },
+   "FR-09": {
+    "pga475": 0.065,
+    "pga475Max": 0.083
+   },
+   "FR-66": {
+    "pga475": 0.062,
+    "pga475Max": 0.067
+   },
+   "FR-67": {
+    "pga475": 0.078,
+    "pga475Max": 0.099
+   },
+   "FR-68": {
+    "pga475": 0.083,
+    "pga475Max": 0.117
+   },
+   "FR-90": {
+    "pga475": 0.059,
+    "pga475Max": 0.069
+   },
+   "FR-25": {
+    "pga475": 0.047,
+    "pga475Max": 0.066
+   },
+   "FR-01": {
+    "pga475": 0.046,
+    "pga475Max": 0.079
+   },
+   "FR-39": {
+    "pga475": 0.038,
+    "pga475Max": 0.053
+   },
+   "FR-83": {
+    "pga475": 0.043,
+    "pga475Max": 0.076
+   },
+   "FR-13": {
+    "pga475": 0.048,
+    "pga475Max": 0.063
+   },
+   "FR-30": {
+    "pga475": 0.039,
+    "pga475Max": 0.055
+   },
+   "FR-34": {
+    "pga475": 0.029,
+    "pga475Max": 0.04
+   },
+   "FR-11": {
+    "pga475": 0.046,
+    "pga475Max": 0.067
+   },
+   "FR-40": {
+    "pga475": 0.031,
+    "pga475Max": 0.065
+   },
+   "FR-33": {
+    "pga475": 0.017,
+    "pga475Max": 0.022
+   },
+   "FR-17": {
+    "pga475": 0.019,
+    "pga475Max": 0.024
+   },
+   "FR-85": {
+    "pga475": 0.025,
+    "pga475Max": 0.026
+   },
+   "FR-44": {
+    "pga475": 0.025,
+    "pga475Max": 0.026
+   },
+   "FR-56": {
+    "pga475": 0.023,
+    "pga475Max": 0.025
+   },
+   "FR-29": {
+    "pga475": 0.018,
+    "pga475Max": 0.022
+   },
+   "FR-22": {
+    "pga475": 0.022,
+    "pga475Max": 0.023
+   },
+   "FR-35": {
+    "pga475": 0.023,
+    "pga475Max": 0.025
+   },
+   "FR-50": {
+    "pga475": 0.022,
+    "pga475Max": 0.023
+   },
+   "FR-14": {
+    "pga475": 0.02,
+    "pga475Max": 0.023
+   },
+   "FR-27": {
+    "pga475": 0.011,
+    "pga475Max": 0.014
+   },
+   "FR-76": {
+    "pga475": 0.011,
+    "pga475Max": 0.015
+   },
+   "FR-80": {
+    "pga475": 0.012,
+    "pga475Max": 0.017
+   },
+   "FR-62": {
+    "pga475": 0.015,
+    "pga475Max": 0.019
+   },
+   "FR-MQ": {
+    "pga475": 0.396,
+    "pga475Max": 0.415
+   },
+   "FR-GP": {
+    "pga475": 0.409,
+    "pga475Max": 0.433
+   },
+   "FR-RE": {
+    "pga475": null,
+    "pga475Max": null
+   },
+   "FR-YT": {
+    "pga475": 0.01,
+    "pga475Max": 0.01
+   },
+   "FR-2B": {
+    "pga475": 0.015,
+    "pga475Max": 0.019
+   },
+   "FR-2A": {
+    "pga475": 0.019,
+    "pga475Max": 0.024
+   },
+   "FR-32": {
+    "pga475": 0.039,
+    "pga475Max": 0.073
+   },
+   "FR-87": {
+    "pga475": 0.019,
+    "pga475Max": 0.025
+   },
+   "FR-19": {
+    "pga475": 0.017,
+    "pga475Max": 0.026
+   },
+   "FR-82": {
+    "pga475": 0.019,
+    "pga475Max": 0.025
+   },
+   "FR-81": {
+    "pga475": 0.022,
+    "pga475Max": 0.029
+   },
+   "FR-38": {
+    "pga475": 0.081,
+    "pga475Max": 0.124
+   },
+   "FR-26": {
+    "pga475": 0.065,
+    "pga475Max": 0.115
+   },
+   "FR-12": {
+    "pga475": 0.021,
+    "pga475Max": 0.026
+   },
+   "FR-46": {
+    "pga475": 0.016,
+    "pga475Max": 0.02
+   },
+   "FR-37": {
+    "pga475": 0.018,
+    "pga475Max": 0.025
+   },
+   "FR-36": {
+    "pga475": 0.023,
+    "pga475Max": 0.026
+   },
+   "FR-41": {
+    "pga475": 0.012,
+    "pga475Max": 0.016
+   },
+   "FR-23": {
+    "pga475": 0.023,
+    "pga475Max": 0.027
+   },
+   "FR-53": {
+    "pga475": 0.022,
+    "pga475Max": 0.023
+   },
+   "FR-72": {
+    "pga475": 0.015,
+    "pga475Max": 0.02
+   },
+   "FR-84": {
+    "pga475": 0.057,
+    "pga475Max": 0.063
+   },
+   "FR-52": {
+    "pga475": 0.012,
+    "pga475Max": 0.02
+   },
+   "FR-51": {
+    "pga475": 0.008,
+    "pga475Max": 0.011
+   },
+   "FR-24": {
+    "pga475": 0.015,
+    "pga475Max": 0.02
+   },
+   "FR-69": {
+    "pga475": 0.03,
+    "pga475Max": 0.044
+   },
+   "FR-88": {
+    "pga475": 0.034,
+    "pga475Max": 0.067
+   },
+   "FR-07": {
+    "pga475": 0.039,
+    "pga475Max": 0.055
+   },
+   "FR-42": {
+    "pga475": 0.029,
+    "pga475Max": 0.039
+   },
+   "FR-63": {
+    "pga475": 0.03,
+    "pga475Max": 0.032
+   },
+   "FR-03": {
+    "pga475": 0.025,
+    "pga475Max": 0.03
+   },
+   "FR-45": {
+    "pga475": 0.008,
+    "pga475Max": 0.01
+   },
+   "FR-49": {
+    "pga475": 0.023,
+    "pga475Max": 0.026
+   },
+   "FR-10": {
+    "pga475": 0.006,
+    "pga475Max": 0.008
+   },
+   "FR-75": {
+    "pga475": 0.007,
+    "pga475Max": 0.008
+   },
+   "FR-92": {
+    "pga475": 0.008,
+    "pga475Max": 0.008
+   },
+   "FR-93": {
+    "pga475": 0.007,
+    "pga475Max": 0.008
+   },
+   "FR-95": {
+    "pga475": 0.008,
+    "pga475Max": 0.01
+   },
+   "FR-78": {
+    "pga475": 0.008,
+    "pga475Max": 0.01
+   },
+   "FR-16": {
+    "pga475": 0.02,
+    "pga475Max": 0.025
+   },
+   "FR-18": {
+    "pga475": 0.017,
+    "pga475Max": 0.026
+   },
+   "FR-28": {
+    "pga475": 0.009,
+    "pga475Max": 0.012
+   },
+   "FR-43": {
+    "pga475": 0.03,
+    "pga475Max": 0.035
+   },
+   "FR-15": {
+    "pga475": 0.026,
+    "pga475Max": 0.031
+   },
+   "FR-47": {
+    "pga475": 0.019,
+    "pga475Max": 0.027
+   },
+   "FR-48": {
+    "pga475": 0.026,
+    "pga475Max": 0.031
+   },
+   "FR-58": {
+    "pga475": 0.013,
+    "pga475Max": 0.021
+   },
+   "FR-21": {
+    "pga475": 0.015,
+    "pga475Max": 0.028
+   },
+   "FR-60": {
+    "pga475": 0.01,
+    "pga475Max": 0.013
+   },
+   "FR-61": {
+    "pga475": 0.017,
+    "pga475Max": 0.023
+   },
+   "FR-70": {
+    "pga475": 0.032,
+    "pga475Max": 0.054
+   },
+   "FR-71": {
+    "pga475": 0.022,
+    "pga475Max": 0.032
+   },
+   "FR-79": {
+    "pga475": 0.025,
+    "pga475Max": 0.026
+   },
+   "FR-86": {
+    "pga475": 0.025,
+    "pga475Max": 0.026
+   },
+   "FR-89": {
+    "pga475": 0.007,
+    "pga475Max": 0.011
+   },
+   "FR-91": {
+    "pga475": 0.007,
+    "pga475Max": 0.008
+   },
+   "FR-77": {
+    "pga475": 0.006,
+    "pga475Max": 0.008
+   },
+   "FR-94": {
+    "pga475": 0.007,
+    "pga475Max": 0.007
+   }
+  },
+  "city": {
+   "FRA-paris": {
+    "pga475": 0.007
+   },
+   "FRA-lyon": {
+    "pga475": 0.033
+   },
+   "FRA-marseille": {
+    "pga475": 0.032
+   },
+   "FRA-lille": {
+    "pga475": 0.021
+   },
+   "FRA-nice": {
+    "pga475": 0.116
+   },
+   "FRA-toulouse": {
+    "pga475": 0.025
+   },
+   "FRA-bordeaux": {
+    "pga475": 0.017
+   },
+   "FRA-rouen": {
+    "pga475": 0.011
+   },
+   "FRA-strasbourg": {
+    "pga475": 0.099
+   },
+   "FRA-nantes": {
+    "pga475": 0.026
+   },
+   "FRA-metz": {
+    "pga475": 0.016
+   },
+   "FRA-grenoble": {
+    "pga475": 0.1
+   },
+   "FRA-toulon": {
+    "pga475": 0.024
+   },
+   "FRA-montpellier": {
+    "pga475": 0.032
+   },
+   "FRA-nancy": {
+    "pga475": 0.018
+   },
+   "FRA-saint-etienne": {
+    "pga475": 0.03
+   },
+   "FRA-fort-de-france": {
+    "pga475": 0.389
+   },
+   "FRA-melun": {
+    "pga475": 0.006
+   },
+   "FRA-le-havre": {
+    "pga475": 0.015
+   },
+   "FRA-tours": {
+    "pga475": 0.016
+   },
+   "FRA-clermont-ferrand": {
+    "pga475": 0.032
+   },
+   "FRA-orleans": {
+    "pga475": 0.009
+   },
+   "FRA-mulhouse": {
+    "pga475": 0.09
+   },
+   "FRA-rennes": {
+    "pga475": 0.023
+   },
+   "FRA-reims": {
+    "pga475": 0.009
+   },
+   "FRA-caen": {
+    "pga475": 0.02
+   },
+   "FRA-st-denis": {
+    "pga475": null
+   },
+   "FRA-angers": {
+    "pga475": 0.023
+   },
+   "FRA-dijon": {
+    "pga475": 0.019
+   },
+   "FRA-nimes": {
+    "pga475": 0.045
+   },
+   "FRA-limoges": {
+    "pga475": 0.017
+   },
+   "FRA-aix-en-provence": {
+    "pga475": 0.051
+   },
+   "FRA-perpignan": {
+    "pga475": 0.059
+   },
+   "FRA-pointe-a-pitre": {
+    "pga475": 0.406
+   },
+   "FRA-biarritz": {
+    "pga475": 0.052
+   },
+   "FRA-brest": {
+    "pga475": 0.017
+   },
+   "FRA-le-mans": {
+    "pga475": 0.016
+   },
+   "FRA-amiens": {
+    "pga475": 0.013
+   },
+   "FRA-besancon": {
+    "pga475": 0.039
+   },
+   "FRA-annecy": {
+    "pga475": 0.089
+   }
+  }
+ }
+}

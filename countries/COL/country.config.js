@@ -8,5 +8,6 @@ export default defineCountry({
   regionLabel: 'Department',
   // Mainland frame: overseas territories / remote islands would zoom the map out too far.
   bounds: [-79.5, -4.5, -66.8, 12.6],
+  providers: ['gem'],
   news: { lang: 'es', countryName: 'Colombia', edition: { hl: 'es-419', gl: 'CO' } },
 })

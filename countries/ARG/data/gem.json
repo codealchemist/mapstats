@@ -1,0 +1,344 @@
+{
+ "schema": 1,
+ "provider": "gem",
+ "country": "ARG",
+ "generatedAt": "2026-10-11T17:00:48.648Z",
+ "period": {
+  "latest": 2023,
+  "aggregation": "regions: mean of the raster cells inside them; cities: the cell at their point"
+ },
+ "origin": {
+  "files": [
+   {
+    "name": "v2023_1_pga_475_rock_3min.tif",
+    "sha256": "c6928e0edea4d2a03e6a0d6b4aa9699159834f015c20ffb2d8ee8492ff67a5af",
+    "retrievedAt": "2023-09-19"
+   }
+  ],
+  "notes": "GEM Global Seismic Hazard Map v2023.1.0, PGA 475-year return period on rock, 3-arc-minute raster (zenodo.org/records/8409647, doi:10.5281/zenodo.8409647), downloaded 2026-10-11; CC BY-NC-SA 4.0. Licence: as published by GEM (check before redistributing)."
+ },
+ "values": {
+  "region": {
+   "AR-E": {
+    "pga475": 0,
+    "pga475Max": 0
+   },
+   "AR-A": {
+    "pga475": 0.226,
+    "pga475Max": 0.594
+   },
+   "AR-Y": {
+    "pga475": 0.248,
+    "pga475Max": 0.599
+   },
+   "AR-P": {
+    "pga475": 0.042,
+    "pga475Max": 0.299
+   },
+   "AR-N": {
+    "pga475": 0,
+    "pga475Max": 0
+   },
+   "AR-H": {
+    "pga475": 0.031,
+    "pga475Max": 0.311
+   },
+   "AR-W": {
+    "pga475": 0.001,
+    "pga475Max": 0.011
+   },
+   "AR-K": {
+    "pga475": 0.333,
+    "pga475Max": 0.465
+   },
+   "AR-F": {
+    "pga475": 0.358,
+    "pga475Max": 0.538
+   },
+   "AR-J": {
+    "pga475": 0.488,
+    "pga475Max": 0.692
+   },
+   "AR-M": {
+    "pga475": 0.249,
+    "pga475Max": 0.607
+   },
+   "AR-Q": {
+    "pga475": 0.182,
+    "pga475Max": 0.575
+   },
+   "AR-U": {
+    "pga475": 0.047,
+    "pga475Max": 0.394
+   },
+   "AR-R": {
+    "pga475": 0.032,
+    "pga475Max": 0.364
+   },
+   "AR-Z": {
+    "pga475": 0.066,
+    "pga475Max": 0.866
+   },
+   "AR-V": {
+    "pga475": 0.066,
+    "pga475Max": 0.197
+   },
+   "AR-B": {
+    "pga475": 0,
+    "pga475Max": 0.006
+   },
+   "AR-C": {
+    "pga475": 0,
+    "pga475Max": 0
+   },
+   "AR-S": {
+    "pga475": 0.002,
+    "pga475Max": 0.009
+   },
+   "AR-T": {
+    "pga475": 0.3,
+    "pga475Max": 0.533
+   },
+   "AR-G": {
+    "pga475": 0.077,
+    "pga475Max": 0.402
+   },
+   "AR-D": {
+    "pga475": 0.119,
+    "pga475Max": 0.468
+   },
+   "AR-L": {
+    "pga475": 0.028,
+    "pga475Max": 0.267
+   },
+   "AR-X": {
+    "pga475": 0.061,
+    "pga475Max": 0.257
+   }
+  },
+  "city": {
+   "ARG-buenos-aires": {
+    "pga475": 0
+   },
+   "ARG-la-plata": {
+    "pga475": 0
+   },
+   "ARG-mar-del-plata": {
+    "pga475": 0
+   },
+   "ARG-bahia-blanca": {
+    "pga475": 0
+   },
+   "ARG-la-matanza": {
+    "pga475": 0
+   },
+   "ARG-quilmes": {
+    "pga475": 0
+   },
+   "ARG-lomas-de-zamora": {
+    "pga475": 0
+   },
+   "ARG-pilar": {
+    "pga475": 0
+   },
+   "ARG-tandil": {
+    "pga475": 0
+   },
+   "ARG-olavarria": {
+    "pga475": 0
+   },
+   "ARG-junin": {
+    "pga475": 0
+   },
+   "ARG-necochea": {
+    "pga475": 0
+   },
+   "ARG-san-nicolas": {
+    "pga475": 0
+   },
+   "ARG-catamarca": {
+    "pga475": 0.299
+   },
+   "ARG-resistencia": {
+    "pga475": 0.012
+   },
+   "ARG-saenz-pena": {
+    "pga475": 0.038
+   },
+   "ARG-comodoro-rivadavia": {
+    "pga475": 0
+   },
+   "ARG-trelew": {
+    "pga475": 0
+   },
+   "ARG-puerto-madryn": {
+    "pga475": 0
+   },
+   "ARG-esquel": {
+    "pga475": 0.177
+   },
+   "ARG-cordoba": {
+    "pga475": 0.099
+   },
+   "ARG-rio-cuarto": {
+    "pga475": 0.089
+   },
+   "ARG-villa-maria": {
+    "pga475": 0.018
+   },
+   "ARG-villa-carlos-paz": {
+    "pga475": 0.141
+   },
+   "ARG-san-francisco": {
+    "pga475": 0.008
+   },
+   "ARG-corrientes": {
+    "pga475": 0.011
+   },
+   "ARG-goya": {
+    "pga475": 0
+   },
+   "ARG-parana": {
+    "pga475": 0
+   },
+   "ARG-concordia": {
+    "pga475": 0
+   },
+   "ARG-gualeguaychu": {
+    "pga475": 0
+   },
+   "ARG-formosa": {
+    "pga475": 0.016
+   },
+   "ARG-jujuy": {
+    "pga475": 0.301
+   },
+   "ARG-palpala": {
+    "pga475": 0.298
+   },
+   "ARG-santa-rosa": {
+    "pga475": 0.011
+   },
+   "ARG-general-pico": {
+    "pga475": 0.008
+   },
+   "ARG-la-rioja": {
+    "pga475": 0.365
+   },
+   "ARG-chilecito": {
+    "pga475": 0.355
+   },
+   "ARG-mendoza": {
+    "pga475": 0.494
+   },
+   "ARG-san-rafael": {
+    "pga475": 0.18
+   },
+   "ARG-malargue": {
+    "pga475": 0.199
+   },
+   "ARG-posadas": {
+    "pga475": 0
+   },
+   "ARG-obera": {
+    "pga475": 0
+   },
+   "ARG-puerto-iguazu": {
+    "pga475": 0
+   },
+   "ARG-neuquen": {
+    "pga475": 0.023
+   },
+   "ARG-san-martin-de-los-andes": {
+    "pga475": 0.312
+   },
+   "ARG-cutral-co": {
+    "pga475": 0.084
+   },
+   "ARG-bariloche": {
+    "pga475": 0.235
+   },
+   "ARG-general-roca": {
+    "pga475": 0.011
+   },
+   "ARG-cipolletti": {
+    "pga475": 0.019
+   },
+   "ARG-viedma": {
+    "pga475": 0
+   },
+   "ARG-salta": {
+    "pga475": 0.294
+   },
+   "ARG-oran": {
+    "pga475": 0.422
+   },
+   "ARG-tartagal": {
+    "pga475": 0.249
+   },
+   "ARG-san-juan": {
+    "pga475": 0.503
+   },
+   "ARG-caucete": {
+    "pga475": 0.588
+   },
+   "ARG-san-luis": {
+    "pga475": 0.15
+   },
+   "ARG-villa-mercedes": {
+    "pga475": 0.078
+   },
+   "ARG-merlo": {
+    "pga475": 0.129
+   },
+   "ARG-rio-gallegos": {
+    "pga475": 0.04
+   },
+   "ARG-caleta-olivia": {
+    "pga475": 0
+   },
+   "ARG-el-calafate": {
+    "pga475": 0.652
+   },
+   "ARG-rosario": {
+    "pga475": 0
+   },
+   "ARG-santa-fe": {
+    "pga475": 0
+   },
+   "ARG-rafaela": {
+    "pga475": 0
+   },
+   "ARG-venado-tuerto": {
+    "pga475": 0
+   },
+   "ARG-reconquista": {
+    "pga475": 0
+   },
+   "ARG-santiago-del-estero": {
+    "pga475": 0.22
+   },
+   "ARG-la-banda": {
+    "pga475": 0.203
+   },
+   "ARG-termas-de-rio-hondo": {
+    "pga475": 0.305
+   },
+   "ARG-ushuaia": {
+    "pga475": 0.064
+   },
+   "ARG-rio-grande": {
+    "pga475": 0.037
+   },
+   "ARG-tucuman": {
+    "pga475": 0.268
+   },
+   "ARG-yerba-buena": {
+    "pga475": 0.256
+   },
+   "ARG-concepcion": {
+    "pga475": 0.304
+   }
+  }
+ }
+}

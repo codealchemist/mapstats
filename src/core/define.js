@@ -51,6 +51,7 @@ export const KINDS = {
   register: { w: 1.0, why: 'official register of recorded cases' },
   measurement: { w: 1.0, why: 'physical measurement / reanalysis' },
   'official-survey': { w: 0.8, why: 'official sample survey' },
+  model: { w: 0.8, why: 'peer-reviewed probabilistic hazard model' },
   'crowd-survey': { w: 0.5, why: 'crowd-sourced perception survey' },
   estimate: { w: 0.3, why: 'modelled estimate' },
   manual: { w: 0.3, why: 'hand-entered approximations' },

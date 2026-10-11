@@ -8,5 +8,6 @@ export default defineCountry({
   regionLabel: 'Province',
   // Mainland frame: overseas territories / remote islands would zoom the map out too far.
   bounds: [-9.4, 35.9, 4.4, 43.9],
+  providers: ['gem'],
   news: { lang: 'es', countryName: 'España', edition: { hl: 'es', gl: 'ES' } },
 })

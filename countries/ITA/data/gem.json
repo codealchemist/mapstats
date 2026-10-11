@@ -1,0 +1,586 @@
+{
+ "schema": 1,
+ "provider": "gem",
+ "country": "ITA",
+ "generatedAt": "2026-10-11T17:00:54.758Z",
+ "period": {
+  "latest": 2023,
+  "aggregation": "regions: mean of the raster cells inside them; cities: the cell at their point"
+ },
+ "origin": {
+  "files": [
+   {
+    "name": "v2023_1_pga_475_rock_3min.tif",
+    "sha256": "c6928e0edea4d2a03e6a0d6b4aa9699159834f015c20ffb2d8ee8492ff67a5af",
+    "retrievedAt": "2023-09-19"
+   }
+  ],
+  "notes": "GEM Global Seismic Hazard Map v2023.1.0, PGA 475-year return period on rock, 3-arc-minute raster (zenodo.org/records/8409647, doi:10.5281/zenodo.8409647), downloaded 2026-10-11; CC BY-NC-SA 4.0. Licence: as published by GEM (check before redistributing)."
+ },
+ "values": {
+  "region": {
+   "IT-AO": {
+    "pga475": 0.113,
+    "pga475Max": 0.125
+   },
+   "IT-VB": {
+    "pga475": 0.072,
+    "pga475Max": 0.116
+   },
+   "IT-VA": {
+    "pga475": 0.053,
+    "pga475Max": 0.065
+   },
+   "IT-CO": {
+    "pga475": 0.067,
+    "pga475Max": 0.108
+   },
+   "IT-SO": {
+    "pga475": 0.089,
+    "pga475Max": 0.111
+   },
+   "IT-BZ": {
+    "pga475": 0.076,
+    "pga475Max": 0.113
+   },
+   "IT-IM": {
+    "pga475": 0.183,
+    "pga475Max": 0.203
+   },
+   "IT-CN": {
+    "pga475": 0.123,
+    "pga475Max": 0.192
+   },
+   "IT-TO": {
+    "pga475": 0.124,
+    "pga475Max": 0.171
+   },
+   "IT-RN": {
+    "pga475": 0.206,
+    "pga475Max": 0.264
+   },
+   "IT-PU": {
+    "pga475": 0.207,
+    "pga475Max": 0.291
+   },
+   "IT-BL": {
+    "pga475": 0.167,
+    "pga475Max": 0.316
+   },
+   "IT-UD": {
+    "pga475": 0.227,
+    "pga475Max": 0.343
+   },
+   "IT-GO": {
+    "pga475": 0.15,
+    "pga475Max": 0.163
+   },
+   "IT-TS": {
+    "pga475": 0.149,
+    "pga475Max": 0.15
+   },
+   "IT-VE": {
+    "pga475": 0.082,
+    "pga475Max": 0.119
+   },
+   "IT-PD": {
+    "pga475": 0.102,
+    "pga475Max": 0.246
+   },
+   "IT-RO": {
+    "pga475": 0.098,
+    "pga475Max": 0.195
+   },
+   "IT-FE": {
+    "pga475": 0.189,
+    "pga475Max": 0.282
+   },
+   "IT-RA": {
+    "pga475": 0.251,
+    "pga475Max": 0.358
+   },
+   "IT-FC": {
+    "pga475": 0.27,
+    "pga475Max": 0.348
+   },
+   "IT-AN": {
+    "pga475": 0.204,
+    "pga475Max": 0.346
+   },
+   "IT-MC": {
+    "pga475": 0.247,
+    "pga475Max": 0.451
+   },
+   "IT-FM": {
+    "pga475": 0.182,
+    "pga475Max": 0.256
+   },
+   "IT-AP": {
+    "pga475": 0.205,
+    "pga475Max": 0.346
+   },
+   "IT-TE": {
+    "pga475": 0.197,
+    "pga475Max": 0.335
+   },
+   "IT-PE": {
+    "pga475": 0.197,
+    "pga475Max": 0.301
+   },
+   "IT-CH": {
+    "pga475": 0.183,
+    "pga475Max": 0.27
+   },
+   "IT-CB": {
+    "pga475": 0.2,
+    "pga475Max": 0.365
+   },
+   "IT-FG": {
+    "pga475": 0.211,
+    "pga475Max": 0.287
+   },
+   "IT-BT": {
+    "pga475": 0.144,
+    "pga475Max": 0.177
+   },
+   "IT-BA": {
+    "pga475": 0.095,
+    "pga475Max": 0.142
+   },
+   "IT-BR": {
+    "pga475": 0.057,
+    "pga475Max": 0.081
+   },
+   "IT-LE": {
+    "pga475": 0.064,
+    "pga475Max": 0.081
+   },
+   "IT-TA": {
+    "pga475": 0.087,
+    "pga475Max": 0.137
+   },
+   "IT-MT": {
+    "pga475": 0.137,
+    "pga475Max": 0.176
+   },
+   "IT-CS": {
+    "pga475": 0.267,
+    "pga475Max": 0.35
+   },
+   "IT-KR": {
+    "pga475": 0.201,
+    "pga475Max": 0.26
+   },
+   "IT-CZ": {
+    "pga475": 0.294,
+    "pga475Max": 0.335
+   },
+   "IT-RC": {
+    "pga475": 0.313,
+    "pga475Max": 0.368
+   },
+   "IT-VV": {
+    "pga475": 0.324,
+    "pga475Max": 0.357
+   },
+   "IT-PZ": {
+    "pga475": 0.26,
+    "pga475Max": 0.395
+   },
+   "IT-SA": {
+    "pga475": 0.202,
+    "pga475Max": 0.402
+   },
+   "IT-NA": {
+    "pga475": 0.148,
+    "pga475Max": 0.217
+   },
+   "IT-CE": {
+    "pga475": 0.194,
+    "pga475Max": 0.383
+   },
+   "IT-LT": {
+    "pga475": 0.107,
+    "pga475Max": 0.265
+   },
+   "IT-RM": {
+    "pga475": 0.148,
+    "pga475Max": 0.3
+   },
+   "IT-VT": {
+    "pga475": 0.152,
+    "pga475Max": 0.213
+   },
+   "IT-GR": {
+    "pga475": 0.128,
+    "pga475Max": 0.208
+   },
+   "IT-LI": {
+    "pga475": 0.109,
+    "pga475Max": 0.168
+   },
+   "IT-PI": {
+    "pga475": 0.163,
+    "pga475Max": 0.209
+   },
+   "IT-LU": {
+    "pga475": 0.241,
+    "pga475Max": 0.341
+   },
+   "IT-MS": {
+    "pga475": 0.265,
+    "pga475Max": 0.316
+   },
+   "IT-SP": {
+    "pga475": 0.178,
+    "pga475Max": 0.254
+   },
+   "IT-GE": {
+    "pga475": 0.13,
+    "pga475Max": 0.187
+   },
+   "IT-SV": {
+    "pga475": 0.116,
+    "pga475Max": 0.191
+   },
+   "IT-TP": {
+    "pga475": 0.117,
+    "pga475Max": 0.124
+   },
+   "IT-ME": {
+    "pga475": 0.223,
+    "pga475Max": 0.301
+   },
+   "IT-PA": {
+    "pga475": 0.148,
+    "pga475Max": 0.218
+   },
+   "IT-AG": {
+    "pga475": 0.119,
+    "pga475Max": 0.142
+   },
+   "IT-CL": {
+    "pga475": 0.148,
+    "pga475Max": 0.197
+   },
+   "IT-RG": {
+    "pga475": 0.221,
+    "pga475Max": 0.279
+   },
+   "IT-SR": {
+    "pga475": 0.239,
+    "pga475Max": 0.272
+   },
+   "IT-CT": {
+    "pga475": 0.246,
+    "pga475Max": 0.458
+   },
+   "IT-CI": {
+    "pga475": 0.018,
+    "pga475Max": 0.021
+   },
+   "IT-SS": {
+    "pga475": 0.018,
+    "pga475Max": 0.025
+   },
+   "IT-NU": {
+    "pga475": 0.022,
+    "pga475Max": 0.033
+   },
+   "IT-OT": {
+    "pga475": 0.028,
+    "pga475Max": 0.035
+   },
+   "IT-OR": {
+    "pga475": 0.014,
+    "pga475Max": 0.017
+   },
+   "IT-VS": {
+    "pga475": 0.015,
+    "pga475Max": 0.016
+   },
+   "IT-CA": {
+    "pga475": 0.017,
+    "pga475Max": 0.024
+   },
+   "IT-OG": {
+    "pga475": 0.018,
+    "pga475Max": 0.022
+   },
+   "IT-EN": {
+    "pga475": 0.18,
+    "pga475Max": 0.221
+   },
+   "IT-BN": {
+    "pga475": 0.279,
+    "pga475Max": 0.378
+   },
+   "IT-AT": {
+    "pga475": 0.087,
+    "pga475Max": 0.094
+   },
+   "IT-BG": {
+    "pga475": 0.165,
+    "pga475Max": 0.227
+   },
+   "IT-BS": {
+    "pga475": 0.186,
+    "pga475Max": 0.256
+   },
+   "IT-CR": {
+    "pga475": 0.176,
+    "pga475Max": 0.2
+   },
+   "IT-MN": {
+    "pga475": 0.161,
+    "pga475Max": 0.226
+   },
+   "IT-MI": {
+    "pga475": 0.095,
+    "pga475Max": 0.179
+   },
+   "IT-LC": {
+    "pga475": 0.104,
+    "pga475Max": 0.178
+   },
+   "IT-MB": {
+    "pga475": 0.129,
+    "pga475Max": 0.186
+   },
+   "IT-LO": {
+    "pga475": 0.167,
+    "pga475Max": 0.183
+   },
+   "IT-SI": {
+    "pga475": 0.2,
+    "pga475Max": 0.262
+   },
+   "IT-AR": {
+    "pga475": 0.238,
+    "pga475Max": 0.354
+   },
+   "IT-FI": {
+    "pga475": 0.24,
+    "pga475Max": 0.389
+   },
+   "IT-VC": {
+    "pga475": 0.08,
+    "pga475Max": 0.116
+   },
+   "IT-PV": {
+    "pga475": 0.119,
+    "pga475Max": 0.175
+   },
+   "IT-RI": {
+    "pga475": 0.291,
+    "pga475Max": 0.437
+   },
+   "IT-NO": {
+    "pga475": 0.058,
+    "pga475Max": 0.069
+   },
+   "IT-AL": {
+    "pga475": 0.113,
+    "pga475Max": 0.154
+   },
+   "IT-TN": {
+    "pga475": 0.13,
+    "pga475Max": 0.246
+   },
+   "IT-VI": {
+    "pga475": 0.192,
+    "pga475Max": 0.33
+   },
+   "IT-VR": {
+    "pga475": 0.155,
+    "pga475Max": 0.232
+   },
+   "IT-TV": {
+    "pga475": 0.222,
+    "pga475Max": 0.338
+   },
+   "IT-PC": {
+    "pga475": 0.173,
+    "pga475Max": 0.239
+   },
+   "IT-PR": {
+    "pga475": 0.241,
+    "pga475Max": 0.318
+   },
+   "IT-RE": {
+    "pga475": 0.25,
+    "pga475Max": 0.301
+   },
+   "IT-MO": {
+    "pga475": 0.248,
+    "pga475Max": 0.309
+   },
+   "IT-BO": {
+    "pga475": 0.26,
+    "pga475Max": 0.323
+   },
+   "IT-PT": {
+    "pga475": 0.219,
+    "pga475Max": 0.293
+   },
+   "IT-TR": {
+    "pga475": 0.219,
+    "pga475Max": 0.409
+   },
+   "IT-PG": {
+    "pga475": 0.339,
+    "pga475Max": 0.536
+   },
+   "IT-FR": {
+    "pga475": 0.216,
+    "pga475Max": 0.349
+   },
+   "IT-AV": {
+    "pga475": 0.288,
+    "pga475Max": 0.398
+   },
+   "IT-AQ": {
+    "pga475": 0.341,
+    "pga475Max": 0.422
+   },
+   "IT-PN": {
+    "pga475": 0.239,
+    "pga475Max": 0.339
+   },
+   "IT-IS": {
+    "pga475": 0.282,
+    "pga475Max": 0.369
+   },
+   "IT-BI": {
+    "pga475": 0.096,
+    "pga475Max": 0.117
+   },
+   "IT-PO": {
+    "pga475": 0.232,
+    "pga475Max": 0.329
+   }
+  },
+  "city": {
+   "ITA-rome": {
+    "pga475": 0.111
+   },
+   "ITA-milan": {
+    "pga475": 0.112
+   },
+   "ITA-naples": {
+    "pga475": 0.16
+   },
+   "ITA-turin": {
+    "pga475": 0.114
+   },
+   "ITA-florence": {
+    "pga475": 0.196
+   },
+   "ITA-salerno": {
+    "pga475": 0.134
+   },
+   "ITA-palermo": {
+    "pga475": 0.147
+   },
+   "ITA-catania": {
+    "pga475": 0.294
+   },
+   "ITA-genoa": {
+    "pga475": 0.106
+   },
+   "ITA-bari": {
+    "pga475": 0.067
+   },
+   "ITA-bologna": {
+    "pga475": 0.281
+   },
+   "ITA-verona": {
+    "pga475": 0.156
+   },
+   "ITA-pescara": {
+    "pga475": 0.148
+   },
+   "ITA-cagliari": {
+    "pga475": 0.018
+   },
+   "ITA-venice": {
+    "pga475": 0.084
+   },
+   "ITA-messina": {
+    "pga475": 0.279
+   },
+   "ITA-caserta": {
+    "pga475": 0.141
+   },
+   "ITA-como": {
+    "pga475": 0.069
+   },
+   "ITA-trieste": {
+    "pga475": 0.142
+   },
+   "ITA-pisa": {
+    "pga475": 0.141
+   },
+   "ITA-taranto": {
+    "pga475": 0.079
+   },
+   "ITA-bergamo": {
+    "pga475": 0.202
+   },
+   "ITA-reggio-di-calabria": {
+    "pga475": 0.341
+   },
+   "ITA-treviso": {
+    "pga475": 0.141
+   },
+   "ITA-modena": {
+    "pga475": 0.232
+   },
+   "ITA-parma": {
+    "pga475": 0.287
+   },
+   "ITA-lecce": {
+    "pga475": 0.059
+   },
+   "ITA-livorno": {
+    "pga475": 0.148
+   },
+   "ITA-foggia": {
+    "pga475": 0.2
+   },
+   "ITA-perugia": {
+    "pga475": 0.352
+   },
+   "ITA-ravenna": {
+    "pga475": 0.193
+   },
+   "ITA-ferrara": {
+    "pga475": 0.195
+   },
+   "ITA-siracusa": {
+    "pga475": 0.215
+   },
+   "ITA-sassari": {
+    "pga475": 0.017
+   },
+   "ITA-udine": {
+    "pga475": 0.231
+   },
+   "ITA-barletta": {
+    "pga475": 0.144
+   },
+   "ITA-trento": {
+    "pga475": 0.148
+   },
+   "ITA-brindisi": {
+    "pga475": 0.053
+   },
+   "ITA-novara": {
+    "pga475": 0.058
+   },
+   "ITA-ancona": {
+    "pga475": 0.196
+   }
+  }
+ }
+}

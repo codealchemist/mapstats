@@ -1,7 +1,7 @@
 // Samples a hazard raster (EPSG:4326, one band) at a country's places: cities take the cell at their point;
 // regions take the mean of the cells whose centre lies inside them (equal weights: cells are small next to
-// regions) and their maximum. Pure: the raster comes as { origin, res, width, height, nodata, read(window) }.
-import { pointInFeature, featureBbox } from '../../lib/geo.js'
+// regions) and their maximum; a region too small to hold a cell centre (an island) takes the cell at its label point. Pure: the raster comes as { origin, res, width, height, nodata, read(window) }.
+import { pointInFeature, featureBbox, labelPoint } from '../../lib/geo.js'
 
 const round = (v, d = 3) => (v == null ? null : Math.round(v * 10 ** d) / 10 ** d)
 
@@ -24,6 +24,12 @@ export async function sampleHazard(raster, regionsGeo, places) {
         if (!valid(v) || !pointInFeature([ox + (c + 0.5) * rx, oy + (r + 0.5) * ry], f)) continue
         sum += v; n++; max = max == null ? v : Math.max(max, v)
       }
+    }
+    if (!n) {
+      const [lon, lat] = labelPoint(f)
+      const c = col(lon), r = row(lat)
+      const v = c >= 0 && r >= 0 && c < width && r < height ? (await raster.read([c, r, c + 1, r + 1]))[0] : null
+      if (valid(v)) { sum = v; n = 1; max = v }
     }
     region[f.properties.id] = { pga475: n ? round(sum / n) : null, pga475Max: round(max) }
   }

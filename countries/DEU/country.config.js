@@ -6,5 +6,6 @@ export default defineCountry({
   iso2: 'DE',
   name: 'Germany',
   regionLabel: 'State',
+  providers: ['gem'],
   news: { lang: 'de', countryName: 'Deutschland', edition: { hl: 'de', gl: 'DE' } },
 })

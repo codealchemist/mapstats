@@ -1,0 +1,113 @@
+{
+ "schema": 1,
+ "provider": "gem",
+ "country": "PRY",
+ "generatedAt": "2026-10-11T17:00:56.144Z",
+ "period": {
+  "latest": 2023,
+  "aggregation": "regions: mean of the raster cells inside them; cities: the cell at their point"
+ },
+ "origin": {
+  "files": [
+   {
+    "name": "v2023_1_pga_475_rock_3min.tif",
+    "sha256": "c6928e0edea4d2a03e6a0d6b4aa9699159834f015c20ffb2d8ee8492ff67a5af",
+    "retrievedAt": "2023-09-19"
+   }
+  ],
+  "notes": "GEM Global Seismic Hazard Map v2023.1.0, PGA 475-year return period on rock, 3-arc-minute raster (zenodo.org/records/8409647, doi:10.5281/zenodo.8409647), downloaded 2026-10-11; CC BY-NC-SA 4.0. Licence: as published by GEM (check before redistributing)."
+ },
+ "values": {
+  "region": {
+   "PY-19": {
+    "pga475": 0.027,
+    "pga475Max": 0.135
+   },
+   "PY-15": {
+    "pga475": 0.037,
+    "pga475Max": 0.305
+   },
+   "PY-11": {
+    "pga475": 0.023,
+    "pga475Max": 0.039
+   },
+   "PY-ASU": {
+    "pga475": 0.036,
+    "pga475Max": 0.039
+   },
+   "PY-10": {
+    "pga475": 0,
+    "pga475Max": 0
+   },
+   "PY-7": {
+    "pga475": 0,
+    "pga475Max": 0
+   },
+   "PY-12": {
+    "pga475": 0.011,
+    "pga475Max": 0.018
+   },
+   "PY-8": {
+    "pga475": 0.004,
+    "pga475Max": 0.011
+   },
+   "PY-16": {
+    "pga475": 0.004,
+    "pga475Max": 0.04
+   },
+   "PY-1": {
+    "pga475": 0.005,
+    "pga475Max": 0.013
+   },
+   "PY-13": {
+    "pga475": 0.001,
+    "pga475Max": 0.006
+   },
+   "PY-14": {
+    "pga475": 0.002,
+    "pga475Max": 0.008
+   },
+   "PY-2": {
+    "pga475": 0.013,
+    "pga475Max": 0.03
+   },
+   "PY-5": {
+    "pga475": 0.006,
+    "pga475Max": 0.013
+   },
+   "PY-3": {
+    "pga475": 0.018,
+    "pga475Max": 0.036
+   },
+   "PY-6": {
+    "pga475": 0.002,
+    "pga475Max": 0.007
+   },
+   "PY-9": {
+    "pga475": 0.011,
+    "pga475Max": 0.019
+   },
+   "PY-4": {
+    "pga475": 0.007,
+    "pga475Max": 0.01
+   }
+  },
+  "city": {
+   "PRY-asuncion": {
+    "pga475": 0.039
+   },
+   "PRY-san-lorenzo": {
+    "pga475": 0.031
+   },
+   "PRY-encarnacion": {
+    "pga475": 0
+   },
+   "PRY-ciudad-del-este": {
+    "pga475": 0
+   },
+   "PRY-pedro-juan-caballero": {
+    "pga475": 0
+   }
+  }
+ }
+}

@@ -1,0 +1,494 @@
+{
+ "schema": 1,
+ "provider": "gem",
+ "country": "BRA",
+ "generatedAt": "2026-10-11T17:00:50.755Z",
+ "period": {
+  "latest": 2023,
+  "aggregation": "regions: mean of the raster cells inside them; cities: the cell at their point"
+ },
+ "origin": {
+  "files": [
+   {
+    "name": "v2023_1_pga_475_rock_3min.tif",
+    "sha256": "c6928e0edea4d2a03e6a0d6b4aa9699159834f015c20ffb2d8ee8492ff67a5af",
+    "retrievedAt": "2023-09-19"
+   }
+  ],
+  "notes": "GEM Global Seismic Hazard Map v2023.1.0, PGA 475-year return period on rock, 3-arc-minute raster (zenodo.org/records/8409647, doi:10.5281/zenodo.8409647), downloaded 2026-10-11; CC BY-NC-SA 4.0. Licence: as published by GEM (check before redistributing)."
+ },
+ "values": {
+  "region": {
+   "BR-RS": {
+    "pga475": 0,
+    "pga475Max": 0.01
+   },
+   "BR-RR": {
+    "pga475": 0.011,
+    "pga475Max": 0.249
+   },
+   "BR-PA": {
+    "pga475": 0.002,
+    "pga475Max": 0.296
+   },
+   "BR-AC": {
+    "pga475": 0.045,
+    "pga475Max": 0.372
+   },
+   "BR-AP": {
+    "pga475": 0.006,
+    "pga475Max": 0.055
+   },
+   "BR-MS": {
+    "pga475": 0.014,
+    "pga475Max": 0.313
+   },
+   "BR-PR": {
+    "pga475": 0,
+    "pga475Max": 0
+   },
+   "BR-SC": {
+    "pga475": 0,
+    "pga475Max": 0.005
+   },
+   "BR-AM": {
+    "pga475": 0.007,
+    "pga475Max": 0.309
+   },
+   "BR-RO": {
+    "pga475": 0,
+    "pga475Max": 0.007
+   },
+   "BR-MT": {
+    "pga475": 0.009,
+    "pga475Max": 0.44
+   },
+   "BR-MA": {
+    "pga475": 0.01,
+    "pga475Max": 0.301
+   },
+   "BR-PI": {
+    "pga475": 0.001,
+    "pga475Max": 0.014
+   },
+   "BR-CE": {
+    "pga475": 0.033,
+    "pga475Max": 0.317
+   },
+   "BR-RN": {
+    "pga475": 0.064,
+    "pga475Max": 0.415
+   },
+   "BR-PB": {
+    "pga475": 0.012,
+    "pga475Max": 0.049
+   },
+   "BR-PE": {
+    "pga475": 0.001,
+    "pga475Max": 0.013
+   },
+   "BR-AL": {
+    "pga475": 0,
+    "pga475Max": 0
+   },
+   "BR-SE": {
+    "pga475": 0,
+    "pga475Max": 0
+   },
+   "BR-BA": {
+    "pga475": 0,
+    "pga475Max": 0
+   },
+   "BR-ES": {
+    "pga475": 0.007,
+    "pga475Max": 0.04
+   },
+   "BR-RJ": {
+    "pga475": 0.009,
+    "pga475Max": 0.063
+   },
+   "BR-SP": {
+    "pga475": 0,
+    "pga475Max": 0.008
+   },
+   "BR-GO": {
+    "pga475": 0.009,
+    "pga475Max": 0.306
+   },
+   "BR-DF": {
+    "pga475": 0.002,
+    "pga475Max": 0.007
+   },
+   "BR-MG": {
+    "pga475": 0,
+    "pga475Max": 0.01
+   },
+   "BR-TO": {
+    "pga475": 0.002,
+    "pga475Max": 0.042
+   }
+  },
+  "city": {
+   "BRA-sao-paulo": {
+    "pga475": 0
+   },
+   "BRA-rio-de-janeiro": {
+    "pga475": 0
+   },
+   "BRA-belo-horizonte": {
+    "pga475": 0
+   },
+   "BRA-porto-alegre": {
+    "pga475": 0
+   },
+   "BRA-brasilia": {
+    "pga475": 0.005
+   },
+   "BRA-recife": {
+    "pga475": 0.006
+   },
+   "BRA-fortaleza": {
+    "pga475": 0.037
+   },
+   "BRA-salvador": {
+    "pga475": 0
+   },
+   "BRA-curitiba": {
+    "pga475": 0
+   },
+   "BRA-campinas": {
+    "pga475": 0
+   },
+   "BRA-belem": {
+    "pga475": 0.006
+   },
+   "BRA-goiania": {
+    "pga475": 0
+   },
+   "BRA-manaus": {
+    "pga475": 0.016
+   },
+   "BRA-santos": {
+    "pga475": 0.007
+   },
+   "BRA-vitoria": {
+    "pga475": 0.013
+   },
+   "BRA-niteroi": {
+    "pga475": 0
+   },
+   "BRA-vila-velha-br-ap": {
+    "pga475": 0.01
+   },
+   "BRA-vila-velha-br-es": {
+    "pga475": 0.013
+   },
+   "BRA-maceio": {
+    "pga475": 0
+   },
+   "BRA-natal-br-rn": {
+    "pga475": 0.087
+   },
+   "BRA-sao-luis": {
+    "pga475": 0.024
+   },
+   "BRA-florianopolis": {
+    "pga475": 0
+   },
+   "BRA-joinville": {
+    "pga475": 0
+   },
+   "BRA-natal-br-am": {
+    "pga475": 0
+   },
+   "BRA-joao-pessoa": {
+    "pga475": 0.015
+   },
+   "BRA-olinda": {
+    "pga475": 0.007
+   },
+   "BRA-teresina": {
+    "pga475": 0.006
+   },
+   "BRA-novo-hamburgo": {
+    "pga475": 0
+   },
+   "BRA-nova-iguacu": {
+    "pga475": 0
+   },
+   "BRA-duque-de-caxias": {
+    "pga475": 0
+   },
+   "BRA-cuiaba": {
+    "pga475": 0
+   },
+   "BRA-campo-grande": {
+    "pga475": 0.006
+   },
+   "BRA-sao-jose-dos-campos": {
+    "pga475": 0
+   },
+   "BRA-jaboatao": {
+    "pga475": 0.006
+   },
+   "BRA-aracaju": {
+    "pga475": 0
+   },
+   "BRA-sao-jose-dos-pinhais": {
+    "pga475": 0
+   },
+   "BRA-santo-andre": {
+    "pga475": 0.006
+   },
+   "BRA-canoas": {
+    "pga475": 0
+   },
+   "BRA-uberlandia": {
+    "pga475": 0
+   },
+   "BRA-sorocaba": {
+    "pga475": 0
+   },
+   "BRA-ribeirao-preto": {
+    "pga475": 0
+   },
+   "BRA-londrina": {
+    "pga475": 0
+   },
+   "BRA-jundiai": {
+    "pga475": 0
+   },
+   "BRA-macapa": {
+    "pga475": 0.021
+   },
+   "BRA-feira-de-santana": {
+    "pga475": 0
+   },
+   "BRA-americana": {
+    "pga475": 0
+   },
+   "BRA-juiz-de-fora": {
+    "pga475": 0
+   },
+   "BRA-volta-redonda": {
+    "pga475": 0
+   },
+   "BRA-foz-do-iguacu": {
+    "pga475": 0
+   },
+   "BRA-campina-grande": {
+    "pga475": 0.016
+   },
+   "BRA-ipatinga": {
+    "pga475": 0
+   },
+   "BRA-taubate": {
+    "pga475": 0
+   },
+   "BRA-campos": {
+    "pga475": 0.029
+   },
+   "BRA-caxias-do-sul": {
+    "pga475": 0
+   },
+   "BRA-sao-jose-do-rio-preto": {
+    "pga475": 0
+   },
+   "BRA-piracicaba": {
+    "pga475": 0
+   },
+   "BRA-bauru": {
+    "pga475": 0
+   },
+   "BRA-montes-claros": {
+    "pga475": 0
+   },
+   "BRA-maringa": {
+    "pga475": 0
+   },
+   "BRA-itajai": {
+    "pga475": 0
+   },
+   "BRA-pelotas": {
+    "pga475": 0
+   },
+   "BRA-itu": {
+    "pga475": 0
+   },
+   "BRA-anapolis": {
+    "pga475": 0
+   },
+   "BRA-vitoria-da-conquista": {
+    "pga475": 0
+   },
+   "BRA-porto-velho": {
+    "pga475": 0
+   },
+   "BRA-franca": {
+    "pga475": 0
+   },
+   "BRA-blumenau": {
+    "pga475": 0
+   },
+   "BRA-ponta-grossa": {
+    "pga475": 0
+   },
+   "BRA-limeira": {
+    "pga475": 0
+   },
+   "BRA-petropolis": {
+    "pga475": 0
+   },
+   "BRA-crato-br-ce": {
+    "pga475": 0
+   },
+   "BRA-crato-br-am": {
+    "pga475": 0
+   },
+   "BRA-cabo-frio": {
+    "pga475": 0.008
+   },
+   "BRA-petrolina": {
+    "pga475": 0
+   },
+   "BRA-uberaba": {
+    "pga475": 0
+   },
+   "BRA-rio-branco": {
+    "pga475": 0
+   },
+   "BRA-cascavel": {
+    "pga475": 0
+   },
+   "BRA-governador-valadares": {
+    "pga475": 0
+   },
+   "BRA-varzea-grande": {
+    "pga475": 0
+   },
+   "BRA-santa-maria": {
+    "pga475": 0
+   },
+   "BRA-caruaru": {
+    "pga475": 0.006
+   },
+   "BRA-palmas": {
+    "pga475": 0
+   },
+   "BRA-boa-vista": {
+    "pga475": 0.048
+   },
+   "BRA-ilheus": {
+    "pga475": 0
+   },
+   "BRA-santarem": {
+    "pga475": 0
+   },
+   "BRA-juazeiro-do-norte": {
+    "pga475": 0
+   },
+   "BRA-itabuna": {
+    "pga475": 0
+   },
+   "BRA-imperatriz": {
+    "pga475": 0
+   },
+   "BRA-marilia": {
+    "pga475": 0
+   },
+   "BRA-presidente-prudente": {
+    "pga475": 0
+   },
+   "BRA-sao-carlos": {
+    "pga475": 0
+   },
+   "BRA-criciuma": {
+    "pga475": 0
+   },
+   "BRA-guaratingueta": {
+    "pga475": 0
+   },
+   "BRA-timon": {
+    "pga475": 0.006
+   },
+   "BRA-mossoro": {
+    "pga475": 0.021
+   },
+   "BRA-sete-lagoas": {
+    "pga475": 0
+   },
+   "BRA-divinopolis": {
+    "pga475": 0
+   },
+   "BRA-rio-grande": {
+    "pga475": 0
+   },
+   "BRA-arapiraca": {
+    "pga475": 0
+   },
+   "BRA-cachoeiro-de-itapemirim": {
+    "pga475": 0.019
+   },
+   "BRA-rio-claro": {
+    "pga475": 0
+   },
+   "BRA-passo-fundo": {
+    "pga475": 0
+   },
+   "BRA-nova-friburgo": {
+    "pga475": 0.007
+   },
+   "BRA-aracatuba": {
+    "pga475": 0
+   },
+   "BRA-barra-mansa": {
+    "pga475": 0
+   },
+   "BRA-maraba": {
+    "pga475": 0
+   },
+   "BRA-carpina": {
+    "pga475": 0.009
+   },
+   "BRA-lajes": {
+    "pga475": 0
+   },
+   "BRA-dourados": {
+    "pga475": 0
+   },
+   "BRA-xapeco": {
+    "pga475": 0
+   },
+   "BRA-rio-largo": {
+    "pga475": 0
+   },
+   "BRA-barreiras": {
+    "pga475": 0
+   },
+   "BRA-sobral": {
+    "pga475": 0.04
+   },
+   "BRA-rondonopolis": {
+    "pga475": 0.007
+   },
+   "BRA-guarapuava": {
+    "pga475": 0
+   },
+   "BRA-pocos-de-caldas": {
+    "pga475": 0
+   },
+   "BRA-cabo-de-santo-agostinho": {
+    "pga475": 0.005
+   },
+   "BRA-macae": {
+    "pga475": 0.013
+   },
+   "BRA-paranagua": {
+    "pga475": 0
+   },
+   "BRA-parnaiba": {
+    "pga475": 0.008
+   }
+  }
+ }
+}
