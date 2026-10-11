@@ -256,7 +256,7 @@ There are no per-country components. Generic UI draws whatever the country's pro
 |---|---|
 | `values` | Indicator rows, meters, scores, compare rows, exports |
 | `details.series` + `report.trends` | "Official statistics" block: trend charts (place, its region, the country) and the latest-rates table; compare line charts and side-by-side rows |
-| a `report.trends` chart with `lastYear` + `details.latest` | A compare row and focus bars with the latest year's published value (SNIC: robberies and thefts) |
+| a `report.trends` chart with `lastYear` + `details.latest` | A compare row and focus bars with the latest year's published value (SNIC: homicides, robberies and thefts) |
 | `provenance()` | Its group in "values by source" (report, CSV, PDF) |
 | any details | A source tag on the place in search results |
 
