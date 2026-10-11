@@ -1,10 +1,10 @@
 # MapStats architecture
 
-This document defines how MapStats is structured so that each country can be integrated by its own developers, in its own folder, without touching the rendering engine.
+How MapStats is structured so that each country can be integrated by its own developers, in its own folder, without touching the rendering engine.
 
 - **Audience:** the core team, and developers who will own a country.
-- **Status:** target design. The [migration plan](#8-migration-plan) moves the current code to it step by step, and the app keeps working after each step.
-- **Related:** [Country integration guide](country-guide.md) · [Dataset schema](schemas/dataset.schema.json) · [Country template](samples/country-template/)
+- **Status:** built and in use for all 16 countries. Argentina, the only curated country, runs fully on it (migration steps 0–6, [section 8](#8-migration)). Items marked *not built yet* are the agreed direction.
+- **Related:** [Country integration guide](country-guide.md) · [Dataset schema](schemas/dataset.schema.json) · [Worked example country](../countries/_template/)
 
 ---
 
@@ -14,57 +14,39 @@ This document defines how MapStats is structured so that each country can be int
 2. **The core renders any country.** The map, scoring, reports, compare view, sources view and news are generic. They only read data that follows the contracts in [section 4](#4-contracts).
 3. **Scores stay comparable across countries.** Indicators are defined once, globally, with fixed definitions and domains. Countries supply values for them. They do not redefine them.
 4. **Every number can be traced.** Each value records its provider, the geographic level it was measured at, its period and the files it came from.
-5. **The best available source wins, and the choice is explicit.** Reliability is derived from what kind of source a provider is, how close its geography is to the place, and how recent its data is. The rules are the same for every country.
-6. **Long-term data is prepared offline.** Yearly and other slow-moving statistics are produced by a prefill pipeline and shipped as files. The browser only calls free, keyless, CORS-enabled APIs.
+5. **The best available source wins, and the choice is explicit.** Reliability comes from what kind of source a provider is, how close its geography is to the place, and how recent its data is. The rules are the same for every country.
+6. **Long-term data is prepared offline.** Yearly and other slow-moving statistics are produced by a prefill and shipped as files. The browser only calls free, keyless, CORS-enabled APIs.
 
-## 2. Where we are today
-
-The app's features are the ones we want. The problem is the data layer, which assumes Argentina:
-
-| Coupling | Where |
-|---|---|
-| `iso3 === 'ARG'` branches and direct imports of Argentine data | `src/lib/scoring.js` (`baseCities`, `buildEntities`, `adHocEntity`) |
-| Indicators tied to Argentine sources (`source: 'SNIC'`, `'EPH'`, `'Censo 2022'`) and domains calibrated on Argentina (`lifeExp: [74, 79]`, `hdi: [0.75, 0.9]`) | `src/data/metrics.js` |
-| Global and Argentine sources in one registry; families hardcoded (`snic`, `numbeo`, `provincial`) | `src/data/sources.js` (`SOURCES`, `SOURCE_META`, `familyOf`) |
-| Reliability rules written for specific sources | `src/lib/sourceWeights.js` |
-| Report sections, compare measures and search tags written for SNIC and Numbeo | `ReportPanel.jsx`, `compare/measures.js`, `SearchBox.jsx`, `SourcesView.jsx`, `lib/provenance.js` |
-| Country list repeated in three places | `src/data/countries.js` (`COUNTRIES` and `NEWS`), `scripts/build-geo.mjs` |
-| News: ambiguous names and outlets only for Argentina | `src/lib/news.js` (`AMBIGUOUS`, `GN_HL`), `netlify/news/outlets.mjs` (`outletsFor` returns `[]` outside ARG) |
-| Import scripts that only work for one country | `scripts/snic-import.mjs`, `scripts/numbeo-*.mjs` |
-| All curated data in the main bundle (`snic-argentina.json` is 425 KB), whichever country is shown | `src/data/argentina.js` |
-
-The rest is already generic and stays: MapLibre rendering, the Open-Meteo request queue and cache (`meteoQueue.js`, `live.js`), USGS, geocoding, colour scales, exports, and the news pipeline in `netlify/news/`.
-
-## 3. Structure
+## 2. Structure
 
 The [base structure](base-structure.md) splits MapStats into **Countries** (data providers for stats and news), the **Rendering engine** and **Admin** (the yearly prefill). In the code, that becomes four areas with one-way dependencies:
 
 ```mermaid
 flowchart LR
   subgraph Admin["Admin (Node, offline)"]
-    CLI["tools/cli<br/>prefill · check · new"]
+    CLI["tools/cli<br/>prefill · country:check · country:new · prefill:due"]
     SDK["tools/sdk<br/>http · parse · places · stats · dataset · test"]
   end
   subgraph Countries["countries/&lt;ISO3&gt;/"]
-    CFG["country.config.js"]
-    PRV["providers/*<br/>prefill.mjs"]
-    DATA["data/*.json<br/>(generated datasets)"]
-    CD["country.data.js"]
+    CFG["country.config.js<br/>+ providers/*/provider.js + news.js"]
+    PRV["providers/*/prefill.mjs"]
+    DATA["data/*.json<br/>(datasets)"]
+    CD["country.data.js<br/>(places + datasets)"]
   end
   subgraph Shared["src/providers/ (global)"]
-    GP["open-meteo · usgs · numbeo<br/>natural-earth · google-news"]
+    GP["open-meteo · usgs · numbeo<br/>natural-earth · basemaps · news"]
   end
   subgraph Core["src/core + UI (rendering engine)"]
     REG["registries"]
-    MODEL["model: resolve → score"]
+    MODEL["resolve → score"]
     UI["map · reports · compare · sources · news"]
   end
-  RAW[("data/raw/&lt;ISO3&gt;/<br/>downloads + manifest")]
+  RAW[("data/raw/&lt;ISO3&gt;/&lt;id&gt;/<br/>downloads + manifest")]
 
   CLI --> PRV
   PRV --> SDK
   SDK --> RAW
-  PRV -- writes --> DATA
+  CLI -- checks, writes --> DATA
   CD --> DATA
   REG --> CFG
   REG -. lazy import .-> CD
@@ -74,348 +56,319 @@ flowchart LR
 
 Dependencies only go one way:
 
-- `src/core` never imports from `countries/`. It discovers countries through the registry.
-- A country may import from `src/core/define.js`, the SDK and global providers. It never imports from another country.
-- Browser code never imports `tools/` or a `*.mjs` prefill script.
+- `src/` never imports a specific country. It finds countries through `countries/index.js` and, in the browser, a lazy `import.meta.glob` of each `country.data.js`.
+- A country imports only from `#core/define.js`, `#sdk` and its own folder. It never imports from another country.
+- Browser code never imports `tools/` or a `*.mjs` prefill.
 
-### 3.1 Folder layout
+### 2.1 Folder layout
 
 ```
 src/
-  core/                       rendering engine, country-agnostic
-    define.js                 defineCountry / defineProvider: validation + defaults (browser-safe)
-    indicators.js             global indicator catalogue, topics, scoring categories
-    countries.js              country registry (manifests) + lazy data loader
-    providers.js              provider registry, reliability rules
-    model/
-      resolve.js              datasets + live data → values per place, with provenance
-      score.js                normalisation, categories, combined / weighted modes (today's scoring.js)
-    live/                     request queue, cache, batch runner (today's meteoQueue.js, live.js)
-  providers/                  global providers, available to every country
-    open-meteo/  usgs/  natural-earth/  google-news/  numbeo/
-  components/  hooks/  lib/   UI. Reads the model only, never a specific provider.
+  core/
+    define.js           defineCountry / defineProvider (validation, defaults), KINDS, ACCESS, DATA_TYPES, recency()
+    countries.js        country registry: COUNTRIES, countryByIso, isCurated, newsSettings
+    providers.js        provider registry: providersFor(country), providerOf(indicator), families, familiesFor(country)
+    resolve.js          datasets → values per place, with each provider's details (section 5)
+    countryData.js      browser: lazy loader of countries/<ISO3>/country.data.js
+    geoAssets.js        browser: hashed URLs of countries/<ISO3>/geo/*.json
+  providers/            global providers: open-meteo/ usgs/ numbeo/ natural-earth/ basemaps/ news/
+  components/           UI; report/ProviderBlocks.jsx draws any provider's trends and survey
+  data/metrics.js       indicator catalogue and scoring categories
+  lib/                  scoring, reliability weights, live APIs and queue, provenance, exports
 
 countries/
-  index.js                    one line per country (manifests only; small and pure)
-  _template/                  copied by `npm run country:new`
+  index.js              one import per country (manifests only: small and pure)
+  _template/            worked example country (not registered), copied from by developers
   ARG/
-    country.config.js         manifest: identity, geo settings, providers, news, maintainers
-    country.data.js           browser entry: places + datasets + optional report sections (lazy chunk)
-    places.js                 curated cities and code crosswalks (optional)
-    news.js                   news language, edition, ambiguous names, outlets
+    country.config.js   manifest: identity, labels, geo settings, providers, news, maintainers
+    country.data.js     browser entry: places + datasets (its own chunk)
+    places.js           curated cities and their codes in other sources
+    news.js             news language, edition, ambiguous names, regions, outlets
     providers/
-      snic/                   provider.js · prefill.mjs · parse.mjs · fixtures/ · provider.test.mjs · README.md
-      provincial-stats/
-    data/                     generated datasets (committed): snic.json, provincial-stats.json …
-    geo/                      generated boundaries + Natural Earth cities (regions.json, cities.json)
-    README.md                 status, sources, coverage, known gaps
-  BOL/
-    country.config.js         environment-only country: manifest + geo only
-    …
+      snic/             provider.js · dataset.mjs · parse.mjs · prefill.mjs · fixtures/ · provider.test.mjs
+      provincial-stats/ provider.js (12 hand-entered references)
+      numbeo/           Argentina's Numbeo inputs and scripts (snapshot.json, manual.json, fetch.mjs, prefill.mjs…)
+    data/               datasets (committed): snic.json · numbeo.json · provincial-stats.json
+    geo/                Natural Earth boundaries and cities: regions.json · cities.json
+  BOL/ … URY/           country.config.js + geo/ (live global data only)
 
 tools/
-  sdk/                        Node toolkit for country developers (section 6)
-  cli/                        prefill · country:new · country:check · geo:build
+  sdk/                  Node toolkit for country developers (section 6)
+  cli/                  prefill · country:check · country:new · prefill:due · test
 
-data/raw/<ISO3>/<provider>/   downloaded source files (gitignored) + manifest.json (committed)
-netlify/                      functions; the news function reads country news config from countries/index.js
-docs/
+data/raw/<ISO3>/<id>/   downloaded source files (gitignored) + manifest.json (committed)
+netlify/                /api/news function; reads each country's news settings from the registry
+tests/                  golden scoring snapshot
 ```
 
-Path aliases (the `imports` field in `package.json`, which Node, Vite and esbuild all resolve) keep imports independent of folder depth:
+Path aliases (`imports` in `package.json`, resolved by Node, Vite and esbuild) keep imports independent of folder depth: `#core/*` → `src/core/*`, `#providers/*` → `src/providers/*`, `#sdk` → `tools/sdk/index.mjs`, `#sdk/*` → `tools/sdk/*`.
 
-```json
-"imports": {
-  "#core/*": "./src/core/*",
-  "#providers/*": "./src/providers/*",
-  "#sdk": "./tools/sdk/index.mjs",
-  "#sdk/*": "./tools/sdk/*"
-}
-```
-
-### 3.2 Why two files per country (`config` and `data`)
+### 2.2 Why two files per country (`config` and `data`)
 
 | File | Contents | Imported by | Size |
 |---|---|---|---|
-| `country.config.js` | Pure metadata: names, bounds, labels, provider ids, news settings | the app (country picker), the news function, scripts | A few KB, every country |
-| `country.data.js` | Places, dataset JSON, report extensions | the app only, through `import()` when the country is selected | Can be large; only loaded on demand |
+| `country.config.js` | Metadata: names, labels, bounds, provider definitions, news settings | the app, the news function, the CLI | A few KB per country |
+| `country.data.js` | Places and dataset JSON | the app only, with `import()` when the country is selected | Argentina: 480 KB, its own chunk |
 
-`countries/index.js` imports only the configs. The Netlify function stays small, and Vite builds one chunk per country, so Argentina's 425 KB of SNIC data is no longer loaded for Bolivia. Geo files are referenced with `?url` imports, so Vite emits them with content hashes and they can be cached long-term.
+`countries/index.js` imports only configs, so the news function stays small (50 KB) and the main bundle carries no country data: it went from 2,100 KB to 1,667 KB when Argentina's data moved to its own chunk. Geo files are imported with `?url`, so Vite emits them with content hashes.
 
-## 4. Contracts
+## 3. Contracts
 
-These are the interfaces between a country and the core. They are written as JSDoc typedefs in `src/core/define.js` (with `// @ts-check` in country files for editor checking). Datasets also have a JSON Schema, which `country:check` validates.
+The interfaces between a country and the core are JSDoc typedefs in [`src/core/define.js`](../src/core/define.js) (country files use `// @ts-check`). `defineCountry` and `defineProvider` validate at load, so a broken manifest fails the build and the tests rather than the page. Datasets have a [JSON Schema](schemas/dataset.schema.json), checked by `country:check`.
 
-### 4.1 Indicator (core-owned)
+### 3.1 Indicator (core-owned)
 
-An indicator defines **what** is measured. It does not say who measures it.
+An indicator defines **what** is measured, never who measures it ([`src/data/metrics.js`](../src/data/metrics.js)):
 
 ```js
-{
-  id: 'homicide',
-  label: 'Homicide rate',
-  unit: '/100k',
-  topic: 'crime',                 // browsing taxonomy (below)
-  category: 'safety',             // scoring bucket with a user weight
-  better: 'low',                  // 'high' | 'low' | null (null = descriptive, never scored)
-  domain: [0, 8],                 // fixed normalisation range, used only to compute scores (rule below)
-  digits: 1,
-  definition: 'Victims of intentional homicide per 100,000 inhabitants, mean of the latest 3 years (UNODC ICCS 0101).',
-}
+{ id: 'homicide', label: 'Homicide rate (3-yr avg)', unit: '/100k', category: 'safety', better: 'low', domain: [0, 8], digits: 1 }
 ```
-
-**Topics** follow the base structure, and tell a country developer where their data fits:
-
-| Topic | Scoring category | Example indicators |
-|---|---|---|
-| `crime` | safety | homicide, propertyCrime, crimeIndex |
-| `roadSafety` | safety | roadDeaths |
-| `weather` | environment / descriptive | climateComfort, meanTemp, annualPrecip, uvMean |
-| `air` | environment | aqi, pollutionIndex |
-| `naturalDisasters` | hazards | quakes, seismicZone, fireRisk, floodRisk, floodWatch |
-| `geography` | descriptive | elevation |
-| `population` | descriptive | pop |
-| `services.health` | services | doctors, healthcareIndex |
-| `services.water` | services | water, sewer |
-| `services.electricity` | services | electricity *(new)* |
-| `services.internet` | services | internet |
-| `infrastructure` | infrastructure | roadPaved, transit, trafficIndex |
-| `costOfLiving` | economy | costOfLiving, purchasingPower |
-| `economy` | economy | poverty, unemployment, lifeExp, hdi |
 
 Rules:
 
-- New scored indicators are added to the core catalogue by pull request, reviewed by the core team. The `definition` must be precise enough that two countries' statistics offices produce comparable numbers.
-- A country may declare **descriptive** extras (`better: null`) in its config. They show in reports but never affect scores.
-- **The domain is only for scores.** It maps an indicator to 0–100 so different units can be averaged into category scores and the MapStats score. Everything that renders or compares an indicator uses its **real values**: map colours, legends, meters (positioned between the country's lowest and highest value, `model.ranges`), the "best" mark in compare, charts and exports. Report and compare components never import `normalise`.
-- **Domains are global.** They are set from the spread across all supported countries, not from one country. The current Argentine calibration must be revisited before a second country is curated (see [open decisions](#9-open-decisions)).
+- New scored indicators are added to the catalogue by pull request, reviewed by the core team.
+- **The domain is only for scores.** It maps an indicator to 0–100 so different units can be averaged into category scores and the MapStats score. Everything that renders or compares an indicator uses its **real values**: map colours, legends, meters (between the country's lowest and highest value, `model.ranges`), the "best" mark in compare, charts and exports. Report and compare components never import `normalise`.
+- **Domains must become global.** Today they fit Argentina; `country:check` reports every value outside a domain, so recalibration can be based on data ([open decisions](#9-open-decisions)).
+- *Not built yet:* a `definition` per indicator, precise enough for two statistics offices to produce comparable numbers; a `topic` per indicator following the base structure (crime, weather, services.health…); country-declared descriptive extras.
 
-### 4.2 Provider
-
-A provider is one data source. **Global providers** (`src/providers/<id>/`) serve every country: Open-Meteo, USGS, Natural Earth, Google News and Numbeo. **Country providers** (`countries/<ISO3>/providers/<id>/`) are local: SNIC, a national census, a statistics office. Their ids are namespaced automatically as `ARG/snic`.
+### 3.2 Country
 
 ```js
-// countries/ARG/providers/snic/provider.js — browser-safe metadata
-export default defineProvider({
-  id: 'snic',
-  name: 'SNIC – Ministerio de Seguridad',
-  url: 'https://www.argentina.gob.ar/seguridad/estadisticascriminales/bases-de-datos',
-  license: '…',                  // exact licence or terms URL, checked before importing
-  kind: 'register',              // drives base reliability (table below)
-  access: 'dataset',             // 'live' | 'dataset' | 'manual'
-  cadence: { every: 'year', expected: 'June' },
-  topics: ['crime', 'roadSafety'],
-  provides: {
-    homicide:      { levels: ['region', 'subregion'] },
-    propertyCrime: { levels: ['region', 'subregion'] },
-    roadDeaths:    { levels: ['region', 'subregion'] },
-  },
-  family: 'official-crime',       // groups providers in the single-source selector (optional, defaults to id)
-  // Optional extra reliability factors, on top of the generic ones:
-  weightFactors: (ctx) => [],
+// countries/ARG/country.config.js
+import { defineCountry } from '#core/define.js'
+import snic from './providers/snic/provider.js'
+import provincialStats from './providers/provincial-stats/provider.js'
+import news from './news.js'
+
+export default defineCountry({
+  iso3: 'ARG', iso2: 'AR', name: 'Argentina',
+  regionLabel: 'Province', subregionLabel: 'Department',
+  geo: { simplify: '18%' },                         // Natural Earth build settings (defaults: 8 %, cities ≥ 100k, 120 max)
+  providers: ['numbeo', snic, provincialStats],     // opt-in global ids + its own definitions
+  news,
+  maintainers: ['@codealchemist'],
 })
 ```
 
-**Base reliability by kind** (generalises today's `BASE` in `sourceWeights.js`):
+Global live providers (Open-Meteo, USGS, Natural Earth, basemaps, news) serve every country without being listed. The country's own providers are namespaced `ARG/<id>`. A country is **curated** when it lists any provider.
+
+### 3.3 Provider
+
+A provider is one data source. **Global** providers live in `src/providers/<id>/`; **country** providers in `countries/<ISO3>/providers/<id>/`. One `provider.js` may export several related providers (Open-Meteo's APIs, Argentina's 12 hand-entered references).
+
+```js
+// countries/ARG/providers/snic/provider.js (abridged)
+defineProvider({
+  id: 'snic', short: 'SNIC', name: 'SNIC – Ministerio de Seguridad', url: 'https://…',
+  covers: 'Official crime statistics by province and department…',
+  kind: 'register',                          // base reliability (table below)
+  family: { id: 'snic', label: 'SNIC · official crime statistics', short: 'SNIC' },   // source-selector group
+  levels: ['region', 'subregion', 'city'],   // where its values are measured
+  provides: ['homicide', 'propertyCrime', 'roadDeaths'],
+  access: 'import', cadence: 'Annual (2000–latest year)', refresh: 'year', scope: 'Argentina · province & department',
+  types: ['crime'],                          // sources-view section
+  report: { category: 'safety', label: 'Official SNIC statistics', trends: { … }, latestTable: { … }, footnote: '…' },
+  provenance: ({ entity, detail, meta }) => ({ level, area, period, status, rows, note }),
+  weightFactors: ({ type, level, detail }) => [['department, not city boundary', 0.9], …],
+})
+```
+
+| Field | Used for |
+|---|---|
+| `provides` | Which provider stands behind each indicator (`providerOf`); every indicator has exactly one today |
+| `kind`, `family`, `levels` | Reliability weights and the single-source selector; required for scored data |
+| `access`, `cadence`, `scope`, `types`, `usedFor` | The sources view |
+| `refresh` | `prefill:due` (year · quarter · month) |
+| `urlFor(entity, category)`, `links(entity)` | Deep links and external pages for a place |
+| `report` | How the report and compare views present its details: trend charts and latest-rates table, survey questions, facts, caveats |
+| `provenance(ctx)` | Its group in "values by source" |
+| `weightFactors(ctx)` | Extra reliability factors, from its details for the place |
+
+**Base reliability by kind** (`KINDS` in `define.js`):
 
 | `kind` | Weight | Meaning | Today |
 |---|---|---|---|
 | `register` | 1.0 | Official count of recorded cases | SNIC |
 | `measurement` | 1.0 | Instrument or reanalysis | Open-Meteo, USGS |
-| `official-survey` | 0.8 | Statistics office sample survey with published methodology | *(new: EPH, if imported rather than typed)* |
+| `official-survey` | 0.8 | Statistics office survey with published methodology | the template's example |
 | `crowd-survey` | 0.5 | Perception survey, self-selected respondents | Numbeo |
-| `estimate` | 0.3 | Modelled or derived by MapStats or a third party | |
-| `manual` | 0.3 | Hand-entered from a publication | today's provincial figures |
+| `estimate` | 0.3 | Modelled or derived | |
+| `manual` | 0.3 | Hand-entered from a publication | Argentina's provincial statistics |
 
-**Generic factors**, applied in the core to every provider so countries do not reimplement them:
+**Generic factors**, applied by the core to every family: a family that only publishes region-wide figures counts ×0.5 for a city; any other family's value borrowed from the region counts ×0.5. Provider-specific factors (SNIC: department ×0.9, recency; Numbeo: contributors, snapshot, recency) come from `weightFactors`.
 
-| Factor | Multiplier |
-|---|---|
-| Value measured for the place itself (`city`) | 1.0 |
-| Measured for its `subregion` (department, municipality, county) | 0.9 |
-| Measured for its `region` and used for a city | 0.5 |
-| Recency: full weight within a year of the period, then −15 % per year | down to 0.5 |
-| Dataset-declared quality (`quality.respondents`, `quality.snapshot`) | provider-defined |
-
-### 4.3 Places and levels
+### 3.4 Places and levels
 
 | Level | What it is | Id | Comes from |
 |---|---|---|---|
 | `national` | The country | `ISO3` | config |
-| `region` | First-level division (province, state, department) | ISO 3166-2, e.g. `AR-B` | `geo/regions.json` (Natural Earth) |
-| `subregion` | Second level (partido, municipality, county), optional | the national statistical code, e.g. `06441` | provider data; no polygons required |
-| `city` | Point place | `ISO3-slug`, e.g. `ARG-la-plata` | `places.js`, or the Natural Earth city list |
+| `region` | First-level division | ISO 3166-2, e.g. `AR-B` | `geo/regions.json` (Natural Earth) |
+| `subregion` | Second level (partido, municipality, county) | the national statistical code, e.g. `06441` | provider data; no polygons needed |
+| `city` | Point place | `ISO3-slug`, e.g. `ARG-la-plata` | `places.js`, else the Natural Earth city list |
 
-A curated city carries a `codes` map that links it to each provider's identifiers. This generalises today's `SNIC_DEPT` table and `numbeoSlug` field:
+A curated city carries `codes` linking it to other sources' identifiers. `codes.subregion` is read by the core, and the other codes by their provider (`codes.numbeo`):
 
 ```js
-{ id: 'ARG-la-plata', name: 'La Plata', region: 'AR-B', lat: -34.92, lon: -57.95, pop: 772618,
-  codes: { subregion: '06441', numbeo: 'La-Plata' } }
+{ id: 'ARG-la-plata', name: 'La Plata', region: 'AR-B', lat: -34.9214, lon: -57.9545, pop: 772618, codes: { subregion: '06441', numbeo: 'La-Plata' } }
 ```
 
-### 4.4 Dataset (output of a prefill, input of the app)
+City ids are permanent: saved comparisons and links use them.
 
-One JSON file per provider and country, in `countries/<ISO3>/data/<provider>.json`. Schema: [`docs/schemas/dataset.schema.json`](schemas/dataset.schema.json). Example: [`samples/country-template/data/example-stats.json`](samples/country-template/data/example-stats.json).
+### 3.5 Dataset (output of a prefill, input of the app)
+
+One JSON file per provider and country in `countries/<ISO3>/data/<id>.json` ([schema](schemas/dataset.schema.json), [example](../countries/_template/data/example-stats.json)).
 
 ```jsonc
 {
   "schema": 1,
-  "provider": "ARG/snic",
+  "provider": "ARG/snic",                // or "providers": { indicator: provider } for a compilation
   "country": "ARG",
-  "generatedAt": "2026-06-20T10:00:00Z",
-  "period": { "latest": 2025, "aggregation": "mean of 2023–2025" },
-  "origin": { "files": [{ "name": "snic-departamentos.csv", "url": "https://…", "sha256": "…", "retrievedAt": "2026-06-19" }] },
-  "values": {                        // level → place id → indicator id → number | null
-    "national":  { "ARG":   { "homicide": 4.1 } },
-    "region":    { "AR-B":  { "homicide": 4.5, "propertyCrime": 3100 } },
-    "subregion": { "06441": { "homicide": 5.2 } },
-    "city":      {}
+  "generatedAt": "2026-10-11T00:00:00Z",
+  "period": { "latest": 2025, "aggregation": "mean of 2023–2025 (per 100,000)" },
+  "origin": { "files": [{ "name": "snic_provincias_2000_2025.xlsx", "sha256": "b25d…", "retrievedAt": "2026-10-05" }], "notes": "…" },
+  "values": {                            // level → place id → indicator → number | null, in the indicator's unit
+    "national":  { "ARG": { "homicide": 3.98 } },
+    "region":    { "AR-B": { "homicide": 4.63, "propertyCrime": 1146.95 } },
+    "subregion": { "06441": { "homicide": 3.11 } },
+    "city":      { "ARG-buenos-aires": { "homicide": 2.69 } }
   },
-  "names": { "subregion": { "06441": "La Plata" } },
-  "series": {                        // optional: drives the generic "Trends" report section and compare charts
-    "years": [2016, 2017, 2018],
-    "region": { "AR-B": { "homicide": [5.0, 4.8, 4.6] } }
-  },
-  "details": {}                      // optional, provider-specific detail for "values by source" (counts, survey answers…)
+  "names":   { "subregion": { "06441": "La Plata" } },                    // places the geo files don't name
+  "series":  { "years": [2016, …, 2025], "region": { "AR-B": { "homicide": [6.83, …] } } },   // trend charts
+  "details": { "region": { "AR-B": { "latestYear": 2025, "latest": { … }, "counts": { … } } } } // provider-specific
 }
 ```
 
 Rules:
 
-- **Missing stays missing.** Use `null` or leave the indicator out. Never fill a value from a neighbouring area or an estimate inside a dataset. The core decides what to borrow and labels it.
-- Values use the **indicator's unit** (`homicide` per 100k, `water` as a %). Conversions happen in the prefill, not in the app.
-- Every id must exist: region ids in `geo/regions.json`, city ids in `places.js`, indicator ids in the catalogue. `country:check` enforces this.
+- **Missing stays missing.** Use `null` or leave the indicator out. Never fill a value from a neighbouring area or an estimate inside a dataset: the core decides what to borrow and labels it.
+- Values use the **indicator's unit**. Conversions happen in the prefill.
+- Every id must exist: region ids in `geo/regions.json`, city ids in the place list, indicators in the catalogue, providers in the country's config. `prefill` and `country:check` enforce this.
 
-### 4.5 Live providers
+### 3.6 Live providers
 
-A live provider runs in the browser. It is allowed only if it is **free, keyless, CORS-enabled and rate-limit-safe**. It implements:
+The global live providers (Open-Meteo, USGS) are fetched in the browser through the shared queue and cache (`src/lib/meteoQueue.js`, `src/lib/live.js`), which keep within Open-Meteo's free budget. A source that needs a key, a proxy or scraping is not a live provider: it becomes a prefill dataset, or (with core-team review) a Netlify function like `/api/news`. *Not built yet:* a plug-in interface for live providers (`fetchBatch`, `fetchDetail`); today adding one means editing `src/lib/live.js`.
 
-```js
-export default {
-  ...meta,                                  // defineProvider(...) with access: 'live'
-  fetchBatch(points, { signal, priority, onProgress }) { /* → { data: { [pointId]: { [indicator]: value } }, loaded, failed } */ },
-  fetchDetail(lat, lon, { signal }) { /* optional: per-place data for the report */ },
-}
-```
+### 3.7 Report and compare
 
-It must go through the shared queue and cache in `src/core/live/`. Those enforce Open-Meteo's budget and keep the cache in `localStorage`. A source that needs a key, a proxy or scraping is **not** a live provider: it becomes a prefill dataset, or (with core-team review) a Netlify function like `/api/news`.
+There are no per-country components. Generic UI draws whatever the country's providers describe in `report`:
 
-### 4.6 Report extensions
-
-Report sections are generated from the data first:
-
-| Data in the dataset | Generated UI |
+| Provider data for a place | Generated UI |
 |---|---|
-| `values` | Indicator rows, "values by source", scores and compare rows |
-| `series` | A "Trends" section with this place, its region and the country, plus compare line charts. This replaces the hardcoded SNIC charts. |
-| `details.survey` with labelled questions | A "Survey answers" section and a compare bar chart. This replaces the hardcoded Numbeo survey. |
+| `values` | Indicator rows, meters, scores, compare rows, exports |
+| `details.series` + `report.trends` | "Official statistics" block: trend charts (place, its region, the country) and the latest-rates table; compare line charts and side-by-side rows |
+| `details.survey` + `report.survey` | Survey charts in the report; compare bars and side-by-side rows |
+| `report.facts`, `report.note` | Key figures and caveats in the section |
+| `provenance()` | Its group in "values by source" (report, CSV, PDF) |
+| any details | A source tag on the place in search results |
 
-A country can add a custom section only when the generic ones cannot show its data:
+### 3.8 News
 
-```js
-// country.data.js
-report: [{ id: 'ARG-snic-detail', topic: 'crime', title: 'SNIC detail', component: SnicDetail }]
-// component props: { entity, model, theme }, the same contract as the built-in sections
-```
-
-### 4.7 News
-
-`countries/<ISO3>/news.js` is pure data, imported by both the app and the `/api/news` function:
+`countries/<ISO3>/news.js` (or an inline `news` object) is pure data, read by the app and the `/api/news` function:
 
 ```js
 export default {
-  lang: 'es',
-  countryName: 'Argentina',              // as local outlets write it
-  edition: { hl: 'es-419', gl: 'AR' },   // Google News edition
-  keywords: { add: ['motochorro'] },     // extends the core list for `lang`
-  ambiguousNames: ['merlo', 'junin', 'concepcion', 'san martin'],
-  outlets: {
-    verified:   [{ domain: 'eldia.com', feed: 'https://www.eldia.com/feed', regions: ['buenos aires'], cities: ['la plata'] }],
-    candidates: [{ domain: 'elonce.com', regions: ['entre rios'], note: 'no feed found' }],
-  },
+  lang: 'es', countryName: 'Argentina', edition: { hl: 'es-419', gl: 'AR' },   // Google News edition
+  ambiguousNames: ['merlo', 'junin', …],     // searched together with their province
+  regionPrefixes: ['provincia de '],
+  regions: [ … ],                            // for coverage reports
+  outlets: { verified: [{ domain, feed, regions, cities }], candidates: [{ domain, regions, cities, note }] },
 }
 ```
 
-The pipeline (`netlify/news/`) stays generic. `outletsFor` reads the country's list instead of returning `[]` outside Argentina. News is never used in scores.
+The pipeline (`netlify/news/`) is generic. `npm run news:probe -- --country=<ISO3>` checks outlets and prints the line to move a candidate into `verified`. News is never used in scores.
 
-## 5. Runtime data flow
+## 4. Runtime data flow
 
 ```
 select country
-  └─ registry: config (sync) + import('country.data.js') (lazy) + geo (fetch)
+  └─ config (sync) + import('country.data.js') (lazy) + geo (fetch)
        └─ places = curated places ?? Natural Earth cities
-            └─ live providers fill points progressively (queue + cache)
-                 └─ resolve(datasets, live, places)
-                      for each place × indicator × provider: take the value at the closest level
-                      (city → subregion → region), record { value, provider, level, period, borrowed }
-                      └─ score(values, weights, mode)  ← unchanged maths: fixed domains, median / weighted
+            └─ live layers fill points progressively (queue + cache)
+                 └─ resolvePlaces(datasets, places)              src/core/resolve.js
+                      └─ buildEntities: + live → score(values, weights, mode)   src/lib/scoring.js
                            └─ map · ranking · reports · compare · exports
 ```
 
-The resolver is the one place that decides how a value reaches a place. It replaces today's mix of `PROVINCES` spreads, `ownValues`, `inherited` sets and `numbeoBaseline`. Every entity then carries the same provenance shape (`entity.sources[indicatorId] = [{ provider, level, value, period, borrowed }]`), whatever its country. The UI reads that instead of `entity.snic` or `entity.numbeo`.
+`resolvePlaces` is the one place that decides how a published value reaches a place. It works on levels, not on providers:
 
-## 6. The country developer toolkit (`tools/sdk`)
+| Rule | Example |
+|---|---|
+| A city takes its own city-level values, then its subregion's (`codes.subregion`). Both count as its own, even when published as `null`. | La Plata gets its SNIC department's rates |
+| A region takes its region-level values. Indicators only published per city are the population-weighted mean of the region's cities that have them. | Buenos Aires province's Numbeo indices |
+| A city without its own value borrows its region's, marked `inherited`. Scores and labels treat it as the region's figure. | a town without Numbeo data |
+| Population is never borrowed. | |
 
-The toolkit gives country developers the shared services they need to get good data from good sources without rewriting plumbing. It runs in Node only, at prefill time.
+Each place also gets `details[providerId] = { level, code, name, series, …provider fields }`, which the report, compare, search, provenance and weight factors read.
 
-| Module | Provides | Built from |
-|---|---|---|
-| `http` | `rawStore(country, provider)`: `fetchOnce(url)` downloads each file once into `data/raw/`, records URL, date and sha256 in `manifest.json`, honours robots.txt, sends an honest User-Agent, waits between requests (5 s by default) and stops at the first 403/429. `--refresh` is refused inside the provider's cadence. | `scripts/numbeo/store.mjs`, `netlify/news/robots.mjs` |
-| `parse` | `parseCsv` (delimiter and encoding detection), `readXlsx` (exceljs), `loadHtml` (cheerio), `parseFeed` (RSS/Atom) | `scripts/snic-import.mjs`, `netlify/news/rss.mjs` |
-| `places` | `fold()` accent-insensitive names; `matcher(country)` with `region(name)`, `city(name, region)` and aliases; `pointToRegion(lat, lon)`; an unmatched-names report | `src/lib/geo.js`, `lib/news.js` |
-| `stats` | `per100k(count, pop)`, `meanOfLast(series, n)`, `round`, `share(part, total)` | |
-| `dataset` | `writeDataset()`: fills the header, validates against the schema and catalogue, writes JSON, prints a coverage table | |
-| `test` | `check(label, ok)`, `fixture(url)`, `done()`: the runner style of `news:test` and `live:test` | `netlify/news/test/run.mjs` |
+## 5. The country developer toolkit (`tools/sdk`, `#sdk`)
 
-**CLI** (`tools/cli`, run with `npm run`):
+Node only, used by prefills and tests.
+
+| Module | Provides |
+|---|---|
+| `http` | `rawStore(iso3, id)`: `fetchOnce(url)` downloads each file once into `data/raw/<ISO3>/<id>/`, honours robots.txt, identifies MapStats, spaces requests (5 s), stops at the first 403/429, and records URL, date and SHA-256 in `manifest.json`. `add(name, { note })` registers a file downloaded by hand. `read`, `list`. |
+| `parse` | `parseCsv` (quoted fields, delimiter detection, BOM), `readXlsx` (streamed, for 100 MB+ workbooks), `loadHtml` (cheerio), `num` (decimal commas, blanks and dashes → `null`) |
+| `places` | `fold`, `matcher(entries, { strip })` that reports unmatched names instead of guessing, `featureAt(lat, lon, featureCollection)` |
+| `stats` | `round`, `per100k`, `share`, `meanOfLast` |
+| `dataset` | `checkDataset` (schema, ids, providers, domains, coverage), `writeDataset` |
+| `test` | `check`, `section`, `fixture`, `done` |
+
+**CLI** (`npm run …`):
 
 | Command | Does |
 |---|---|
-| `country:new -- XXX` | Copies `countries/_template`, fills iso codes and names, adds the line to `countries/index.js`, builds geo |
-| `geo:build -- XXX` | Natural Earth → `countries/XXX/geo/` using the config's `geo` settings (today's `build-geo.mjs`, made per-country) |
-| `prefill -- XXX [--provider id] [--offline]` | Runs each dataset provider's `prefill()`, then validates and writes `data/<id>.json`. `--offline` re-parses files already in `data/raw` without downloading. |
-| `prefill:due` | Lists datasets whose cadence has elapsed since `generatedAt` (the yearly calendar) |
-| `country:check -- XXX` | Validates config, ids and datasets, flags values far outside indicator domains, runs provider tests, prints coverage and the country's tier |
-| `test` | All offline tests: core, news, live, every provider's `provider.test.mjs` |
+| `country:new -- <ISO3> --iso2 XX --name "…" --region-label …` | Starts and registers a country folder (Tier 0 once geo is built) |
+| `geo -- <ISO3>` | Natural Earth → `countries/<ISO3>/geo/`, with the config's `geo` settings (`NE_DIR` required) |
+| `prefill -- <ISO3> [--provider id] [--out file]` | Runs `providers/<id>/prefill.mjs`, checks the dataset, writes `data/<id>.json` only without errors |
+| `country:check -- <ISO3>` | Config, geo, places, datasets (coverage, domain warnings), provider tests, the tier reached |
+| `prefill:due` | Datasets older than their providers' `refresh` |
+| `test` | Every offline suite: news, live, golden, every `provider.test.mjs` (template included) |
 
-## 7. Admin: the prefill process
+Argentina's commands run through these: `snic:import` = `prefill -- ARG --provider snic`, `numbeo:build` = `prefill -- ARG --provider numbeo`; `numbeo:fetch` stays Numbeo-specific.
 
-Long-term data (crime registers, census, surveys, infrastructure) changes yearly or less often. It is prepared offline, reviewed as a pull request and shipped as files. It is never fetched by visitors.
+## 6. Admin: the prefill process
+
+Long-term data is prepared offline, reviewed as a pull request and shipped as files. Visitors never fetch it.
 
 ```
-acquire  → data/raw/XXX/<provider>/ + manifest.json (url, retrievedAt, sha256)   fetched once, politely
-parse    → rows                                                                  pure function, fixture-tested
-map      → place ids (crosswalk / matcher), indicator ids, indicator units        unmatched names reported, never guessed
-validate → schema · ids · domains · coverage                                     fails the run on errors
-write    → countries/XXX/data/<provider>.json + coverage summary                 committed and reviewed in a PR
+acquire  → data/raw/<ISO3>/<id>/ + manifest.json (url, date, sha256)   once, politely (rawStore)
+parse    → rows                                                         pure, fixture-tested (parse.mjs)
+map      → place ids, indicator ids, indicator units                    unmatched names reported, never guessed
+check    → schema · ids · providers · domains · coverage                the run fails on errors
+write    → countries/<ISO3>/data/<id>.json                              committed, reviewed in a PR
 ```
 
-**Yearly calendar.** Each provider declares `cadence`. A scheduled GitHub Action runs `npm run prefill:due` monthly and opens one issue per stale dataset, assigned to the country's maintainers. There is no admin web UI: the app stays static, and the pull request is the review step.
+**Calendar.** `.github/workflows/data-refresh.yml` runs `prefill:due` monthly and opens an issue listing stale datasets, naming the countries' maintainers. There is no admin web UI: the app stays static, and the pull request is the review step.
 
-**Raw files** are not committed: licences vary and the files are large. `manifest.json` is committed, so anyone can download the same files and check them against the recorded hashes.
+**Raw files** stay local (licences, size); `data/raw/**/manifest.json` is committed, so anyone can fetch the same files and verify the hashes. Files downloaded before the migration (`data/snic/raw/`, `data/numbeo/`) are still read from there; move them to `data/raw/ARG/<id>/` to commit their manifests.
 
-## 8. Migration plan
+## 7. Guarantees and checks
 
-Each step ships separately and keeps the app working. Steps 1–5 must not change any score. A **golden test** guards this: it saves today's `buildEntities` output for Argentina (scores, ranks and values for each mode) and compares the new pipeline against it.
+| Check | Runs in | Guards |
+|---|---|---|
+| `tests/golden.mjs` | `npm test`, CI | Scores, categories, per-source scores, weights and reasons, ranks and values for Argentina and Bolivia, every source mode, against a snapshot. Every migration step kept it identical. |
+| `provider.test.mjs` per provider | `npm test`, `country:check` | Each source's parsing and mapping rules, on fixtures |
+| `defineCountry` / `defineProvider` | load time | Manifests and provider definitions |
+| `country:check` | by developers and reviewers | A country folder as a whole |
+| CI (`.github/workflows/ci.yml`) | every PR | lint, `npm test`, build |
 
-| # | Step | Moves | Size |
-|---|---|---|---|
-| 0 | Golden test + `npm test` aggregator + CI (lint, tests, build on every PR) | — | S |
-| 1 | **Country registry.** `countries/<ISO3>/country.config.js` for all 16, `countries/index.js`, `#core`/`#sdk` aliases. `src/data/countries.js` re-exports the registry. `build-geo` reads the configs and writes to each country's `geo/`. | `countries.js` (`COUNTRIES`, `NEWS`), `build-geo.mjs` list | M |
-| 2 | **Provider registry.** Split `SOURCES`/`SOURCE_META` into provider definitions: global ones in `src/providers/`, Argentine ones in `countries/ARG/providers/`. `familyOf` uses `provider.family`. `sourceWeight` uses kind + generic factors + `weightFactors`. Remove `source` from indicators. | `sources.js`, `sourceWeights.js`, `metrics.js` | M |
-| 3 | **Datasets + resolver.** A one-off converter writes `countries/ARG/data/{snic,numbeo,provincial-stats}.json` from today's files. `places.js` replaces `argentina.js` cities, with `codes`. `resolve.js` replaces the ARG branches in `scoring.js`. Country data loads lazily. | `argentina.js`, `snic-argentina.json`, `numbeo-*.json`, `scoring.js` | L |
-| 4 | **Generic report and compare sections** (trends from `series`, survey from `details`), provenance from `entity.sources`, source tags in search from the provider registry | `ReportPanel.jsx`, `compare/measures.js`, `provenance.js`, `SearchBox.jsx`, `SourcesView.jsx` | M |
-| 5 | **News per country.** `countries/ARG/news.js` takes the outlets and ambiguous names; `GN_HL` becomes `edition` in each config | `lib/news.js`, `netlify/news/outlets.mjs` | S |
-| 6 | **SDK + CLI.** Extract shared code into `tools/sdk`. Move `snic-import` and `numbeo-*` into providers with `prefill()` and fixtures. Add `country:new`, `country:check`, `prefill:due` and the scheduled action. | `scripts/*` | L |
-| 7 | **Pilot.** A developer new to the codebase curates a second country using only the guide. Recalibrate global domains with two countries' data; scores may change in this step, and the change is announced. Fix the guide from their feedback. | — | M |
+## 8. Migration
+
+| # | Step | Result |
+|---|---|---|
+| 0 | Golden test, `npm test`, CI | Done |
+| 1 | Country registry: per-country folders, manifests, geo | Done |
+| 2 | Provider registry: sources as provider definitions; reliability from kinds | Done |
+| 3 | Datasets + generic resolver; Argentina loads lazily | Done (identical scores; values by source identical for all 79 places) |
+| 4 | Generic report, compare, search and provenance | Done (wording changes listed in the commit) |
+| 5 | News settings and outlets per country | Done (queries and outlets identical for 116 places) |
+| 6 | SDK, CLI, Argentina's importers as provider prefills, template | Done (SNIC prefill reproduces its dataset exactly) |
+| 7 | **Pilot:** a developer new to the codebase curates a second country with only the guide; global domains recalibrated on two countries' data (scores change, announced); guide fixed from their feedback | Next |
 
 ## 9. Open decisions
 
-These need an owner and a decision before the step that depends on them.
-
-1. **Global domains (step 7).** Today's domains fit Argentina. For example, `lifeExp: [74, 79]` puts Germany and Bolivia at the two ends of the range. Proposal: set each domain from roughly the 5th–95th percentile across all curated countries' regions, and record that rationale in `definition`. Argentine scores will move once.
-2. **Numbeo as a global provider.** Numbeo's terms restrict automated collection and republication. Scaling the scraper to 16 countries needs either their commercial API or a decision to keep Numbeo for link-outs only.
-3. **JSDoc or TypeScript.** Proposal: JSDoc typedefs, `// @ts-check` in country files and JSON Schema for datasets. That adds no build change and still gives editor checking. Revisit TypeScript once the contracts settle.
-4. **Raw file storage.** Proposal: gitignored, with a committed manifest. The alternative is a private bucket, if reproducing downloads turns out to be unreliable (sites move files).
-5. **Global harmonised sources** to give every country a baseline before it has local maintainers. Candidates, each to be evaluated against the [source checklist](country-guide.md#3-choosing-sources): Global Data Lab (subnational HDI, education, health), World Bank / UNODC (national homicide, as a fallback), Eurostat NUTS-2 for the European countries, Ookla Open Data (fixed broadband speed tiles), WorldPop (population grids).
-6. **Ownership.** `CODEOWNERS`: `/countries/ARG/` goes to the Argentina maintainers, and `src/core/`, `src/providers/` and `tools/` go to the core team.
+1. **Global domains (step 7).** Today's domains fit Argentina. For example, `lifeExp: [74, 79]` puts Germany and Bolivia at the two ends, and `country:check` already reports 10 Argentine homicide values above `[0, 8]`. Proposal: derive each domain from the 5th–95th percentile of curated countries' regions (a log scale for skewed rates such as homicide), recorded in a versioned file. Use a documented hand-set anchor only where one is meaningful (100 % water, WHO air limits).
+2. **Numbeo as a global provider.** Numbeo's terms restrict automated collection and republication. Scaling it beyond Argentina needs their API, or keeping it for link-outs only.
+3. **JSDoc or TypeScript.** JSDoc with `// @ts-check` is in place; revisit TypeScript once the contracts settle.
+4. **Global harmonised sources**, to give every country a baseline before it has local maintainers. Candidates, each to be evaluated against the [source checklist](country-guide.md#3-choosing-sources): Global Data Lab (subnational HDI, education, health), World Bank / UNODC (national homicide), Eurostat NUTS-2 for the European countries, Ookla Open Data (broadband), WorldPop (population).
+5. **Ownership.** A `CODEOWNERS` file: `/countries/<ISO3>/` to each country's maintainers, `src/` and `tools/` to the core team.

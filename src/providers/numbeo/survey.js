@@ -1,5 +1,5 @@
 // Numbeo crime survey questions: [key, label, match patterns (accent-folded, lowercase, es + en)].
-// Shared by the scraper (scripts/numbeo/parse.mjs) and the city report.
+// Shared by the scraper (countries/ARG/providers/numbeo/parse.mjs), the report and compare views.
 export const SURVEY = [
   ['level', 'Level of crime', ['nivel de criminalidad', 'level of crime']],
   ['increasing', 'Crime increasing (past 3 years)', ['ultimos 3 anos', 'past 3 years']],

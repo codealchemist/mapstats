@@ -70,24 +70,28 @@ The Vite dev server also serves `/api/news`, using the same handler as productio
 | `npm run build` | Production build into `dist/` |
 | `npm run preview` | Serve the production build locally |
 | `npm run lint` | ESLint |
-| `npm run news:test` | Offline tests for the news pipeline |
-| `npm run live:test` | Tests for live-data loading |
+| `npm test` | Every offline test: news pipeline, live-data loading, the golden scoring snapshot and each provider's tests |
+| `npm run news:test` / `live:test` / `golden` | One of those suites |
 | `npm run dev:netlify` | Run in a local Netlify environment (functions + Blobs) on http://localhost:8888 |
 | `npm run deploy:preview` | Deploy a draft to Netlify with its own preview URL |
 | `npm run deploy` | Lint and test, then deploy to production on Netlify |
 
 The Netlify commands run the Netlify CLI through `npx`. The first time, log in and link the site with `npx -p netlify-cli netlify login` and `npx -p netlify-cli netlify link`.
 
-### Updating the bundled data
+### Countries and their data
 
-These scripts regenerate the data files shipped with the app. The app itself never calls these sources.
+Each country lives in `countries/<ISO3>/`; the [country guide](docs/country-guide.md) explains how to add or improve one. These commands prepare the data shipped with the app. The app itself never calls these sources.
 
 | Command | What it does |
 |---|---|
-| `npm run geo` | Rebuild boundaries and city lists in `countries/<ISO3>/geo/` from Natural Earth, with each country's `geo` settings (`NE_DIR=/path/to/natural-earth npm run geo -- ARG`; no country = all) |
-| `npm run snic:import` | Import official SNIC crime statistics into `countries/ARG/data/snic.json` (see the header of `scripts/snic-import.mjs`) |
-| `npm run numbeo:fetch` | Download the Numbeo pages that were never requested (each page is fetched at most once), then build |
-| `npm run numbeo:build` | Rebuild `countries/ARG/data/numbeo.json` from the snapshot, values copied by hand and the stored pages, offline |
+| `npm run country:new -- <ISO3> --iso2 XX --name "…" --region-label …` | Start a country folder and register it |
+| `npm run geo -- <ISO3>` | Rebuild boundaries and city lists in `countries/<ISO3>/geo/` from Natural Earth, with the country's `geo` settings (`NE_DIR=/path/to/natural-earth`; no country = all) |
+| `npm run prefill -- <ISO3> [--provider <id>]` | Run a country's provider prefills: check each dataset and write `countries/<ISO3>/data/<id>.json` |
+| `npm run country:check -- <ISO3>` | Check a country folder: datasets, coverage, domain warnings, provider tests, tier |
+| `npm run prefill:due` | List datasets older than their providers' refresh period (also run monthly by CI, which opens an issue) |
+| `npm run snic:import` | Argentina: official SNIC crime statistics from the stored bases (see `countries/ARG/providers/snic/prefill.mjs`) |
+| `npm run numbeo:fetch` | Argentina: download the Numbeo pages that were never requested (each page at most once), then build |
+| `npm run numbeo:build` | Argentina: rebuild `countries/ARG/data/numbeo.json` from the snapshot, values copied by hand and the stored pages |
 
 ## Project structure
 
@@ -97,23 +101,27 @@ src/
   components/        map, top bar, side panel, legend, reports, compare and sources views
   components/charts/ Chart.js cards and theme
   components/compare/side-by-side grid, focus chart and their measures
-  core/              country registry and contracts (defineCountry)
-  data/              indicators and categories, sources, curated datasets
+  components/report/ report blocks drawn from any provider's data (trends, surveys)
+  core/              registries and contracts: countries, providers, the dataset resolver
+  providers/         global data sources (Open-Meteo, USGS, Numbeo, Natural Earth, basemaps, news)
+  data/              indicator catalogue and categories
   hooks/             data loading (country data, live data, place details, news)
-  lib/               scoring, colours, formatting, live APIs and request queue, exports
+  lib/               scoring, reliability weights, colours, formatting, live APIs and request queue, exports
+countries/<ISO3>/    one folder per country: manifest, places, news, providers, datasets, geo
+countries/_template/ worked example country
+tools/               SDK and CLI for country developers (prefill, country:check, country:new…)
 netlify/             /api/news function and the news pipeline
-countries/<ISO3>/    one folder per country: country.config.js (manifest), geo/ (boundaries, city list)
 tests/               golden scoring snapshot
-scripts/             data import and build scripts
+scripts/             Natural Earth build, news probe
 ```
 
 ## Documentation
 
 | Document | For |
 |---|---|
-| [Architecture](docs/architecture.md) | Core structure, the country/provider/dataset contracts, the prefill process and the migration plan |
+| [Architecture](docs/architecture.md) | Core structure, the country/provider/dataset contracts, the prefill process and the migration |
 | [Country integration guide](docs/country-guide.md) | Developers adding or improving a country: choosing sources, writing a provider, testing, PR checklist |
-| [Country template](docs/samples/country-template/) | A complete sample country folder with one provider, a fixture and a test |
+| [Country template](countries/_template/) | A complete example country folder with one provider, a fixture and a test |
 | [Dataset schema](docs/schemas/dataset.schema.json) | The JSON format every prefill produces |
 
 ## Deployment

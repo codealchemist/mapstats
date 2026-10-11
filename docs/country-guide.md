@@ -3,8 +3,8 @@
 How to add a country to MapStats, or improve one, by working only in `countries/<ISO3>/`.
 
 - **Audience:** developers who own a country's data.
-- **Before you start:** read sections 3–4 of the [architecture](architecture.md#3-structure). This guide assumes the target structure. Commands marked *(step N)* become available at that step of the [migration plan](architecture.md#8-migration-plan).
-- **Worked sample:** [`docs/samples/country-template/`](samples/country-template/) is a complete country folder with one provider, a fixture and a test. `npm run country:new` copies it.
+- **Before you start:** read sections 2–3 of the [architecture](architecture.md#2-structure).
+- **Worked example:** [`countries/_template/`](../countries/_template/) is a complete fictional country with one provider, a fixture and a test (run by `npm test`). Argentina (`countries/ARG/`) is the real, complete case.
 
 ---
 
@@ -20,7 +20,7 @@ How to add a country to MapStats, or improve one, by working only in `countries/
 | Climate normals, comfort, rain, snow, sunshine, extremes, UV | Open-Meteo (live) |
 | Air quality, river flood watch, elevation | Open-Meteo (live) |
 | Earthquakes M5+ since 1980 | USGS (live) |
-| Region boundaries and major cities | Natural Earth (`geo:build`) |
+| Region boundaries and major cities | Natural Earth (`npm run geo`) |
 | Crime news per place | Google News, once `news.js` has the language and edition |
 
 So a country with only a config already gets a working map with **Natural risks** and **Environment** scores. Your job is to add the categories that need local data (**Safety, Services, Infrastructure, Economy**) from the best sources available.
@@ -32,7 +32,7 @@ So a country with only a config already gets a working map with **Natural risks*
 | Tier | Name | Requirements |
 |---|---|---|
 | 0 | **Environment** | Config + geo. Live global data only. *(All non-Argentine countries today.)* |
-| 1 | **News** | `news.js` with language, edition and ambiguous names. At least one verified outlet per 3 regions, or a note on why none exist. |
+| 1 | **News** | `news.js` with language, edition and ambiguous names. Verified outlets for at least a third of the regions, or `outletsNote` saying why there are none. |
 | 2 | **Curated** | At least one dataset for each of Safety, Services and Economy, with ≥ 90 % of regions covered. Each dataset has a prefill and a passing test. |
 | 3 | **Local** | A curated city list with `codes`. Official crime statistics at subregion or city level for ≥ 75 % of listed cities. Trend `series` for at least 5 years. *(Argentina reaches this.)* |
 
@@ -58,120 +58,151 @@ The quality of MapStats depends on this step more than any other. For each indic
 - [ ] **Access:** a bulk file download (CSV/XLSX/API) beats scraping HTML. Note whether the URL is stable from year to year.
 - [ ] **Methodology** is published. Link it.
 - [ ] **Cadence:** when the next release is expected. This feeds `prefill:due`.
-- [ ] **Robots and terms** allow automated download. If they don't, download by hand into `data/raw/` and record it in the manifest.
+- [ ] **Robots and terms** allow automated download. If they don't, download by hand into `data/raw/<ISO3>/<id>/` and register the file with `rawStore(…).add(name, { note })`.
 
 When two sources cover the same indicator, **add both** as separate providers. The app shows them side by side, takes the median or the reliability-weighted mean, and shows users where the sources disagree. Don't pre-average them in a prefill.
 
 ## 4. Step by step
 
-### 4.1 Scaffold *(step 6)*
+### 4.1 Start the folder
 
 ```bash
-npm run country:new -- CHL          # copies countries/_template, fills codes and names, registers it
-npm run geo:build -- CHL            # Natural Earth → countries/CHL/geo/ (needs NE_DIR, see README)
-npm run dev                          # the country appears in the picker at Tier 0
+npm run country:new -- CHL --iso2 CL --name "Chile" --region-label Region --lang es
+NE_DIR=/path/to/natural-earth npm run geo -- CHL     # boundaries and cities → countries/CHL/geo/
+npm run dev                                          # Chile appears in the picker at Tier 0
 ```
+
+`country:new` writes `country.config.js`, `news.js` and `README.md` and registers the country in `countries/index.js`. [`countries/_template/`](../countries/_template/) is the worked example to copy from: a fictional country with one provider, its fixture, test, dataset and city list.
 
 ### 4.2 Config: `country.config.js`
 
 ```js
+import { defineCountry } from '#core/define.js'
+import cead from './providers/cead/provider.js'
+import news from './news.js'
+
 export default defineCountry({
   iso3: 'CHL', iso2: 'CL', name: 'Chile',
   regionLabel: 'Region', subregionLabel: 'Commune',
-  bounds: [-76, -56, -66, -17],                       // only when islands or territories zoom the map out too far
+  bounds: [-76, -56, -66, -17],                 // only when islands or territories zoom the map out too far
   geo: { simplify: '8%', minCityPop: 100_000, maxCities: 120 },
-  providers: ['open-meteo', 'usgs', 'CHL/cead'],      // global ids + your own (namespaced automatically)
+  providers: [cead],                            // your provider definitions, plus opt-in global ids such as 'numbeo'
   news,
   maintainers: ['@your-handle'],
 })
 ```
 
-Open the app and check that every region has a name and that the map frames the country.
+Live global data (Open-Meteo, USGS, Natural Earth, news) is always on, without listing it. Your providers become `CHL/<id>`. Open the app and check that every region has a name and that the map frames the country.
 
 ### 4.3 Places: `places.js` (optional, needed for Tier 3)
 
-Without this file, the app uses the Natural Earth city list (cities ≥ 100k). Add your own list when:
-
-- important towns are missing,
-- or your providers publish data for subregions or cities, and you need a crosswalk from their codes to our ids.
+Without a place list, the app uses the Natural Earth city list (cities ≥ 100k). Add your own when important towns are missing, or when your providers publish data per subregion or city and you need a crosswalk from their codes to our ids.
 
 ```js
 export const REGION_CODES = { '13': 'CL-RM', '05': 'CL-VS' }   // provider's region code → ISO 3166-2 id in geo/regions.json
 export const CITIES = [
   { id: 'CHL-santiago', name: 'Santiago', region: 'CL-RM', lat: -33.45, lon: -70.67, pop: 6_300_000, capital: true,
-    codes: { subregion: '13101', numbeo: 'Santiago' } },
+    codes: { subregion: '13101' } },   // subregion: links the city to second-level values of any dataset
 ]
 ```
 
-City ids are `ISO3-slug` and **never change** once published: saved compare slots and links depend on them.
+City ids are `ISO3-slug` and **never change** once published: saved comparisons and links depend on them.
 
-To link cities to subregions, use the SDK instead of typing codes by hand. For example, `places.pointToSubregion(lat, lon, polygons)` with a subregion boundary file, used once during preparation. That is how Argentina's `SNIC_DEPT` table was built.
+Link cities to subregions with the SDK, not by typing codes: `featureAt(lat, lon, subregionBoundaries)` from `#sdk`, run once during preparation with a subregion boundary file. That is how Argentina's department codes in `countries/ARG/places.js` were built.
 
 ### 4.4 A provider
 
-One folder per source: `countries/CHL/providers/<id>/`.
+One folder per source: `countries/CHL/providers/<id>/`. Copy [`_template/providers/example-stats/`](../countries/_template/providers/example-stats/).
 
 | File | Purpose | Runs in |
 |---|---|---|
-| `provider.js` | Metadata (`defineProvider`): name, URL, licence, kind, cadence, which indicators at which levels | browser + Node |
-| `prefill.mjs` | `prefill(ctx)`: acquire → parse → map → return dataset parts | Node |
-| `parse.mjs` *(optional)* | Pure parsing functions, when `prefill.mjs` gets long | Node |
+| `provider.js` | `defineProvider`: what it is and how to present it (fields below) | browser + Node |
+| `prefill.mjs` | `prefill({ country, args, log })`: acquire → parse → map → return the dataset's parts | Node |
+| `parse.mjs` *(optional)* | Pure parsing rules, when the prefill gets long (Argentina's SNIC has one) | Node |
 | `fixtures/` | A small, real excerpt of the source file (a few rows, including a messy one) | tests |
-| `provider.test.mjs` | Offline test of parsing and mapping against the fixtures | Node |
+| `provider.test.mjs` | Offline test of the parsing and mapping rules against the fixtures | Node |
 | `README.md` | The source checklist answers, how to download, known quirks | — |
 
-Shape of a prefill (full version in the [template](samples/country-template/providers/example-stats/prefill.mjs)):
+`provider.js`:
 
 ```js
-import { rawStore, parseCsv } from '#sdk'
-import provider from './provider.js'
+export default defineProvider({
+  id: 'cead', short: 'CEAD', name: 'CEAD – Subsecretaría de Prevención del Delito', url: 'https://…',
+  covers: 'Crimes reported to the police, by region and commune',
+  kind: 'register',                                            // base reliability: register, official-survey, manual…
+  family: { id: 'cead', label: 'CEAD · official crime statistics', short: 'CEAD' },   // source-selector group
+  levels: ['region', 'subregion'],
+  provides: ['homicide', 'propertyCrime'],
+  access: 'import', cadence: 'Yearly, published each March', refresh: 'year', scope: 'Chile · region & commune',
+  types: ['crime'],
+})
+```
+
+Optional fields present your data without writing UI (examples in `countries/ARG/providers/snic/provider.js` and `src/providers/numbeo/provider.js`):
+
+| Field | Gives you |
+|---|---|
+| `report.trends` + `series` in the dataset | trend charts and a latest-rates table in the report, compare line charts |
+| `report.survey` + `details.survey` | survey charts in the report and compare |
+| `report.facts`, `report.note` | key figures and caveats in the report section |
+| `provenance(ctx)` | your group in "values by source" (report, CSV, PDF) |
+| `weightFactors(ctx)` | extra reliability factors from your details (sample size, recency…) |
+| `urlFor`, `links` | deep links to the source's page for a place |
+
+`prefill.mjs` (full version in the [template](../countries/_template/providers/example-stats/prefill.mjs)):
+
+```js
+import { rawStore, parseCsv, num } from '#sdk'
 import { REGION_CODES } from '../../places.js'
 
+/** Pure: text → values. The test calls this with fixtures. */
 export function toValues(csvText, { regionCodes = REGION_CODES } = {}) {
-  // pure: text → { values: { region: { 'CL-RM': { homicide: 3.1 } } }, unmatched: [] }
+  // → { values: { region: { 'CL-RM': { homicide: 3.1 } } }, unmatched: ['99'] }
 }
 
-export async function prefill({ year, log }) {
-  const raw = rawStore('CHL', provider.id)
-  const file = await raw.fetchOnce(urlFor(year), { name: `regions-${year}.csv` })
+export async function prefill({ args, log }) {
+  const year = +(args.year || new Date().getFullYear() - 1)
+  const raw = rawStore('CHL', 'cead')
+  const file = await raw.fetchOnce(urlFor(year), { name: `regions-${year}.csv` })   // downloads once, then reuses it
   const { values, unmatched } = toValues(file.text)
-  if (unmatched.length) log.warn(`Unmatched region codes: ${unmatched.join(', ')}`)
+  if (unmatched.length) log(`No region for codes ${unmatched.join(', ')}`)
   return { period: { latest: year }, origin: { files: [file.ref] }, values }
 }
 ```
 
-The CLI adds the header (`provider`, `country`, `generatedAt`, `schema`), validates and writes `data/<id>.json`:
+The CLI completes the header (`schema`, `provider`, `country`, `generatedAt`), checks the dataset against the catalogue, your providers, regions and places, and writes `data/<id>.json` only when there are no errors:
 
 ```bash
-npm run prefill -- CHL --provider cead              # download (once) + build
-npm run prefill -- CHL --provider cead --offline    # rebuild from data/raw only
+npm run prefill -- CHL --provider cead --year 2025
+npm run prefill -- CHL --provider cead --out /tmp/cead.json    # write elsewhere, e.g. to compare
 ```
 
-Then load the dataset in `country.data.js`:
+Then load the dataset in `country.data.js` (the browser entry, its own chunk):
 
 ```js
-import cead from './data/cead.json'
-export default { places, datasets: [cead] }
+import { CITIES } from './places.js'
+import cead from './data/cead.json' with { type: 'json' }
+export default { places: CITIES, datasets: [cead] }
 ```
 
 ### 4.5 Test and check
 
 ```bash
-npm test                          # every offline test, including your provider.test.mjs
-npm run country:check -- CHL      # ids, schema, domains, coverage, tier
+npm test                          # every offline suite, including your provider.test.mjs
+npm run country:check -- CHL      # what reviewers look at
 ```
 
-`country:check` output is what reviewers look at. For example:
+`country:check` for Argentina today (abridged):
 
 ```
-CHL · Tier 2 (Curated)
-  config ............. ok
-  geo ................ 16 regions · 38 cities
-  CHL/cead ........... 2025 · region 16/16 · subregion 312/346
-     homicide ........ 16/16 regions   range 1.2–7.9   domain [0, 8] ok
-  CHL/casen .......... 2024 · region 16/16
-     poverty ......... 16/16 regions   range 2.1–19.4  domain [15, 60] ⚠ 9 values below domain (scores saturate)
-  missing for Tier 3: city codes for 30/38 cities
+ARG · Argentina
+  config................ Province / Department · 30 providers · maintainers @codealchemist
+  geo................... 24 regions · 74 curated places (places.js)
+  ARG/snic.............. 2025 · national 1 · region 24 · subregion 533 · city 1 · series 2016–2025
+     homicide            24/24 regions  range 0–14.16        domain [0, 8]  ⚠ 10 outside
+  test.................. providers/snic/provider.test.mjs passed
+
+  Tier 3 · Local
 ```
 
 A **domain warning** is not an error. It means the global domain may need recalibrating: open an issue for the core team. Don't change your data to fit the domain.
@@ -179,8 +210,8 @@ A **domain warning** is not an error. It means the global domain may need recali
 ### 4.6 News: `news.js`
 
 1. Set `lang`, `countryName` (as local press writes it), and `edition` (the `hl`/`gl` pair Google News uses for the country. Check that `https://news.google.com/?hl=…&gl=…&ceid=…` doesn't redirect).
-2. Add `ambiguousNames`: place names shared by several regions, or that are also common words.
-3. List local outlets as `candidates`, run `npm run news:probe -- CHL`, and move the ones it verifies into `verified` with the feed it found. Prefer police or crime section feeds.
+2. Add `ambiguousNames` (place names shared by several regions, or that are also common words), `regions` (folded region names, for coverage reports) and `regionPrefixes` if geocoding writes them ("provincia de ").
+3. List local outlets in `outlets.candidates`, run `npm run news:probe -- --country=CHL --outlets-only`, and move the ones it verifies into `outlets.verified` with the feed it found. Prefer police or crime section feeds. If the country has no usable outlet feeds, set `outletsNote` saying why.
 
 ### 4.7 README and pull request
 
@@ -197,9 +228,9 @@ Fill in `countries/CHL/README.md`: tier, sources table, coverage, known gaps, ne
 
 ## 5. Recipes
 
-**Region-level CSV from a statistics office.** Use the [template provider](samples/country-template/providers/example-stats/) as it is. Map the office's region codes with `REGION_CODES`. Names are less stable than codes.
+**Region-level CSV from a statistics office.** Use the [template provider](../countries/_template/providers/example-stats/) as it is. Map the office's region codes with `REGION_CODES`. Names are less stable than codes.
 
-**XLSX with merged headers or several sheets.** Use `readXlsx(path, { sheet, headerRow })`. Put one real sheet excerpt in `fixtures/` (save it as CSV if the workbook is large) and test the header detection.
+**Excel workbooks.** `readXlsx(path, { sheet })` streams the rows of one worksheet as objects (first row = header), so 100 MB files are fine (Argentina's SNIC departmental base is one). If the header is not the first row or spans merged cells, map the columns yourself in `parse.mjs`. Put a real excerpt in `fixtures/` as CSV and test the parsing with `parseCsv`.
 
 **Counts instead of rates.** Convert with `stats.per100k(count, population)`, using the population the publisher used in the same release. If the publisher doesn't give one, say which population you used in the README. Prefer published rates when they exist. That is SNIC's rule: rates are used exactly as published.
 
@@ -217,14 +248,14 @@ Fill in `countries/CHL/README.md`: tier, sources table, coverage, known gaps, ne
 
 - **Never invent, interpolate or borrow inside a dataset.** Missing is `null`. The core handles fallbacks and labels them.
 - **Never redefine a core indicator.** If your source measures something different, propose a new indicator, or add it as descriptive (`better: null`) in your config.
-- **Never import from another country's folder or from `src/` internals.** Use `#core/define.js`, `#sdk` and `#providers/*`. If you need something that isn't there, open an issue: it probably belongs in the SDK for everyone.
+- **Never import from another country's folder or from `src/` internals.** Use `#core/define.js` and `#sdk`. If you need something that isn't there, open an issue: it probably belongs in the SDK for everyone.
 - **No secrets or API keys in the browser.** A source that needs a key is a prefill (key in your local environment) or a core-reviewed function.
 - **Ids are permanent:** region ids (ISO 3166-2), city ids, provider ids.
 - **Commit the generated datasets and the raw manifests.** Don't commit the raw files.
 
 ## 7. FAQ
 
-**The Natural Earth regions don't match how my country publishes statistics** (merged or split regions, an old division). Keep the Natural Earth ids for the map. In the prefill, aggregate or split with documented weights (for example population). If that isn't sound, raise it with the core team: the fix may be a different boundary source for that country in `geo:build`.
+**The Natural Earth regions don't match how my country publishes statistics** (merged or split regions, an old division). Keep the Natural Earth ids for the map. In the prefill, aggregate or split with documented weights (for example population). If that isn't sound, raise it with the core team: the fix may be a different boundary source for that country in `npm run geo`.
 
 **My best crime source is per police district, not per administrative area.** Use `subregion` with the district codes, and link cities with `codes.subregion` using the SDK's point-in-polygon helper and the district boundaries. Explain this in the provider README.
 
