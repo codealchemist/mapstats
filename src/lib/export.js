@@ -1,7 +1,7 @@
 import { CATEGORIES, INDICATORS } from '../data/metrics.js'
 import { fmtIndicator, fmtScore, MONTHS, slug } from './format.js'
 import { isOwnValue } from './scoring.js'
-import { providerOf } from '../core/providers.js'
+import { providerUnder } from '../core/providers.js'
 
 // ---------- Images & clipboard ----------
 
@@ -53,7 +53,7 @@ export function rankingCsv(entities, regionLabel) {
   return new Blob([toCsv([head, ...rows])], { type: 'text/csv;charset=utf-8' })
 }
 
-export function reportCsv(entity, detail, sourceGroups = []) {
+export function reportCsv(entity, detail, sourceGroups = [], standards) {
   // `scope` says whether a value was measured for this place or is its province's figure (used only for scoring).
   const rows = [['section', 'metric', 'value', 'unit', 'source', 'scope']]
   const own = entity.type === 'city' ? 'city' : 'region'
@@ -61,7 +61,7 @@ export function reportCsv(entity, detail, sourceGroups = []) {
   CATEGORIES.forEach((c) => rows.push(['score', c.label, round(entity.categories[c.id], 1), '/100', 'MapStats', own]))
   INDICATORS.forEach((i) => {
     const scope = isOwnValue(entity, i.id) ? own : entity.inherited?.has(i.id) ? `${entity.provinceName} (province, no city data)` : 'no data'
-    rows.push(['indicator', i.label, round(entity.values[i.id], 3), i.unit, providerOf(i.id)?.short, scope])
+    rows.push(['indicator', i.label, round(entity.values[i.id], 3), i.unit, providerUnder(i.id, standards)?.short, scope])
   })
   if (detail?.climate) {
     detail.climate.monthly.forEach((m, k) =>
@@ -112,7 +112,7 @@ const tableStyle = {
 }
 
 // charts: [{ title, dataUrl, width, height }]
-export async function reportPdf({ entity, national, charts, countryName, sourceGroups = [] }) {
+export async function reportPdf({ entity, national, charts, countryName, sourceGroups = [], standards }) {
   const { jsPDF, autoTable } = await loadPdf()
   const doc = new jsPDF({ unit: 'pt', format: 'a4' })
   const W = doc.internal.pageSize.getWidth()
@@ -135,7 +135,7 @@ export async function reportPdf({ entity, national, charts, countryName, sourceG
     startY: doc.lastAutoTable.finalY + 16,
     head: [['Indicator', 'Value', 'Country avg.', 'Source']],
     body: INDICATORS.filter((i) => isOwnValue(entity, i.id)).map((i) => [
-      i.label, fmtIndicator(i.id, entity.values[i.id]), fmtIndicator(i.id, national?.values[i.id]), providerOf(i.id)?.short,
+      i.label, fmtIndicator(i.id, entity.values[i.id]), fmtIndicator(i.id, national?.values[i.id]), providerUnder(i.id, standards)?.short,
     ]),
   })
 

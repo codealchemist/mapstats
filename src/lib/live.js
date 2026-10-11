@@ -4,6 +4,7 @@
 // Responses are summarised and cached in localStorage to stay well inside free quotas.
 import { PRIORITY, abortError, callWeight, getJSON, isAbort, meteo } from './meteoQueue.js'
 import { STANDARDS } from '../data/standards.js'
+import { indicatorById } from '../data/metrics.js'
 import { HEAT_INDEX, windChill, heatStep, coldStep } from './thermal.js'
 
 const CACHE_PREFIX = 'mapstats:v1:'
@@ -331,6 +332,7 @@ export function fetchAqiBatch(points, opts = {}) {
 // Each day's hottest-hour heat index and coldest-hour wind chill, scored by each thermal standard's categories
 // (src/data/standards.js thermalStress); the yearly mean of day scores, and the days in each danger category.
 const THERMAL = STANDARDS.thermalStress
+const LIVE_THERMAL = THERMAL.options.filter((o) => indicatorById[o.input].live) // UTCI comes prefilled
 const THERMAL_HOURLY = ['temperature_2m', 'relative_humidity_2m', 'wind_speed_10m']
 
 export function summariseThermal(hourly) {
@@ -339,7 +341,7 @@ export function summariseThermal(hourly) {
     const temp = hourly.temperature_2m?.[i], rh = hourly.relative_humidity_2m?.[i], wind = hourly.wind_speed_10m?.[i]
     if (temp == null) return
     const d = (days[t.slice(0, 10)] ||= { heat: {}, cold: Infinity })
-    for (const o of THERMAL.options) {
+    for (const o of LIVE_THERMAL) {
       if (rh != null) d.heat[o.id] = Math.max(d.heat[o.id] ?? -Infinity, HEAT_INDEX[o.heat.index](temp, rh))
     }
     d.cold = Math.min(d.cold, wind != null ? windChill(temp, wind) : temp)
@@ -347,7 +349,7 @@ export function summariseThermal(hourly) {
   const list = Object.values(days)
   if (!list.length) return {}
   const out = {}
-  for (const o of THERMAL.options) {
+  for (const o of LIVE_THERMAL) {
     const scores = list.map((d) => Math.min(d.heat[o.id] != null ? heatStep(d.heat[o.id], o.heat.categories) : 100, coldStep(d.cold, THERMAL.cold.categories)))
     out[o.input] = Math.round(mean(scores))
     for (const x of o.daily) {

@@ -7,7 +7,8 @@ import naturalEarth from './natural-earth/provider.js'
 import basemaps from './basemaps/provider.js'
 import news from './news/provider.js'
 import gem from './gem/provider.js'
+import copernicusUtci from './copernicus-utci/provider.js'
 
-export const GLOBAL_PROVIDERS = [...openMeteo, ...usgs, ...numbeo, ...naturalEarth, ...basemaps, ...news, ...gem]
+export const GLOBAL_PROVIDERS = [...openMeteo, ...usgs, ...numbeo, ...naturalEarth, ...basemaps, ...news, ...gem, ...copernicusUtci]
 
 export const ALWAYS_ON = GLOBAL_PROVIDERS.filter((p) => !p.optIn).map((p) => p.id)

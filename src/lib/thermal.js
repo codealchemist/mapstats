@@ -37,14 +37,18 @@ export function windChill(t, kmh) {
 
 export const HEAT_INDEX = { heatIndex, humidex }
 
+// Plain loops: these run per day per place live, and per grid point per day in the UTCI prefill (millions of calls).
+
 /** Score (100 → 0, equal steps) of a value against categories given by their lower bounds (heat). */
 export const heatStep = (v, categories) => {
-  const reached = categories.filter(([from]) => v >= from).length
+  let reached = 0
+  for (const [from] of categories) if (v >= from) reached++
   return 100 - (reached * 100) / categories.length
 }
 
 /** Score of a wind chill against categories given by their upper bounds (cold: lower is worse). */
 export const coldStep = (v, categories) => {
-  const reached = categories.filter(([to]) => v <= to).length
+  let reached = 0
+  for (const [to] of categories) if (v <= to) reached++
   return 100 - (reached * 100) / categories.length
 }

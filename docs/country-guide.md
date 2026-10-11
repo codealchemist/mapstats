@@ -171,7 +171,7 @@ export async function prefill({ args, log }) {
 
 The CLI completes the header (`schema`, `provider`, `country`, `generatedAt`), checks the dataset against the catalogue, your providers, regions and places, and writes `data/<id>.json` only when there are no errors:
 
-Global providers can ship a prefill any country runs (`src/providers/<id>/prefill.mjs`), e.g. the GEM seismic hazard map: list the provider in your config, then `npm run prefill -- CHL --provider gem`.
+Global providers can ship a prefill any country runs (`src/providers/<id>/prefill.mjs`), e.g. the GEM seismic hazard map: list the provider in your config, then `npm run prefill -- CHL --provider gem`. To offer UTCI heat and cold stress in your country, add `'copernicus-utci'` to your providers and `data/copernicus-utci.json` to your `country.data.js` after running its prefill (`--provider copernicus-utci`), which downloads from the Copernicus Climate Data Store: copy `.env.example` to `.env` and set `CDSAPI_KEY` to your token (cds.climate.copernicus.eu → your profile), and accept the dataset's licence on its Download tab. `.env` is gitignored and read only by the data tools, never by the app. Each request waits a few minutes in the Copernicus queue; the download stays in `raw/` so later runs reuse it.
 
 ```bash
 npm run prefill -- CHL --provider cead --year 2025

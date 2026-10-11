@@ -3,8 +3,9 @@ import { CITIES } from './places.js'
 import provincialStats from './data/provincial-stats.json' with { type: 'json' }
 import snic from './data/snic.json' with { type: 'json' }
 import gem from './data/gem.json' with { type: 'json' }
+import utci from './data/copernicus-utci.json' with { type: 'json' }
 
 export default {
   places: CITIES,
-  datasets: [provincialStats, snic, gem],
+  datasets: [provincialStats, snic, gem, utci],
 }

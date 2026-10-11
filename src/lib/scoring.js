@@ -89,7 +89,7 @@ export function scoreValues(values, weights, mode = 'combined', inherited = null
   for (const c of CATEGORIES) {
     const own = {}, borrowed = {}
     for (const i of SCORED.filter((x) => x.category === c.id)) {
-      const f = familyOf(i.id)
+      const f = familyOf(i.id, ctx.standards)
       if (!multi && f !== mode) continue
       possible++
       const v = values[i.id]
@@ -166,9 +166,16 @@ export function countQuakesNear(quakes, lat, lon, km = 200) {
 }
 
 // Indicators whose value is their selected standard's measure (data/standards.js valueFromInput), e.g. the heat
-// and cold stress score under US NWS or Environment Canada.
-function standardValues(values, standards) {
-  for (const [id, s] of Object.entries(STANDARDS)) if (s.valueFromInput) values[id] = values[standardFor(id, standards).input] ?? null
+// and cold stress score under US NWS or Environment Canada. The copy is borrowed from the region when the measure is
+// (UTCI is a dataset value a city without a grid point takes from its region).
+function standardValues(values, standards, inherited = null) {
+  for (const [id, s] of Object.entries(STANDARDS)) {
+    if (!s.valueFromInput) continue
+    const input = standardFor(id, standards).input
+    values[id] = values[input] ?? null
+    if (inherited?.has(input)) inherited.add(id)
+    else inherited?.delete(id)
+  }
   return values
 }
 
@@ -217,7 +224,7 @@ export function buildEntities({ provincesGeo, cities, datasets = [], base = reso
     const values = { ...b.values }, inherited = new Set(b.inherited), details = b.details
     const lv = liveValuesFor(c.id, c.lat, c.lon, live)
     for (const k of LIVE_KEYS) values[k] = lv[k]
-    standardValues(values, standards)
+    standardValues(values, standards, inherited)
     return {
       type: 'city', id: c.id, name: c.name, province: c.region, lat: c.lat, lon: c.lon,
       capital: c.capital, codes: c.codes || {}, values, inherited, details,
@@ -281,10 +288,11 @@ function nationalAverage(provinces, weights, sourceMode, dist, standards) {
 // (and what its region's cities borrow from it, when it falls inside the current country).
 export function adHocEntity({ place, provinceId, provinceName, provinceEntity, live, weights, sourceMode = 'combined', dist = null, standards = DEFAULT_STANDARDS }) {
   const prov = { ...provinceEntity?.inheritable }
-  const values = standardValues({ ...prov, pop: place.pop, ...live }, standards)
+  const inherited = new Set(Object.keys(prov).filter((k) => k !== 'pop'))
+  const values = standardValues({ ...prov, pop: place.pop, ...live }, standards, inherited)
   const e = {
     type: 'city', id: place.id, name: place.name, province: provinceId, provinceName: provinceName || place.admin1 || '',
-    lat: place.lat, lon: place.lon, values, inherited: new Set(Object.keys(prov).filter((k) => k !== 'pop')), adHoc: true,
+    lat: place.lat, lon: place.lon, values, inherited, adHoc: true,
   }
   const ctx = { type: 'city', dist, standards }
   Object.assign(e, scoreValues(values, weights, sourceMode, e.inherited, ctx))

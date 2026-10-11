@@ -12,7 +12,7 @@ import { ToastProvider } from './components/Toast.jsx'
 import { COUNTRIES, countryByIso } from './core/countries.js'
 import { DEFAULT_WEIGHTS, metricById } from './data/metrics.js'
 import { DEFAULT_STANDARDS, STANDARDS } from './data/standards.js'
-import { familyOf, familiesFor, isMultiSource } from './core/providers.js'
+import { familyOf, scoringFamiliesFor, isMultiSource } from './core/providers.js'
 import { useCountryData } from './hooks/useCountryData.js'
 import { useLiveData } from './hooks/useLiveData.js'
 import { adHocEntity, buildEntities, ownValue, resolveCountry } from './lib/scoring.js'
@@ -35,7 +35,7 @@ const initialTheme = () => store.get('theme', window.matchMedia?.('(prefers-colo
 export default function App() {
   const [iso3, setIso3] = useState(() => store.get('country', 'ARG'))
   const [theme, setTheme] = useState(initialTheme)
-  const [metricId, setMetricId] = useState('score')
+  const [chosenMetric, setMetricId] = useState('score')
   const [overlays, setOverlays] = useState(DEFAULT_OVERLAYS)
   // Bumped by the logo (home view) to remount stateful panels: search text, side-panel tab.
   const [homeKey, setHomeKey] = useState(0)
@@ -45,11 +45,7 @@ export default function App() {
     const saved = store.get('standards', {})
     return Object.fromEntries(Object.entries(DEFAULT_STANDARDS).map(([id, d]) => [id, STANDARDS[id].options.some((o) => o.id === saved[id]) ? saved[id] : d]))
   })
-  // A mode remembered by an older build may name a source that no longer exists, or one the country lacks.
-  const [sourceMode, setSourceMode] = useState(() => {
-    const mode = store.get('sourceMode', 'combined')
-    return familiesFor(countryByIso(store.get('country', 'ARG'))).some((f) => f.id === mode) ? mode : 'combined'
-  })
+  const [chosenSource, setSourceMode] = useState(() => store.get('sourceMode', 'combined'))
   const [selected, setSelected] = useState(null) // { type, id } | { type: 'adhoc', entityInput }
   const [panelOpen, setPanelOpen] = useState(() => !isNarrow())
   const [showInfo, setShowInfo] = useState(false)
@@ -60,6 +56,11 @@ export default function App() {
   const mapRef = useRef(null)
 
   const country = countryByIso(iso3)
+  // The source and map metric in effect: the user's choice while the country and standards offer it, else all
+  // sources and the score. A remembered source may no longer exist or be missing here, and a standard moves an
+  // indicator between sources (UTCI: Copernicus instead of Open-Meteo); the choice comes back when it applies again.
+  const sourceMode = scoringFamiliesFor(country, standards).some((f) => f.id === chosenSource) ? chosenSource : 'combined'
+  const metricId = !isMultiSource(sourceMode) && metricById[chosenMetric].kind === 'indicator' && familyOf(chosenMetric, standards) !== sourceMode ? 'score' : chosenMetric
   const data = useCountryData(country)
   const live = useLiveData(data)
 
@@ -67,7 +68,7 @@ export default function App() {
   useEffect(() => store.set('country', iso3), [iso3])
   useEffect(() => store.set('weights', weights), [weights])
   useEffect(() => store.set('standards', standards), [standards])
-  useEffect(() => store.set('sourceMode', sourceMode), [sourceMode])
+  useEffect(() => store.set('sourceMode', chosenSource), [chosenSource])
 
   // Only the data layers feed scoring: status/progress updates (one per loaded chunk) must not
   // rebuild the model and the map.
@@ -184,11 +185,6 @@ export default function App() {
     if (e) mapRef.current?.flyTo(e.lon, e.lat, sel.type === 'city' ? 9 : 5.5)
   }, [model])
 
-  const changeSource = (mode) => {
-    setSourceMode(mode)
-    if (!isMultiSource(mode) && metric.kind === 'indicator' && familyOf(metricId) !== mode) setMetricId('score')
-  }
-
   // Resolve compare selections against the current model (so weights / source mode apply).
   const compareEntities = useMemo(() => compare.map((sel) => {
     if (!sel || !model) return null
@@ -236,8 +232,6 @@ export default function App() {
   const changeCountry = (next) => {
     setCompare([null, null, null])
     setSelected(null)
-    // A single-source view of a source the next country doesn't have would show nothing.
-    if (!familiesFor(countryByIso(next)).some((f) => f.id === sourceMode)) setSourceMode('combined')
     setIso3(next)
   }
 
@@ -303,10 +297,10 @@ export default function App() {
           mapRef={mapRef}
           onInfo={() => setShowInfo(true)}
           sourceMode={sourceMode}
-          onSourceMode={changeSource}
+          onSourceMode={setSourceMode}
         />
 
-        <Legend surface={overlays.surface ? surface : null} surfaceVar={surfaceVar} sourceMode={sourceMode} metric={metric} scale={scale} overlays={overlays} theme={theme} national={model?.national} shifted={panelOpen} />
+        <Legend surface={overlays.surface ? surface : null} surfaceVar={surfaceVar} sourceMode={sourceMode} standards={standards} metric={metric} scale={scale} overlays={overlays} theme={theme} national={model?.national} shifted={panelOpen} />
         <LiveStatus status={live.status} progress={live.progress} errors={live.errors} error={data.error} />
 
         {selectedEntity && model && (

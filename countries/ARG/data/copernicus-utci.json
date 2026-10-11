@@ -1,0 +1,517 @@
+{
+ "schema": 1,
+ "provider": "copernicus-utci",
+ "country": "ARG",
+ "generatedAt": "2026-10-11T23:34:08.719Z",
+ "period": {
+  "latest": 2025,
+  "aggregation": "yearly mean of daily UTCI stress scores (UTC days); regions: mean of the 0.25° grid points inside them; places: their nearest grid point"
+ },
+ "origin": {
+  "files": [
+   {
+    "name": "ARG_2025_-21.25_-74.25_-55.75_-53.zip",
+    "url": "https://cds.climate.copernicus.eu/datasets/derived-utci-historical",
+    "sha256": "b836dbc22fabe5410e1a869fb26e371675b79f4e0185d9f7997965906695a204",
+    "retrievedAt": "2026-10-11"
+   }
+  ],
+  "notes": "Copernicus Climate Change Service, Thermal comfort indices derived from ERA5 reanalysis (ERA5-HEAT) v1.1, consolidated, 2025 (doi:10.24381/cds.553b7518). Contains modified Copernicus Climate Change Service information 2026; Licence to use Copernicus Products."
+ },
+ "values": {
+  "region": {
+   "AR-E": {
+    "thermalUtci": 71,
+    "utciHeatDays": 35,
+    "utciColdDays": 0
+   },
+   "AR-A": {
+    "thermalUtci": 66,
+    "utciHeatDays": 47,
+    "utciColdDays": 2
+   },
+   "AR-Y": {
+    "thermalUtci": 71,
+    "utciHeatDays": 5,
+    "utciColdDays": 2
+   },
+   "AR-P": {
+    "thermalUtci": 61,
+    "utciHeatDays": 80,
+    "utciColdDays": 0
+   },
+   "AR-N": {
+    "thermalUtci": 67,
+    "utciHeatDays": 34,
+    "utciColdDays": 0
+   },
+   "AR-H": {
+    "thermalUtci": 62,
+    "utciHeatDays": 80,
+    "utciColdDays": 0
+   },
+   "AR-W": {
+    "thermalUtci": 68,
+    "utciHeatDays": 54,
+    "utciColdDays": 0
+   },
+   "AR-K": {
+    "thermalUtci": 66,
+    "utciHeatDays": 18,
+    "utciColdDays": 13
+   },
+   "AR-F": {
+    "thermalUtci": 67,
+    "utciHeatDays": 41,
+    "utciColdDays": 9
+   },
+   "AR-J": {
+    "thermalUtci": 66,
+    "utciHeatDays": 22,
+    "utciColdDays": 10
+   },
+   "AR-M": {
+    "thermalUtci": 68,
+    "utciHeatDays": 25,
+    "utciColdDays": 2
+   },
+   "AR-Q": {
+    "thermalUtci": 73,
+    "utciHeatDays": 7,
+    "utciColdDays": 1
+   },
+   "AR-U": {
+    "thermalUtci": 72,
+    "utciHeatDays": 2,
+    "utciColdDays": 2
+   },
+   "AR-R": {
+    "thermalUtci": 71,
+    "utciHeatDays": 9,
+    "utciColdDays": 2
+   },
+   "AR-Z": {
+    "thermalUtci": 67,
+    "utciHeatDays": 0,
+    "utciColdDays": 7
+   },
+   "AR-V": {
+    "thermalUtci": 63,
+    "utciHeatDays": 0,
+    "utciColdDays": 8
+   },
+   "AR-B": {
+    "thermalUtci": 75,
+    "utciHeatDays": 10,
+    "utciColdDays": 0
+   },
+   "AR-C": {
+    "thermalUtci": 77,
+    "utciHeatDays": 9,
+    "utciColdDays": 0
+   },
+   "AR-S": {
+    "thermalUtci": 68,
+    "utciHeatDays": 45,
+    "utciColdDays": 0
+   },
+   "AR-T": {
+    "thermalUtci": 73,
+    "utciHeatDays": 29,
+    "utciColdDays": 0
+   },
+   "AR-G": {
+    "thermalUtci": 62,
+    "utciHeatDays": 82,
+    "utciColdDays": 0
+   },
+   "AR-D": {
+    "thermalUtci": 67,
+    "utciHeatDays": 43,
+    "utciColdDays": 0
+   },
+   "AR-L": {
+    "thermalUtci": 70,
+    "utciHeatDays": 25,
+    "utciColdDays": 0
+   },
+   "AR-X": {
+    "thermalUtci": 71,
+    "utciHeatDays": 31,
+    "utciColdDays": 0
+   }
+  },
+  "city": {
+   "ARG-buenos-aires": {
+    "thermalUtci": 80,
+    "utciHeatDays": 3,
+    "utciColdDays": 0
+   },
+   "ARG-la-plata": {
+    "thermalUtci": 77,
+    "utciHeatDays": 11,
+    "utciColdDays": 0
+   },
+   "ARG-mar-del-plata": {
+    "thermalUtci": 80,
+    "utciHeatDays": 3,
+    "utciColdDays": 0
+   },
+   "ARG-bahia-blanca": {
+    "thermalUtci": 73,
+    "utciHeatDays": 15,
+    "utciColdDays": 0
+   },
+   "ARG-la-matanza": {
+    "thermalUtci": 77,
+    "utciHeatDays": 9,
+    "utciColdDays": 0
+   },
+   "ARG-quilmes": {
+    "thermalUtci": 82,
+    "utciHeatDays": 0,
+    "utciColdDays": 0
+   },
+   "ARG-lomas-de-zamora": {
+    "thermalUtci": 77,
+    "utciHeatDays": 9,
+    "utciColdDays": 0
+   },
+   "ARG-pilar": {
+    "thermalUtci": 73,
+    "utciHeatDays": 21,
+    "utciColdDays": 0
+   },
+   "ARG-tandil": {
+    "thermalUtci": 76,
+    "utciHeatDays": 3,
+    "utciColdDays": 0
+   },
+   "ARG-olavarria": {
+    "thermalUtci": 75,
+    "utciHeatDays": 5,
+    "utciColdDays": 0
+   },
+   "ARG-junin": {
+    "thermalUtci": 74,
+    "utciHeatDays": 11,
+    "utciColdDays": 0
+   },
+   "ARG-necochea": {
+    "thermalUtci": 76,
+    "utciHeatDays": 6,
+    "utciColdDays": 0
+   },
+   "ARG-san-nicolas": {
+    "thermalUtci": 73,
+    "utciHeatDays": 30,
+    "utciColdDays": 0
+   },
+   "ARG-catamarca": {
+    "thermalUtci": 76,
+    "utciHeatDays": 1,
+    "utciColdDays": 0
+   },
+   "ARG-resistencia": {
+    "thermalUtci": 66,
+    "utciHeatDays": 62,
+    "utciColdDays": 0
+   },
+   "ARG-saenz-pena": {
+    "thermalUtci": 62,
+    "utciHeatDays": 80,
+    "utciColdDays": 0
+   },
+   "ARG-comodoro-rivadavia": {
+    "thermalUtci": 71,
+    "utciHeatDays": 0,
+    "utciColdDays": 2
+   },
+   "ARG-trelew": {
+    "thermalUtci": 72,
+    "utciHeatDays": 6,
+    "utciColdDays": 0
+   },
+   "ARG-puerto-madryn": {
+    "thermalUtci": 73,
+    "utciHeatDays": 4,
+    "utciColdDays": 0
+   },
+   "ARG-esquel": {
+    "thermalUtci": 81,
+    "utciHeatDays": 0,
+    "utciColdDays": 0
+   },
+   "ARG-cordoba": {
+    "thermalUtci": 74,
+    "utciHeatDays": 11,
+    "utciColdDays": 0
+   },
+   "ARG-rio-cuarto": {
+    "thermalUtci": 73,
+    "utciHeatDays": 19,
+    "utciColdDays": 0
+   },
+   "ARG-villa-maria": {
+    "thermalUtci": 71,
+    "utciHeatDays": 27,
+    "utciColdDays": 0
+   },
+   "ARG-villa-carlos-paz": {
+    "thermalUtci": 74,
+    "utciHeatDays": 11,
+    "utciColdDays": 0
+   },
+   "ARG-san-francisco": {
+    "thermalUtci": 69,
+    "utciHeatDays": 35,
+    "utciColdDays": 0
+   },
+   "ARG-corrientes": {
+    "thermalUtci": 68,
+    "utciHeatDays": 54,
+    "utciColdDays": 0
+   },
+   "ARG-goya": {
+    "thermalUtci": 68,
+    "utciHeatDays": 61,
+    "utciColdDays": 0
+   },
+   "ARG-parana": {
+    "thermalUtci": 71,
+    "utciHeatDays": 30,
+    "utciColdDays": 0
+   },
+   "ARG-concordia": {
+    "thermalUtci": 71,
+    "utciHeatDays": 30,
+    "utciColdDays": 0
+   },
+   "ARG-gualeguaychu": {
+    "thermalUtci": 73,
+    "utciHeatDays": 25,
+    "utciColdDays": 0
+   },
+   "ARG-formosa": {
+    "thermalUtci": 64,
+    "utciHeatDays": 62,
+    "utciColdDays": 0
+   },
+   "ARG-jujuy": {
+    "thermalUtci": 82,
+    "utciHeatDays": 0,
+    "utciColdDays": 0
+   },
+   "ARG-palpala": {
+    "thermalUtci": 82,
+    "utciHeatDays": 0,
+    "utciColdDays": 0
+   },
+   "ARG-santa-rosa": {
+    "thermalUtci": 73,
+    "utciHeatDays": 17,
+    "utciColdDays": 0
+   },
+   "ARG-general-pico": {
+    "thermalUtci": 73,
+    "utciHeatDays": 18,
+    "utciColdDays": 0
+   },
+   "ARG-la-rioja": {
+    "thermalUtci": 61,
+    "utciHeatDays": 85,
+    "utciColdDays": 0
+   },
+   "ARG-chilecito": {
+    "thermalUtci": 77,
+    "utciHeatDays": 1,
+    "utciColdDays": 0
+   },
+   "ARG-mendoza": {
+    "thermalUtci": 66,
+    "utciHeatDays": 48,
+    "utciColdDays": 0
+   },
+   "ARG-san-rafael": {
+    "thermalUtci": 68,
+    "utciHeatDays": 35,
+    "utciColdDays": 0
+   },
+   "ARG-malargue": {
+    "thermalUtci": 72,
+    "utciHeatDays": 0,
+    "utciColdDays": 0
+   },
+   "ARG-posadas": {
+    "thermalUtci": 64,
+    "utciHeatDays": 56,
+    "utciColdDays": 0
+   },
+   "ARG-obera": {
+    "thermalUtci": 67,
+    "utciHeatDays": 39,
+    "utciColdDays": 0
+   },
+   "ARG-puerto-iguazu": {
+    "thermalUtci": 64,
+    "utciHeatDays": 50,
+    "utciColdDays": 0
+   },
+   "ARG-neuquen": {
+    "thermalUtci": 70,
+    "utciHeatDays": 25,
+    "utciColdDays": 0
+   },
+   "ARG-san-martin-de-los-andes": {
+    "thermalUtci": 77,
+    "utciHeatDays": 0,
+    "utciColdDays": 0
+   },
+   "ARG-cutral-co": {
+    "thermalUtci": 68,
+    "utciHeatDays": 18,
+    "utciColdDays": 0
+   },
+   "ARG-bariloche": {
+    "thermalUtci": 79,
+    "utciHeatDays": 0,
+    "utciColdDays": 0
+   },
+   "ARG-general-roca": {
+    "thermalUtci": 70,
+    "utciHeatDays": 20,
+    "utciColdDays": 0
+   },
+   "ARG-cipolletti": {
+    "thermalUtci": 70,
+    "utciHeatDays": 25,
+    "utciColdDays": 0
+   },
+   "ARG-viedma": {
+    "thermalUtci": 77,
+    "utciHeatDays": 7,
+    "utciColdDays": 0
+   },
+   "ARG-salta": {
+    "thermalUtci": 85,
+    "utciHeatDays": 0,
+    "utciColdDays": 0
+   },
+   "ARG-oran": {
+    "thermalUtci": 62,
+    "utciHeatDays": 85,
+    "utciColdDays": 0
+   },
+   "ARG-tartagal": {
+    "thermalUtci": 59,
+    "utciHeatDays": 105,
+    "utciColdDays": 0
+   },
+   "ARG-san-juan": {
+    "thermalUtci": 59,
+    "utciHeatDays": 83,
+    "utciColdDays": 0
+   },
+   "ARG-caucete": {
+    "thermalUtci": 64,
+    "utciHeatDays": 54,
+    "utciColdDays": 0
+   },
+   "ARG-san-luis": {
+    "thermalUtci": 70,
+    "utciHeatDays": 22,
+    "utciColdDays": 0
+   },
+   "ARG-villa-mercedes": {
+    "thermalUtci": 68,
+    "utciHeatDays": 43,
+    "utciColdDays": 0
+   },
+   "ARG-merlo": {
+    "thermalUtci": 79,
+    "utciHeatDays": 0,
+    "utciColdDays": 0
+   },
+   "ARG-rio-gallegos": {
+    "thermalUtci": 63,
+    "utciHeatDays": 0,
+    "utciColdDays": 11
+   },
+   "ARG-caleta-olivia": {
+    "thermalUtci": 71,
+    "utciHeatDays": 0,
+    "utciColdDays": 1
+   },
+   "ARG-el-calafate": {
+    "thermalUtci": 80,
+    "utciHeatDays": 0,
+    "utciColdDays": 0
+   },
+   "ARG-rosario": {
+    "thermalUtci": 72,
+    "utciHeatDays": 26,
+    "utciColdDays": 0
+   },
+   "ARG-santa-fe": {
+    "thermalUtci": 71,
+    "utciHeatDays": 30,
+    "utciColdDays": 0
+   },
+   "ARG-rafaela": {
+    "thermalUtci": 69,
+    "utciHeatDays": 36,
+    "utciColdDays": 0
+   },
+   "ARG-venado-tuerto": {
+    "thermalUtci": 73,
+    "utciHeatDays": 16,
+    "utciColdDays": 0
+   },
+   "ARG-reconquista": {
+    "thermalUtci": 68,
+    "utciHeatDays": 57,
+    "utciColdDays": 0
+   },
+   "ARG-santiago-del-estero": {
+    "thermalUtci": 63,
+    "utciHeatDays": 81,
+    "utciColdDays": 0
+   },
+   "ARG-la-banda": {
+    "thermalUtci": 63,
+    "utciHeatDays": 81,
+    "utciColdDays": 0
+   },
+   "ARG-termas-de-rio-hondo": {
+    "thermalUtci": 62,
+    "utciHeatDays": 89,
+    "utciColdDays": 0
+   },
+   "ARG-ushuaia": {
+    "thermalUtci": 72,
+    "utciHeatDays": 0,
+    "utciColdDays": 0
+   },
+   "ARG-rio-grande": {
+    "thermalUtci": 59,
+    "utciHeatDays": 0,
+    "utciColdDays": 8
+   },
+   "ARG-tucuman": {
+    "thermalUtci": 72,
+    "utciHeatDays": 21,
+    "utciColdDays": 0
+   },
+   "ARG-yerba-buena": {
+    "thermalUtci": 72,
+    "utciHeatDays": 21,
+    "utciColdDays": 0
+   },
+   "ARG-concepcion": {
+    "thermalUtci": 72,
+    "utciHeatDays": 12,
+    "utciColdDays": 0
+   }
+  }
+ }
+}

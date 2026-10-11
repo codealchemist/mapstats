@@ -1,7 +1,7 @@
 import { useEffect } from 'react'
 import { X, ExternalLink } from 'lucide-react'
 import { CATEGORIES, INDICATORS, scoreRange, anchorsInfo } from '../data/metrics.js'
-import { PROVIDERS, providerOf } from '../core/providers.js'
+import { PROVIDERS, providerUnder } from '../core/providers.js'
 import { STANDARDS, standardFor } from '../data/standards.js'
 
 export function Methodology({ onClose, weights, standards, onSources }) {
@@ -43,7 +43,7 @@ export function Methodology({ onClose, weights, standards, onSources }) {
                       <td className="num">{standardFor(i.id, standards)
                         ? `${standardFor(i.id, standards).short} bands (${standardFor(i.id, standards).unit})`
                         : `${(([lo, hi]) => (i.better === 'low' ? `${lo} → ${hi}` : `${hi} → ${lo}`))(scoreRange(i.id).range)} ${i.unit}`}</td>
-                      <td>{providerOf(i.id)?.short}</td>
+                      <td>{providerUnder(i.id, standards)?.short}</td>
                     </tr>
                   )),
                 )}

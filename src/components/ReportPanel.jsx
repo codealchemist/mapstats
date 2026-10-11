@@ -161,7 +161,7 @@ export function ReportPanel({ entity, model, country, live, theme, onClose, onSe
     try {
       await new Promise((r) => setTimeout(r, 30))
       const charts = [...(registryRef.current?.values() || [])].map(({ title, build }) => ({ title, ...renderOffscreen(build) }))
-      await reportPdf({ entity, national, charts, countryName: country.name, sourceGroups })
+      await reportPdf({ entity, national, charts, countryName: country.name, sourceGroups, standards })
       toast('PDF report downloaded')
     } catch (e) {
       console.error(e)
@@ -171,7 +171,7 @@ export function ReportPanel({ entity, model, country, live, theme, onClose, onSe
     }
   }
   const exportCsv = () => {
-    downloadBlob(reportCsv(entity, detail, sourceGroups), `mapstats-${slug(entity.name)}.csv`)
+    downloadBlob(reportCsv(entity, detail, sourceGroups, standards), `mapstats-${slug(entity.name)}.csv`)
     toast('CSV downloaded')
   }
 
@@ -385,7 +385,7 @@ export function ReportPanel({ entity, model, country, live, theme, onClose, onSe
           {/* ---------- Indicators ---------- */}
           <section id="sec-indicators" className="report-section">
             <SectionHead icon={Info} title="All indicators" sub="Value · position between the lowest and highest in the country · country average" />
-            {CATEGORIES.map((c) => <IndicatorGroup key={c.id} category={c} entity={entity} national={national} ranges={model.ranges} />)}
+            {CATEGORIES.map((c) => <IndicatorGroup key={c.id} category={c} entity={entity} national={national} ranges={model.ranges} standards={standards} />)}
           </section>
         </ChartRegistry>
       </div>
@@ -451,7 +451,7 @@ function Coverage({ value = 0 }) {
   )
 }
 
-function IndicatorGroup({ category, entity, national, ranges }) {
+function IndicatorGroup({ category, entity, national, ranges, standards }) {
   const Icon = ICONS[category.icon]
   const isCity = entity.type === 'city'
   const inCategory = INDICATORS.filter((i) => i.category === category.id)
@@ -465,7 +465,7 @@ function IndicatorGroup({ category, entity, national, ranges }) {
         <span><Icon size={14} /> {category.label}</span>
         <span className="muted small">{fmtScore(entity.categories[category.id])} <span className="faint">/ avg {fmtScore(national.categories[category.id])}</span></span>
       </div>
-      <SourceButtons keys={sourcesForIndicators(rows.map((i) => i.id))} label={null} />
+      <SourceButtons keys={sourcesForIndicators(rows.map((i) => i.id), standards)} label={null} />
       {rows.map((i) => {
         const v = entity.values[i.id], avg = national.values[i.id], range = ranges[i.id]
         const pos = meterScale(range, [v, avg])
@@ -482,7 +482,7 @@ function IndicatorGroup({ category, entity, national, ranges }) {
           </div>
         )
       })}
-      <MissingStats entity={entity} ids={missing} />
+      <MissingStats entity={entity} ids={missing} standards={standards} />
     </div>
   )
 }
@@ -491,7 +491,7 @@ const HAZARD_KEYS = ['seismicZone', 'fireRisk', 'floodRisk']
 const SAFETY_KEYS = ['homicide', 'propertyCrime', 'roadDeaths']
 
 // Notice for indicators with no city-level data, with links to where they could be found.
-function MissingStats({ entity, ids }) {
+function MissingStats({ entity, ids, standards }) {
   if (entity.type !== 'city' || !ids.length) return null
   const fallback = ids.filter((id) => entity.inherited?.has(id))
   return (
@@ -503,7 +503,7 @@ function MissingStats({ entity, ids }) {
           The score uses province-level figures{entity.provinceName ? ` (${entity.provinceName})` : ''} for {fallback.length === ids.length ? 'these' : fallback.map((id) => indicatorById[id].label.toLowerCase()).join(', ')}.
         </div>
       )}
-      <SourceButtons keys={sourcesForIndicators(ids)} label="Look up" />
+      <SourceButtons keys={sourcesForIndicators(ids, standards)} label="Look up" />
     </div>
   )
 }

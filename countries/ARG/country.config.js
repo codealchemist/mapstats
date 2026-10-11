@@ -11,7 +11,7 @@ export default defineCountry({
   regionLabel: 'Province',
   subregionLabel: 'Department',
   geo: { simplify: '18%' },
-  providers: ['gem', 'numbeo', snic, provincialStats],
+  providers: ['gem', 'copernicus-utci', 'numbeo', snic, provincialStats],
   news,
   maintainers: ['@codealchemist'],
 })

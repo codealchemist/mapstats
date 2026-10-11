@@ -47,7 +47,8 @@ export const STANDARDS = {
   // Heat and cold stress: each day scores by the worst category it reached (its hottest hour's heat index, its
   // coldest hour's wind chill: src/lib/thermal.js), and the yearly mean of those day scores is the indicator's
   // value. These standards measure risk to health, not comfort preferences: a cool, still day is "no stress".
-  // UTCI (the international index) needs radiation data and its official polynomial, so it isn't offered yet.
+  // An option whose input is not a live indicator (metrics.js `live`) comes from a prefilled country dataset (UTCI:
+  // src/providers/copernicus-utci), so places of countries without it have no value under that option.
   thermalStress: {
     default: 'nws',
     valueFromInput: true, // the indicator shows the selected standard's yearly score
@@ -76,9 +77,28 @@ export const STANDARDS = {
           { indicator: 'frostbiteDays', limit: -28, allowed: 0, text: 'with frostbite risk (wind chill ≤ −28 °C)', basis: 'exposed skin can freeze in 10–30 minutes' },
         ],
       },
+      {
+        // One index for heat and cold, from air temperature, humidity, wind and sun (mean radiant temperature, for a
+        // person outdoors in the open). Copernicus publishes each day's highest and lowest UTCI (ERA5-HEAT), prefilled
+        // yearly per country; the day scores by the stress categories those two reach. The cold side starts at
+        // moderate cold stress: "slight cold stress" (0 to 9 °C) is reached on most cool nights and is discomfort,
+        // not health risk, as for the other two standards (MapStats' choice, October 2026).
+        id: 'utci', short: 'UTCI', name: 'Universal Thermal Climate Index (ISB) · Copernicus ERA5-HEAT',
+        url: 'https://cds.climate.copernicus.eu/datasets/derived-utci-historical',
+        input: 'thermalUtci', unit: 'UTCI (°C felt, outdoors in the sun)',
+        heat: { categories: [[26, 'Moderate heat stress'], [32, 'Strong heat stress'], [38, 'Very strong heat stress'], [46, 'Extreme heat stress']] },
+        cold: { categories: [[0, 'Moderate cold stress'], [-13, 'Strong cold stress'], [-27, 'Very strong cold stress'], [-40, 'Extreme cold stress']] },
+        bands: [[-40, 'Extreme cold stress'], [-27, 'Very strong cold stress'], [-13, 'Strong cold stress'], [0, 'Moderate cold stress'], [9, 'Slight cold stress'], [26, 'No thermal stress'], [32, 'Moderate heat stress'], [38, 'Strong heat stress'], [46, 'Very strong heat stress'], [Infinity, 'Extreme heat stress']],
+        points: [[0, 0], [100, 100]],
+        note: 'Heat and cold from one index: no separate wind chill. Slight cold stress (0 to 9) doesn’t lower the score; the cold side starts at moderate. Days are UTC days. Prefilled yearly from Copernicus; countries without that data show no value under UTCI.',
+        daily: [
+          { indicator: 'utciHeatDays', limit: 38, allowed: 0, text: 'with very strong heat stress or worse (UTCI ≥ 38 °C)', basis: 'very strong heat stress: heat illness likely without shade, water and rest' },
+          { indicator: 'utciColdDays', limit: -27, allowed: 0, text: 'with very strong cold stress or worse (UTCI ≤ −27 °C)', basis: 'very strong cold stress: frostbite and hypothermia risk outdoors' },
+        ],
+      },
     ],
-    // Cold side, shared: the 2001 North American wind chill index with Environment Canada's risk categories
-    // (upper bounds; NWS publishes no general cold categories).
+    // Cold side of US NWS and Environment Canada: the 2001 North American wind chill index with Environment Canada's
+    // risk categories (upper bounds; NWS publishes no general cold categories). UTCI has its own (`cold` on it).
     cold: { categories: [[-10, 'Moderate risk'], [-28, 'High risk (frostbite in 10–30 min)'], [-40, 'Very high risk'], [-48, 'Severe risk']] },
     note: 'Cold side for both: wind chill, with Environment Canada’s risk categories (moderate below −10, frostbite risk at −28, very high at −40, severe at −48).',
   },

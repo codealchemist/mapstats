@@ -52,6 +52,10 @@ export const INDICATORS = [
   { id: 'heatDangerDays', label: 'Days in heat index Danger (US NWS)', unit: 'days', category: 'environment', better: null, digits: 0, live: true, ramp: 'red' },
   { id: 'humidexDangerDays', label: 'Days with dangerous humidex (Environment Canada)', unit: 'days', category: 'environment', better: null, digits: 0, live: true, ramp: 'red' },
   { id: 'frostbiteDays', label: 'Days with frostbite risk (wind chill ≤ −28 °C)', unit: 'days', category: 'environment', better: null, digits: 0, live: true, ramp: 'blue' },
+  // UTCI (Copernicus ERA5-HEAT), prefilled per country: the score under the UTCI standard and its warning counts.
+  { id: 'thermalUtci', label: 'Heat and cold stress (UTCI)', unit: '/100', category: 'environment', better: null, digits: 0, ramp: 'blue' },
+  { id: 'utciHeatDays', label: 'Days with very strong heat stress (UTCI ≥ 38 °C)', unit: 'days', category: 'environment', better: null, digits: 0, ramp: 'red' },
+  { id: 'utciColdDays', label: 'Days with very strong cold stress (UTCI ≤ −27 °C)', unit: 'days', category: 'environment', better: null, digits: 0, ramp: 'blue' },
   // Our own comfort model (16–24 °C ideal…): shown, no longer scored (health standards above score instead).
   { id: 'climateComfort', label: 'Climate comfort (MapStats model)', unit: '/100', category: 'climate', better: null, digits: 0, live: true },
   // Services
