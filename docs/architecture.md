@@ -41,7 +41,7 @@ flowchart LR
     MODEL["resolve → score"]
     UI["map · reports · compare · sources · news"]
   end
-  RAW[("data/raw/&lt;ISO3&gt;/&lt;id&gt;/<br/>downloads + manifest")]
+  RAW[("providers/&lt;id&gt;/raw/<br/>downloads + manifest")]
 
   CLI --> PRV
   PRV --> SDK
@@ -86,6 +86,7 @@ countries/
     news.js             news language, edition, ambiguous names, regions, outlets
     providers/
       snic/             provider.js · dataset.mjs · parse.mjs · prefill.mjs · fixtures/ · provider.test.mjs
+                        raw/ (downloaded bases, gitignored; manifest.json committed)
       provincial-stats/ provider.js (12 hand-entered references)
     data/               datasets (committed): snic.json · provincial-stats.json
     geo/                Natural Earth boundaries and cities: regions.json · cities.json
@@ -95,7 +96,6 @@ tools/
   sdk/                  Node toolkit for country developers (section 6)
   cli/                  prefill · country:check · country:new · prefill:due · test
 
-data/raw/<ISO3>/<id>/   downloaded source files (gitignored) + manifest.json (committed)
 netlify/                /api/news function; reads each country's news settings from the registry
 tests/                  golden scoring snapshot
 ```
@@ -305,7 +305,7 @@ Node only, used by prefills and tests.
 
 | Module | Provides |
 |---|---|
-| `http` | `rawStore(iso3, id)`: `fetchOnce(url)` downloads each file once into `data/raw/<ISO3>/<id>/`, honours robots.txt, identifies MapStats, spaces requests (5 s), stops at the first 403/429, and records URL, date and SHA-256 in `manifest.json`. `add(name, { note })` registers a file downloaded by hand. `read`, `list`. |
+| `http` | `rawStore(iso3, id)`: `fetchOnce(url)` downloads each file once into the provider's `raw/` folder, honours robots.txt, identifies MapStats, spaces requests (5 s), stops at the first 403/429, and records URL, date and SHA-256 in `manifest.json`. `add(name, { note })` registers a file downloaded by hand. `read`, `list`. |
 | `parse` | `parseCsv` (quoted fields, delimiter detection, BOM), `readXlsx` (streamed, for 100 MB+ workbooks), `loadHtml` (cheerio), `num` (decimal commas, blanks and dashes → `null`) |
 | `places` | `fold`, `matcher(entries, { strip })` that reports unmatched names instead of guessing, `featureAt(lat, lon, featureCollection)` |
 | `stats` | `round`, `per100k`, `share`, `meanOfLast` |
@@ -331,7 +331,7 @@ Argentina's `snic:import` is `prefill -- ARG --provider snic`.
 Long-term data is prepared offline, reviewed as a pull request and shipped as files. Visitors never fetch it.
 
 ```
-acquire  → data/raw/<ISO3>/<id>/ + manifest.json (url, date, sha256)   once, politely (rawStore)
+acquire  → providers/<id>/raw/ + manifest.json (url, date, sha256)      once, politely (rawStore)
 parse    → rows                                                         pure, fixture-tested (parse.mjs)
 map      → place ids, indicator ids, indicator units                    unmatched names reported, never guessed
 check    → schema · ids · providers · domains · coverage                the run fails on errors
@@ -340,7 +340,7 @@ write    → countries/<ISO3>/data/<id>.json                              commit
 
 **Calendar.** `.github/workflows/data-refresh.yml` runs `prefill:due` monthly and opens an issue listing stale datasets, naming the countries' maintainers. There is no admin web UI: the app stays static, and the pull request is the review step.
 
-**Raw files** stay local (licences, size); `data/raw/**/manifest.json` is committed, so anyone can fetch the same files and verify the hashes. Files downloaded before the migration (`data/snic/raw/`, `data/numbeo/`) are still read from there; move them to `data/raw/ARG/<id>/` to commit their manifests.
+**Raw files** stay local (licences, size), in the provider that reads them: `countries/<ISO3>/providers/<id>/raw/`. Its `manifest.json` is committed, so anyone can fetch the same files and verify the hashes.
 
 ## 7. Guarantees and checks
 

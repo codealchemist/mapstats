@@ -1,4 +1,4 @@
-// SNIC import summary (scripts/snic-import.mjs) → MapStats dataset (countries/ARG/data/snic.json).
+// SNIC import summary (parse.mjs summary()) → MapStats dataset (countries/ARG/data/snic.json).
 // Pure: no I/O, so the import and the migration from the old file both use it.
 
 // Scored indicators SNIC provides (3-year averages, per 100,000). Every other SNIC metric stays in `details`.

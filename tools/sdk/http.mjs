@@ -1,12 +1,16 @@
-// Polite, download-once access to a source's files: data/raw/<ISO3>/<provider>/ (gitignored) plus a committed
-// manifest.json recording each file's URL, date and SHA-256, so anyone can fetch the same files and verify them.
+// Polite, download-once access to a source's files: countries/<ISO3>/providers/<provider>/raw/ (gitignored) plus
+// a committed manifest.json recording each file's URL, date and SHA-256, so anyone can fetch the same files and
+// verify them.
 //   - each URL is downloaded once; later runs read the stored copy (refresh: true to download again)
 //   - robots.txt is honoured, requests are spaced (5 s by default) and identify MapStats
 //   - the first 403 / 429 stops the run: the site does not want automated requests
 import fs from 'node:fs'
 import path from 'node:path'
 import crypto from 'node:crypto'
+import { fileURLToPath } from 'node:url'
 import { robotsAllows } from '../../netlify/news/robots.mjs'
+
+const COUNTRIES = fileURLToPath(new URL('../../countries/', import.meta.url))
 
 const UA = process.env.MAPSTATS_USER_AGENT || 'MapStats data import (+https://github.com/codealchemist/mapstats)'
 const sha256 = (buf) => crypto.createHash('sha256').update(buf).digest('hex')
@@ -28,12 +32,11 @@ async function allowed(url) {
 /**
  * @param iso3      country
  * @param provider  provider id (without the country prefix)
- * @param opts.root      base folder (default data/raw, or $MAPSTATS_RAW)
  * @param opts.delayMs   pause between requests
- * @param opts.dir       use this folder instead of <root>/<ISO3>/<provider> (e.g. files stored before the migration)
+ * @param opts.dir       use this folder instead of the provider's raw/ (e.g. tests)
  */
-export function rawStore(iso3, provider, { root = process.env.MAPSTATS_RAW || 'data/raw', delayMs = 5000, dir: custom } = {}) {
-  const dir = path.resolve(custom || path.join(root, iso3, provider))
+export function rawStore(iso3, provider, { delayMs = 5000, dir: custom } = {}) {
+  const dir = path.resolve(custom || path.join(COUNTRIES, iso3, 'providers', provider, 'raw'))
   const manifestFile = path.join(dir, 'manifest.json')
   const manifest = fs.existsSync(manifestFile) ? JSON.parse(fs.readFileSync(manifestFile, 'utf8')) : { files: {} }
   const save = () => { fs.mkdirSync(dir, { recursive: true }); fs.writeFileSync(manifestFile, JSON.stringify(manifest, null, 2) + '\n') }

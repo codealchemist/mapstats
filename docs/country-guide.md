@@ -58,7 +58,7 @@ The quality of MapStats depends on this step more than any other. For each indic
 - [ ] **Access:** a bulk file download (CSV/XLSX/API) beats scraping HTML. Note whether the URL is stable from year to year.
 - [ ] **Methodology** is published. Link it.
 - [ ] **Cadence:** when the next release is expected. This feeds `prefill:due`.
-- [ ] **Robots and terms** allow automated download. If they don't, download by hand into `data/raw/<ISO3>/<id>/` and register the file with `rawStore(…).add(name, { note })`.
+- [ ] **Robots and terms** allow automated download. If they don't, download by hand into the provider's `raw/` folder and register the file with `rawStore(…).add(name, { note })`.
 
 When two sources cover the same indicator, **add both** as separate providers. The app shows them side by side, takes the median or the reliability-weighted mean, and shows users where the sources disagree. Don't pre-average them in a prefill.
 
@@ -121,6 +121,7 @@ One folder per source: `countries/CHL/providers/<id>/`. Copy [`_template/provide
 | `parse.mjs` *(optional)* | Pure parsing rules, when the prefill gets long (Argentina's SNIC has one) | Node |
 | `fixtures/` | A small, real excerpt of the source file (a few rows, including a messy one) | tests |
 | `provider.test.mjs` | Offline test of the parsing and mapping rules against the fixtures | Node |
+| `raw/` | Downloaded source files (git ignores them) and `manifest.json` with each file's URL, date and SHA-256 (committed) | — |
 | `README.md` | The source checklist answers, how to download, known quirks | — |
 
 `provider.js`:
@@ -219,7 +220,7 @@ Fill in `countries/CHL/README.md`: tier, sources table, coverage, known gaps, ne
 
 - [ ] `npm run lint`, `npm test` and `npm run country:check -- CHL` pass (after `npm run anchors` if datasets changed)
 - [ ] Every new provider has a README with the source checklist, a fixture and a test
-- [ ] `data/raw/CHL/*/manifest.json` committed; raw files not committed
+- [ ] `providers/*/raw/manifest.json` committed; raw files not committed (git ignores them)
 - [ ] No values invented, carried over from a neighbouring area, or averaged across sources inside a dataset
 - [ ] Screenshots: the map on one Safety/Services/Economy indicator, one report
 - [ ] The country README is updated
@@ -238,7 +239,7 @@ Fill in `countries/CHL/README.md`: tier, sources table, coverage, known gaps, ne
 
 **Time series.** Add `series.years` and `series.<level>.<id>.<indicator>` arrays aligned with it, with `null` for missing years. The Trends section and compare charts appear automatically.
 
-**HTML tables (no download available).** Use `loadHtml` from `#sdk`, and fetch only through `rawStore().fetchOnce`. It honours robots.txt, keeps a polite delay and never fetches a page twice. Check the site's terms first. If they forbid it, copy the figures by hand into a CSV in `data/raw/`, use `kind: 'manual'`, and cite the publication.
+**HTML tables (no download available).** Use `loadHtml` from `#sdk`, and fetch only through `rawStore().fetchOnce`. It honours robots.txt, keeps a polite delay and never fetches a page twice. Check the site's terms first. If they forbid it, copy the figures by hand into a CSV in the provider's `raw/` folder, register it with `rawStore(…).add`, use `kind: 'manual'`, and cite the publication.
 
 **A live source.** Rare. It must be free, keyless and CORS-enabled, and fit the shared request queue. Talk to the core team first: a live provider runs in every visitor's browser.
 

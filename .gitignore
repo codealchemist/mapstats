@@ -1,10 +1,8 @@
 node_modules
 dist
 .DS_Store
-data/snic/raw
 .netlify
 logs
 # Downloaded source files stay local (licences, size); their manifests (URL, date, SHA-256) are committed.
-data/raw/**
-!data/raw/**/
-!data/raw/**/manifest.json
+countries/*/providers/*/raw/*
+!countries/*/providers/*/raw/manifest.json

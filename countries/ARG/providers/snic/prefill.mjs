@@ -5,18 +5,13 @@
 //   npm run snic:import -- --origin "where the files came from"  required the first time files are used
 //
 // Download the bases from https://www.argentina.gob.ar/seguridad/estadisticascriminales/bases-de-datos
-// ("hechos y víctimas", provincial and departmental) into data/raw/ARG/snic/ (data/snic/raw/ from before the
-// migration still works), or with --download.
-import fs from 'node:fs'
+// ("hechos y víctimas", provincial and departmental) into raw/ next to this file, or with --download.
 import { rawStore, readXlsx, parseCsv } from '#sdk'
 import { createState, ingest, summary } from './parse.mjs'
 import { toDataset } from './dataset.mjs'
 
-const LEGACY = 'data/snic/raw'
-
 export async function prefill({ args, log }) {
-  const dir = !fs.existsSync('data/raw/ARG/snic') && fs.existsSync(LEGACY) ? LEGACY : undefined
-  const raw = rawStore('ARG', 'snic', { dir })
+  const raw = rawStore('ARG', 'snic')
   for (const url of [].concat(args.download || [])) await raw.fetchOnce(url)
   const names = raw.list(/\.(xlsx|csv)$/i)
   if (!names.length) throw new Error(`No SNIC files in ${raw.dir}. Download the provincial and departmental bases from\nhttps://www.argentina.gob.ar/seguridad/estadisticascriminales/bases-de-datos`)
