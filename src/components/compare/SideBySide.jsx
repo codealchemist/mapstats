@@ -153,7 +153,8 @@ function buildRows(filled, national, ranges) {
     const latest = (e) => e?.details?.[p.id]?.latest?.[k] ?? null
     const vals = filled.map(({ e }) => latest(e)).filter((v) => v != null)
     const top = vals.length > 1 && better ? (better === 'high' ? Math.max(...vals) : Math.min(...vals)) : null
-    const pos = meterScale(null, [...vals, latest(national)])
+    // From 0, so bar lengths are proportional to the rates (a min–max scale exaggerates small differences).
+    const pos = meterScale([0, 0], [...vals, latest(national)])
     const year = national.details?.[p.id]?.latestYear
     return {
       key: `last:${p.id}:${k}`, label: `${chart.title} last year`, sub: `${year ? `${year} · ` : ''}${unit} · ${p.short}`, focus: `last:${p.id}:${k}`, na: `No ${p.short} data`,
