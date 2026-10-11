@@ -17,7 +17,7 @@ export const prefillIds = (country) => {
 }
 
 export async function runPrefill(country, id, args = {}) {
-  // A folder named after a global provider (e.g. numbeo) prepares that provider's data for this country.
+  // A folder named after a global provider prepares that provider's data for this country.
   const provider = providerById(`${country.iso3}/${id}`) || providerById(id)
   if (!provider) throw new Error(`providers/${id}: no provider "${country.iso3}/${id}" or "${id}" (country.config.js)`)
   const mod = await import(pathToFileURL(path.join(countryDir(country.iso3), 'providers', id, 'prefill.mjs')))

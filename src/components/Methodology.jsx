@@ -21,10 +21,10 @@ export function Methodology({ onClose, weights, onSources }) {
         <div className="modal-body">
           <ol className="steps">
             <li><b>Normalise.</b> Each indicator is mapped to 0–100 on a fixed range (below), flipped when lower is better and clamped at the ends. Fixed ranges keep scores comparable across countries.</li>
-            <li><b>Combine sources.</b> Within a category, each source (SNIC, Numbeo, Open-Meteo, USGS, provincial statistics) gets its own score: the average of its normalised indicators. The category score is the median of those source scores (with two sources, their mean). Only data measured for the place votes; province figures fill a category only when no source has local data. The data-source selector shows a single source instead.</li>
-            <li><b>Weighted integration</b> (selectable): each source ranks the place as a percentile among the places it covers, then sources are averaged by reliability — base weight (official register or measurement 1.0, crowd survey 0.5, hand-entered estimate 0.3) × geographic match (department 0.9, province-wide figure 0.5) × quality (Numbeo contributors, full weight at 50+) × recency (−15% per year beyond one). The ± shown is the weighted standard deviation between sources.</li>
+            <li><b>Combine sources.</b> Within a category, each source (official crime statistics, Open-Meteo, USGS, provincial statistics) gets its own score: the average of its normalised indicators. The category score is the median of those source scores (with two sources, their mean). Only data measured for the place votes; province figures fill a category only when no source has local data. The data-source selector shows a single source instead.</li>
+            <li><b>Weighted integration</b> (selectable): each source ranks the place as a percentile among the places it covers, then sources are averaged by reliability — base weight (official register or measurement 1.0, crowd survey 0.5, hand-entered estimate 0.3) × geographic match (department 0.9, province-wide figure 0.5) × recency (−15% per year beyond one). The ± shown is the weighted standard deviation between sources.</li>
             <li><b>Weight.</b> The MapStats score is the weighted average of category scores. Missing categories are left out and the remaining weights re-normalised, so absent data neither helps nor hurts. Each report shows its data coverage.</li>
-            <li><b>Cities</b> inherit their province's statistics, then override them with city-level data (Numbeo indices) and live measurements at the exact location (climate, air quality, earthquakes). <b>Provinces</b> aggregate live and Numbeo data from their cities, weighted by population.</li>
+            <li><b>Cities</b> inherit their province's statistics, then override them with city-level data (e.g. their crime-statistics department) and live measurements at the exact location (climate, air quality, earthquakes). <b>Provinces</b> aggregate live data from their cities, weighted by population.</li>
             <li><b>Official crime data</b> comes from SNIC (Ministerio de Seguridad). Cities use their department (partido) — the finest level SNIC publishes — as 3-year averages per 100,000 inhabitants, using parent crime codes only so sub-categories aren't counted twice.</li>
             <li><b>Climate comfort</b> rates each month from 0–100: ideal mean temperature 16–24 °C; penalties for heat (&gt;30 °C highs), frost, months over 100 mm of rain, snow and fewer than 4 sunshine hours a day.</li>
           </ol>
@@ -59,7 +59,7 @@ export function Methodology({ onClose, weights, onSources }) {
           </ul>
           <p className="hint">
             Curated statistics are approximate snapshots of the latest published figures and should be verified for decisions.
-            Numbeo blocks cross-origin requests and automated scraping, so MapStats ships a snapshot of its city indices and links to the live Numbeo pages from each city report.
+            Numbeo's terms don't allow republishing its data without consent, so MapStats shows no Numbeo values and links to each city's Numbeo pages instead.
             Live data is cached in your browser (climate 30 days, air quality 1 day, earthquakes 7 days).
           </p>
         </div>

@@ -15,8 +15,6 @@
     "preview": "vite preview",
     "geo": "node scripts/build-geo.mjs",
     "lint": "eslint .",
-    "numbeo:fetch": "node countries/ARG/providers/numbeo/fetch.mjs",
-    "numbeo:build": "node tools/cli/prefill.mjs ARG --provider numbeo",
     "snic:import": "node tools/cli/prefill.mjs ARG --provider snic",
     "news:test": "node netlify/news/test/run.mjs",
     "news:probe": "node scripts/news-probe.mjs",

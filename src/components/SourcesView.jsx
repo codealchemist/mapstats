@@ -40,7 +40,7 @@ export function SourcesView({ onClose, datasets = {} }) {
 
       <div className="fullview-body">
         <div className="tiles src-tiles">
-          {['live', 'import', 'snapshot', 'manual'].map((a) => (
+          {['live', 'import', 'manual', 'link'].map((a) => (
             <button key={a} className={`tile tile-btn ${access === a ? 'active' : ''}`} onClick={() => setAccess(access === a ? 'all' : a)} title={ACCESS[a].detail}>
               <div className="tile-label">{ACCESS[a].label}</div>
               <div className="tile-value">{counts[a]}</div>

@@ -72,7 +72,7 @@ const median = (a) => {
  * Only values measured for the place itself vote. Values borrowed from the province (`inherited`)
  * fill a category only when no source has local data for it. Provincial statistics are
  * province-level by nature and always count.
- * ctx: { type, snic, numbeo, dist } — dist[type][indicator] = sorted own values (for percentiles).
+ * ctx: { type, details, dist } — dist[type][indicator] = sorted own values (for percentiles).
  */
 export function scoreValues(values, weights, mode = 'combined', inherited = null, ctx = {}) {
   const multi = isMultiSource(mode)

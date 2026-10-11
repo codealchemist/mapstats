@@ -1,7 +1,7 @@
 // Curated city list for Argentina (replaces the Natural Earth list) and each city's codes in other sources:
 //   subregion  SNIC department (partido / departamento, INDEC code) the city lies in, from point-in-polygon on
 //              department boundaries; SNIC publishes crime by department, the finest level available
-//   numbeo     the city's Numbeo page slug, when it has one
+//   numbeo     the city's Numbeo page slug, when it has one (reports link to it; no Numbeo data is stored)
 // Buenos Aires city is its own jurisdiction: SNIC data for it comes at city level (providers/snic/dataset.mjs).
 // City ids are permanent: saved comparisons and links use them.
 

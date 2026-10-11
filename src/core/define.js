@@ -60,7 +60,7 @@ export const KINDS = {
 export const ACCESS = {
   live: { label: 'Live API', detail: 'fetched in your browser, cached locally' },
   import: { label: 'Imported file', detail: 'downloaded once, converted offline (npm run snic:import)' },
-  snapshot: { label: 'Stored snapshot', detail: 'copied once (npm run numbeo:fetch / hand-entered), not re-fetched' },
+  link: { label: 'Link only', detail: 'linked from reports; no data stored or shown' },
   manual: { label: 'Hand-entered', detail: 'approximate values typed from the publication; verify before relying on them' },
   bundled: { label: 'Bundled', detail: 'shipped with the app' },
   tiles: { label: 'Map tiles', detail: 'streamed by the map' },

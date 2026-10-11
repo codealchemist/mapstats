@@ -282,10 +282,10 @@ export function ReportPanel({ entity, model, country, live, theme, onClose, onSe
           <section id="sec-safety" className="report-section">
             <SectionHead icon={ShieldAlert} title="Safety"
               sub={safetyProviders.filter((p) => hasBlock(p, entity)).map((p) => p.report.label).join(' · ') || (isCity ? 'City-level crime data' : 'Province crime statistics')}
-              sources={sourcesForIndicators(['crimeIndex', 'homicide', 'propertyCrime', 'roadDeaths'].filter((k) => isOwnValue(entity, k)))} entity={entity} category="safety" />
-            {['crimeIndex', 'homicide', 'propertyCrime', 'roadDeaths'].some((k) => isOwnValue(entity, k)) && (
+              sources={sourcesForIndicators(['homicide', 'propertyCrime', 'roadDeaths'].filter((k) => isOwnValue(entity, k)))} entity={entity} category="safety" />
+            {['homicide', 'propertyCrime', 'roadDeaths'].some((k) => isOwnValue(entity, k)) && (
               <div className="kv">
-                {['crimeIndex', 'homicide', 'propertyCrime', 'roadDeaths'].filter((k) => isOwnValue(entity, k)).map((k) => (
+                {['homicide', 'propertyCrime', 'roadDeaths'].filter((k) => isOwnValue(entity, k)).map((k) => (
                   <span key={k}>{indicatorById[k].label} <b>{fmtIndicator(k, entity.values[k])}</b> <span className="faint">avg {fmtIndicator(k, national.values[k])}</span></span>
                 ))}
                 <ProviderFacts providers={safetyProviders} entity={entity} />
@@ -294,7 +294,7 @@ export function ReportPanel({ entity, model, country, live, theme, onClose, onSe
             <ProviderNotes providers={safetyProviders} entity={entity} />
             {safetyProviders.map((p) => <TrendBlock key={p.id} provider={p} entity={entity} model={model} country={country} theme={theme} />)}
             {safetyProviders.map((p) => <SurveyBlock key={p.id} provider={p} entity={entity} theme={theme} />)}
-            <MissingStats entity={entity} ids={['crimeIndex', 'homicide', 'propertyCrime', 'roadDeaths'].filter((k) => !isOwnValue(entity, k))} category="safety" />
+            <MissingStats entity={entity} ids={['homicide', 'propertyCrime', 'roadDeaths'].filter((k) => !isOwnValue(entity, k))} category="safety" />
           </section>
 
           <NewsSection entity={entity} country={country} model={model} />
