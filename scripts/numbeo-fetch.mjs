@@ -11,7 +11,7 @@
 // Requests: robots.txt honoured, one at a time, 5 s apart, capped per run
 // (--max, default 60), stops at the first 403/429. Numbeo's terms restrict
 // automated collection and republication; check them (or use the Numbeo API) first.
-import { CITIES } from '../src/data/argentina.js'
+import { CITIES } from '../countries/ARG/places.js'
 import { parseCountryTable, robotsAllows } from './numbeo/parse.mjs'
 import { loadManifest, readPage, record, saveManifest } from './numbeo/store.mjs'
 import { build, cityPath, COUNTRY_TABLES, matchCity } from './numbeo-build.mjs'
@@ -80,7 +80,7 @@ async function main() {
       if (html) parseCountryTable(html).forEach((r) => r.slug && slugs.add(r.slug))
     }
     // Cities we know the exact Numbeo page for (e.g. Lomas de Zamora).
-    CITIES.filter((c) => c.numbeoSlug?.endsWith('-Argentina')).forEach((c) => slugs.add(c.numbeoSlug))
+    CITIES.filter((c) => c.codes.numbeo?.endsWith('-Argentina')).forEach((c) => slugs.add(c.codes.numbeo))
     if (args.probe) {
       const listed = new Set([...slugs].map((s) => matchCity(s.replace(/-Argentina$/, '').replace(/-/g, ' '))))
       CITIES.filter((c) => !listed.has(c.id)).forEach((c) => slugs.add(`${ascii(c.name)}-Argentina`))

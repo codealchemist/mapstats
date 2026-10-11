@@ -85,9 +85,9 @@ These scripts regenerate the data files shipped with the app. The app itself nev
 | Command | What it does |
 |---|---|
 | `npm run geo` | Rebuild boundaries and city lists in `countries/<ISO3>/geo/` from Natural Earth, with each country's `geo` settings (`NE_DIR=/path/to/natural-earth npm run geo -- ARG`; no country = all) |
-| `npm run snic:import` | Import official SNIC crime statistics into `src/data/snic-argentina.json` (see the header of `scripts/snic-import.mjs`) |
+| `npm run snic:import` | Import official SNIC crime statistics into `countries/ARG/data/snic.json` (see the header of `scripts/snic-import.mjs`) |
 | `npm run numbeo:fetch` | Download the Numbeo pages that were never requested (each page is fetched at most once), then build |
-| `npm run numbeo:build` | Rebuild `src/data/numbeo-argentina.json` from the stored pages, offline |
+| `npm run numbeo:build` | Rebuild `countries/ARG/data/numbeo.json` from the snapshot, values copied by hand and the stored pages, offline |
 
 ## Project structure
 

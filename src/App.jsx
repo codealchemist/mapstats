@@ -62,16 +62,16 @@ export default function App() {
   const { climate, aqi, quakes, uv, flood } = live
   const liveData = useMemo(() => ({ climate, aqi, quakes, uv, flood }), [climate, aqi, quakes, uv, flood])
   const model = useMemo(
-    () => (data.geo ? buildEntities({ country, provincesGeo: data.geo, cities: data.cities, live: liveData, weights, sourceMode }) : null),
-    [country, data.geo, data.cities, liveData, weights, sourceMode],
+    () => (data.geo ? buildEntities({ provincesGeo: data.geo, cities: data.cities, datasets: data.datasets, live: liveData, weights, sourceMode }) : null),
+    [data.geo, data.cities, data.datasets, liveData, weights, sourceMode],
   )
 
   // Ad-hoc (searched) places are rescored when weights change.
   const adHoc = useMemo(() => {
     if (selected?.type !== 'adhoc') return null
     const provinceEntity = model?.provinces.find((p) => p.id === selected.input.provinceId)
-    return adHocEntity({ ...selected.input, provinceEntity, country, weights, sourceMode, dist: model?.dist })
-  }, [selected, model, country, weights, sourceMode])
+    return adHocEntity({ ...selected.input, provinceEntity, weights, sourceMode, dist: model?.dist })
+  }, [selected, model, weights, sourceMode])
 
   const adHocPoint = useMemo(() => adHoc && { lat: adHoc.lat, lon: adHoc.lon }, [adHoc?.lat, adHoc?.lon]) // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -176,10 +176,10 @@ export default function App() {
     if (!sel || !model) return null
     if (sel.type === 'adhoc') {
       const provinceEntity = model.provinces.find((p) => p.id === sel.input.provinceId)
-      return adHocEntity({ ...sel.input, provinceEntity, country, weights, sourceMode, dist: model.dist })
+      return adHocEntity({ ...sel.input, provinceEntity, weights, sourceMode, dist: model.dist })
     }
     return (sel.type === 'city' ? model.cities : model.provinces).find((e) => e.id === sel.id) || null
-  }), [compare, model, country, weights, sourceMode])
+  }), [compare, model, weights, sourceMode])
 
   const addToCompare = useCallback((sel, slot) => {
     if (!sel) return

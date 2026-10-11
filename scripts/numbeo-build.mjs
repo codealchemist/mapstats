@@ -1,16 +1,19 @@
-// Builds src/data/numbeo-argentina.json from locally stored Numbeo pages.
-// Never touches the network: safe to run as often as you like.
+// Builds countries/ARG/data/numbeo.json from the hand-entered snapshot, values copied by hand and locally
+// stored Numbeo pages. Never touches the network: safe to run as often as you like.
 //
 //   npm run numbeo:build
 import fs from 'node:fs'
 import path from 'node:path'
 import { pathToFileURL } from 'node:url'
-import { CITIES } from '../src/data/argentina.js'
+import { CITIES } from '../countries/ARG/places.js'
+import { toDataset } from '../countries/ARG/providers/numbeo/dataset.mjs'
 import { fold, parseCityCrime, parseCountryTable } from './numbeo/parse.mjs'
 import { loadManifest, readPage } from './numbeo/store.mjs'
 
-const OUT = path.resolve('src/data/numbeo-argentina.json')
-const MANUAL = path.resolve('src/data/numbeo-manual.json')
+const OUT = path.resolve('countries/ARG/data/numbeo.json')
+const INPUTS = path.resolve('countries/ARG/providers/numbeo')
+const MANUAL = path.join(INPUTS, 'manual.json')
+const SNAPSHOT = path.join(INPUTS, 'snapshot.json')
 
 export const COUNTRY_TABLES = ['/quality-of-life/country_result.jsp?country=Argentina', '/crime/country_result.jsp?country=Argentina']
 export const cityPath = (slug) => `/crime/in/${slug}`
@@ -53,10 +56,11 @@ export function build({ quiet = false } = {}) {
   }
 
   const result = { source: 'https://www.numbeo.com', builtFrom: 'data/numbeo (local store)', cities: [...out.values()].sort((a, b) => a.slug.localeCompare(b.slug)) }
-  fs.writeFileSync(OUT, JSON.stringify(result, null, 2) + '\n')
+  const snapshot = JSON.parse(fs.readFileSync(SNAPSHOT, 'utf8')).cities
+  fs.writeFileSync(OUT, JSON.stringify(toDataset({ snapshot, stored: result.cities }), null, 1) + '\n')
   if (!quiet) {
     const unmatched = result.cities.filter((c) => !c.cityId).map((c) => c.name || c.slug)
-    console.log(`Wrote ${result.cities.length} cities to ${path.relative(process.cwd(), OUT)} (${cities.size} from stored pages, ${manual.length} manual)`)
+    console.log(`Wrote ${path.relative(process.cwd(), OUT)}: ${snapshot.length} snapshot cities, ${result.cities.length} stored (${cities.size} from stored pages, ${manual.length} copied by hand)`)
     if (unmatched.length) console.log(`Not in MapStats' city list (add coordinates to include them): ${unmatched.join(', ')}`)
   }
   return result

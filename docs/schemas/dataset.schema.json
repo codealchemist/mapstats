@@ -4,29 +4,63 @@
   "title": "MapStats country dataset",
   "description": "Output of a provider prefill (countries/<ISO3>/data/<provider>.json). See docs/architecture.md section 4.4. Indicator ids, place ids and value ranges are checked against the catalogue and geo by `npm run country:check`, beyond this schema.",
   "type": "object",
-  "required": ["schema", "provider", "country", "generatedAt", "period", "origin", "values"],
+  "required": [
+    "schema",
+    "country",
+    "generatedAt",
+    "period",
+    "origin",
+    "values"
+  ],
   "additionalProperties": false,
   "properties": {
-    "schema": { "const": 1 },
+    "schema": {
+      "const": 1
+    },
     "provider": {
-      "description": "Global provider id (e.g. \"numbeo\") or country provider id namespaced by ISO3 (e.g. \"ARG/snic\").",
+      "description": "Provider of every value: a global provider id (e.g. \"numbeo\") or a country provider id namespaced by ISO3 (e.g. \"ARG/snic\"). Use `providers` instead for a compilation citing a provider per indicator.",
       "type": "string",
       "pattern": "^([A-Z]{3}/)?[a-z0-9][a-z0-9-]*$"
     },
-    "country": { "type": "string", "pattern": "^[A-Z]{3}$" },
-    "generatedAt": { "type": "string", "format": "date-time" },
+    "providers": {
+      "description": "Indicator id → provider id, for datasets compiled from several publications (e.g. hand-entered provincial statistics).",
+      "type": "object",
+      "additionalProperties": {
+        "type": "string",
+        "pattern": "^([A-Z]{3}/)?[a-z0-9][a-z0-9-]*$"
+      }
+    },
+    "country": {
+      "type": "string",
+      "pattern": "^[A-Z]{3}$"
+    },
+    "generatedAt": {
+      "type": "string",
+      "format": "date-time"
+    },
     "period": {
       "type": "object",
-      "required": ["latest"],
+      "required": [
+        "latest"
+      ],
       "additionalProperties": false,
       "properties": {
-        "latest": { "description": "Latest year the values refer to.", "type": "integer", "minimum": 1900 },
-        "aggregation": { "description": "How values were aggregated over time, e.g. \"mean of 2023–2025\".", "type": "string" }
+        "latest": {
+          "description": "Latest year the values refer to.",
+          "type": "integer",
+          "minimum": 1900
+        },
+        "aggregation": {
+          "description": "How values were aggregated over time, e.g. \"mean of 2023–2025\".",
+          "type": "string"
+        }
       }
     },
     "origin": {
       "type": "object",
-      "required": ["files"],
+      "required": [
+        "files"
+      ],
       "additionalProperties": false,
       "properties": {
         "files": {
@@ -34,18 +68,43 @@
           "minItems": 1,
           "items": {
             "type": "object",
-            "required": ["name", "sha256", "retrievedAt"],
+            "required": [
+              "name"
+            ],
             "additionalProperties": false,
             "properties": {
-              "name": { "type": "string" },
-              "url": { "description": "Omitted for files obtained by hand; then `note` says how.", "type": "string", "format": "uri" },
-              "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
-              "retrievedAt": { "type": "string", "format": "date" },
-              "note": { "type": "string" }
+              "name": {
+                "type": "string"
+              },
+              "url": {
+                "description": "Omitted for files obtained by hand; then `note` says how.",
+                "type": "string",
+                "format": "uri"
+              },
+              "sha256": {
+                "description": "SHA-256 of the file (full, or its first 16 hex digits); null for files not kept as such (hand-entered values, web pages).",
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "pattern": "^[a-f0-9]{16,64}$"
+              },
+              "retrievedAt": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "format": "date"
+              },
+              "note": {
+                "type": "string"
+              }
             }
           }
         },
-        "notes": { "type": "string" }
+        "notes": {
+          "type": "string"
+        }
       }
     },
     "quality": {
@@ -58,29 +117,58 @@
       "minProperties": 1,
       "additionalProperties": false,
       "properties": {
-        "national": { "$ref": "#/$defs/placeValues" },
-        "region": { "$ref": "#/$defs/placeValues" },
-        "subregion": { "$ref": "#/$defs/placeValues" },
-        "city": { "$ref": "#/$defs/placeValues" }
+        "national": {
+          "$ref": "#/$defs/placeValues"
+        },
+        "region": {
+          "$ref": "#/$defs/placeValues"
+        },
+        "subregion": {
+          "$ref": "#/$defs/placeValues"
+        },
+        "city": {
+          "$ref": "#/$defs/placeValues"
+        }
       }
     },
     "names": {
       "description": "Display names for places the geo files don't name (usually subregions).",
       "type": "object",
-      "additionalProperties": { "type": "object", "additionalProperties": { "type": "string" } }
+      "additionalProperties": {
+        "type": "object",
+        "additionalProperties": {
+          "type": "string"
+        }
+      }
     },
     "series": {
       "description": "Yearly values aligned with `years`; drives trend charts.",
       "type": "object",
-      "required": ["years"],
+      "required": [
+        "years"
+      ],
       "properties": {
-        "years": { "type": "array", "items": { "type": "integer" }, "minItems": 2 }
+        "years": {
+          "type": "array",
+          "items": {
+            "type": "integer"
+          },
+          "minItems": 2
+        }
       },
       "additionalProperties": {
         "type": "object",
         "additionalProperties": {
           "type": "object",
-          "additionalProperties": { "type": "array", "items": { "type": ["number", "null"] } }
+          "additionalProperties": {
+            "type": "array",
+            "items": {
+              "type": [
+                "number",
+                "null"
+              ]
+            }
+          }
         }
       }
     },
@@ -94,9 +182,28 @@
       "type": "object",
       "additionalProperties": {
         "type": "object",
-        "propertyNames": { "pattern": "^[a-z][A-Za-z0-9]*$" },
-        "additionalProperties": { "type": ["number", "null"] }
+        "propertyNames": {
+          "pattern": "^[a-z][A-Za-z0-9]*$"
+        },
+        "additionalProperties": {
+          "type": [
+            "number",
+            "null"
+          ]
+        }
       }
     }
-  }
+  },
+  "oneOf": [
+    {
+      "required": [
+        "provider"
+      ]
+    },
+    {
+      "required": [
+        "providers"
+      ]
+    }
+  ]
 }

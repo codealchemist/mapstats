@@ -8,14 +8,13 @@
 //    rewards nor punishes a place. `coverage` reports how much data was used.
 
 import { CATEGORIES, INDICATORS, indicatorById } from '../data/metrics.js'
-import { PROVINCES as AR_PROVINCES, CITIES as AR_CITIES, SNIC } from '../data/argentina.js'
 import { haversineKm, labelPoint } from './geo.js'
 import { familyOf, isMultiSource } from '../core/providers.js'
 import { sourceWeight, percentile } from './sourceWeights.js'
-import { isCurated } from '../core/countries.js'
+import { resolvePlaces, weightedMean } from '../core/resolve.js'
+import { legacyFields } from './legacy.js'
 
 const SCORED = INDICATORS.filter((i) => i.better)
-const NUMBEO_KEYS = ['crimeIndex', 'healthcareIndex', 'pollutionIndex', 'trafficIndex', 'costOfLiving', 'purchasingPower', 'qualityOfLife']
 const LIVE_KEYS = ['climateComfort', 'meanTemp', 'annualPrecip', 'snowfall', 'sunshine', 'elevation', 'aqi', 'quakes', 'tempMaxAnnual', 'tempMinAnnual', 'uvMean', 'floodWatch', 'floodPeakPast']
 
 // True when the entity's value for `id` was measured for the entity itself (not copied from its province).
@@ -148,19 +147,7 @@ function distributions(entities) {
   return dist
 }
 
-const ctxOf = (e, dist) => ({ type: e.type === 'national' ? 'province' : e.type, snic: e.snic, numbeo: e.numbeo, dist })
-
-const weightedMean = (items, key) => {
-  let w = 0, s = 0
-  for (const it of items) {
-    const v = it.values[key]
-    if (v == null) continue
-    const k = it.values.pop || 1
-    w += k
-    s += v * k
-  }
-  return w ? s / w : null
-}
+const ctxOf = (e, dist) => ({ type: e.type === 'national' ? 'province' : e.type, details: e.details, dist })
 
 export function countQuakesNear(quakes, lat, lon, km = 200) {
   if (!quakes) return null
@@ -171,7 +158,7 @@ export function countQuakesNear(quakes, lat, lon, km = 200) {
 
 // Points that need live data: every city, plus provinces that have no city to aggregate from.
 export function livePoints(provincesGeo, cities) {
-  const withCities = new Set(cities.map((c) => c.province))
+  const withCities = new Set(cities.map((c) => c.region))
   const provPts = provincesGeo.features
     .filter((f) => !withCities.has(f.properties.id))
     .map((f) => {
@@ -200,61 +187,37 @@ export function liveValuesFor(id, lat, lon, live) {
   }
 }
 
-// Base (curated) data for cities in a country. Non-curated countries use Natural Earth cities.
-export function baseCities(country, neCities) {
-  return isCurated(country) && country.iso3 === 'ARG' ? AR_CITIES : neCities
-}
+/**
+ * Scored places of a country.
+ * @param provincesGeo  region boundaries (FeatureCollection, properties.id / name)
+ * @param cities        places: the country's curated list or Natural Earth's ({ id, name, region, lat, lon, pop, codes })
+ * @param datasets      the country's datasets (countries/<ISO3>/data), see src/core/resolve.js
+ * @param live          live layers (useLiveData)
+ */
+export function buildEntities({ provincesGeo, cities, datasets = [], live, weights, sourceMode = 'combined' }) {
+  const base = resolvePlaces({ regionIds: provincesGeo.features.map((f) => f.properties.id), places: cities, datasets })
 
-export function buildEntities({ country, provincesGeo, cities, live, weights, sourceMode = 'combined' }) {
-  const curated = country.iso3 === 'ARG' ? AR_PROVINCES : {}
-
-  // Province-level Numbeo baseline (population-weighted over cities Numbeo covers), so
-  // uncovered towns are compared on the same indicators instead of silently skipping them.
-  const numbeoBaseline = {}
-  for (const c of cities) {
-    if (!NUMBEO_KEYS.some((k) => c[k] != null)) continue
-    const b = (numbeoBaseline[c.province] ||= [])
-    b.push({ values: { ...Object.fromEntries(NUMBEO_KEYS.map((k) => [k, c[k] ?? null])), pop: c.pop } })
-  }
-
-  // Cities: province baseline -> city-specific (Numbeo) -> live.
+  // Cities: dataset values (own or borrowed from the region) + live.
   const cityEntities = cities.map((c) => {
-    const prov = curated[c.province] || {}
-    const values = { ...prov, pop: c.pop }
-    const inherited = new Set(Object.keys(prov).filter((k) => k !== 'pop'))
-    for (const k of NUMBEO_KEYS) {
-      if (c[k] != null) values[k] = c[k]
-      else if (numbeoBaseline[c.province]) {
-        values[k] = weightedMean(numbeoBaseline[c.province], k)
-        if (values[k] != null) inherited.add(k)
-      }
-    }
-    // Values measured for the city itself (e.g. its SNIC department) override the province baseline.
-    for (const [k, v] of Object.entries(c.ownValues || {})) {
-      values[k] = v
-      inherited.delete(k)
-    }
+    const { values, inherited, details } = base.cities[c.id]
     const lv = liveValuesFor(c.id, c.lat, c.lon, live)
     for (const k of LIVE_KEYS) values[k] = lv[k]
     return {
-      type: 'city', id: c.id, name: c.name, province: c.province, lat: c.lat, lon: c.lon,
-      capital: c.capital, numbeoSlug: c.numbeoSlug, values, inherited, snic: c.snic || null,
-      numbeo: c.numbeoSource ? { source: c.numbeoSource, fetchedAt: c.numbeoFetchedAt, contributors: c.numbeoContributors, survey: c.numbeoSurvey, safetyIndex: c.safetyIndex ?? null } : null,
+      type: 'city', id: c.id, name: c.name, province: c.region, lat: c.lat, lon: c.lon,
+      capital: c.capital, codes: c.codes || {}, values, inherited, details,
     }
   })
 
-  // Provinces: curated values, Numbeo + live aggregated from their cities (population-weighted).
+  // Regions: dataset values + live aggregated from their cities (population-weighted), or their own point.
   const provEntities = provincesGeo.features.map((f) => {
     const id = f.properties.id
     const [lon, lat] = labelPoint(f)
     const own = cityEntities.filter((c) => c.province === id)
-    const values = { ...(curated[id] || {}) }
-    if (values.pop) values.pop *= 1000
+    const r = base.regions[id]
+    const values = { ...r.values }
     for (const k of LIVE_KEYS) values[k] = own.length ? weightedMean(own, k) : null
-    for (const k of NUMBEO_KEYS) values[k] = numbeoBaseline[id] ? weightedMean(numbeoBaseline[id], k) : null
     if (!own.length) Object.assign(values, liveValuesFor(`prov:${id}`, lat, lon, live))
-    const snic = country.iso3 === 'ARG' && SNIC.provinces?.[id] ? { level: 'province', ...SNIC.provinces[id] } : null
-    return { type: 'province', id, name: f.properties.name, lat, lon, values, cityCount: own.length, snic }
+    return { type: 'province', id, name: f.properties.name, lat, lon, values, cityCount: own.length, details: r.details, inheritable: r.inheritable }
   })
 
   const all = [...provEntities, ...cityEntities]
@@ -275,8 +238,10 @@ export function buildEntities({ country, provincesGeo, cities, live, weights, so
   cityEntities.forEach((c) => (c.provinceName = provinceName[c.province] || ''))
 
   const national = nationalAverage(provEntities, weights, sourceMode, dist)
-  if (country.iso3 === 'ARG' && SNIC.national) national.snic = { ...SNIC.national, years: SNIC.years }
-  return { provinces: provEntities, cities: cityEntities, national, dist, ranges: valueRanges(all), snicOrigin: country.iso3 === 'ARG' ? SNIC.origin || null : null }
+  national.details = base.national.details
+  const model = { provinces: provEntities, cities: cityEntities, national, dist, ranges: valueRanges(all), datasets: base.meta }
+  legacyFields(model)
+  return model
 }
 
 function rank(list) {
@@ -298,10 +263,9 @@ function nationalAverage(provinces, weights, sourceMode, dist) {
 }
 
 // For a city typed into search that isn't in our list: score it with live data
-// (and its province's curated baseline when it falls inside the current country).
-export function adHocEntity({ place, provinceId, provinceName, provinceEntity, country, live, weights, sourceMode = 'combined', dist = null }) {
-  const prov = { ...(country.iso3 === 'ARG' ? AR_PROVINCES[provinceId] || {} : {}) }
-  for (const k of NUMBEO_KEYS) if (provinceEntity?.values[k] != null) prov[k] = provinceEntity.values[k]
+// (and what its region's cities borrow from it, when it falls inside the current country).
+export function adHocEntity({ place, provinceId, provinceName, provinceEntity, live, weights, sourceMode = 'combined', dist = null }) {
+  const prov = { ...provinceEntity?.inheritable }
   const values = { ...prov, pop: place.pop, ...live }
   const e = {
     type: 'city', id: place.id, name: place.name, province: provinceId, provinceName: provinceName || place.admin1 || '',

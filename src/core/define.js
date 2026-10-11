@@ -90,7 +90,8 @@ export const DATA_TYPES = [
  * @property {string[]} types            DATA_TYPES ids
  * @property {string} [usedFor]          what it is used for when it provides no indicator
  * @property {(entity: object, category: string) => string | null} [urlFor]  deep link for a place
- * @property {(ctx: object) => Array<[string, number]>} [weightFactors]  extra reliability factors
+ * @property {(ctx: { type: 'city' | 'province', level?: string, detail?: object }) => Array<[string, number]>} [weightFactors]
+ *   extra reliability factors; `level` and `detail` describe this provider's data for the place (src/core/resolve.js)
  */
 
 /** @param {ProviderDef} p */

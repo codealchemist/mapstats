@@ -1,5 +1,5 @@
-// Imports official SNIC crime statistics (Ministerio de Seguridad Nacional) into
-// src/data/snic-argentina.json.
+// Imports official SNIC crime statistics (Ministerio de Seguridad Nacional) into the dataset
+// countries/ARG/data/snic.json (format: countries/ARG/providers/snic/dataset.mjs).
 //
 // 1. Download the files once from
 //    https://www.argentina.gob.ar/seguridad/estadisticascriminales/bases-de-datos
@@ -22,9 +22,10 @@ import fs from 'node:fs'
 import path from 'node:path'
 import crypto from 'node:crypto'
 import ExcelJS from 'exceljs'
+import { toDataset } from '../countries/ARG/providers/snic/dataset.mjs'
 
 const RAW = path.resolve(process.env.SNIC_RAW || 'data/snic/raw')
-const OUT = path.resolve('src/data/snic-argentina.json')
+const OUT = path.resolve('countries/ARG/data/snic.json')
 const SERIES_YEARS = 10
 
 // metric -> codes summed, measure. Sums only when every component is published.
@@ -211,7 +212,7 @@ async function main() {
     provinces: Object.fromEntries(Object.entries(store.province).map(([id, by]) => [PROV_ISO[id], { name: names.province[id], ...summarise(by, years) }])),
     departments: Object.fromEntries(Object.entries(store.department).map(([id, by]) => [id, { name: names.department[id], province: deptProv[id], ...summarise(by, years) }])),
   }
-  fs.writeFileSync(OUT, JSON.stringify(out) + '\n')
+  fs.writeFileSync(OUT, JSON.stringify(toDataset(out)) + '\n')
   console.log(`Wrote ${path.relative(process.cwd(), OUT)}: ${Object.keys(out.provinces).length} provinces, ${Object.keys(out.departments).length} departments, years ${years[0]}–${out.latestYear} (${(fs.statSync(OUT).size / 1024).toFixed(0)} KB)`)
 }
 

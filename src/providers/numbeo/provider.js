@@ -12,8 +12,8 @@ export default [
     access: 'snapshot', cadence: 'Crowd-sourced, continuously updated', scope: 'Cities worldwide', types: ['crime', 'society', 'air'],
     // Deep-link to the city's page when we know its Numbeo slug.
     urlFor: (e, category) =>
-      e?.numbeoSlug ? `https://es.numbeo.com/${category === 'safety' ? 'criminalidad' : 'calidad-de-vida'}/ciudad/${e.numbeoSlug}` : null,
-    weightFactors: ({ numbeo: n }) => {
+      e?.codes?.numbeo ? `https://es.numbeo.com/${category === 'safety' ? 'criminalidad' : 'calidad-de-vida'}/ciudad/${e.codes.numbeo}` : null,
+    weightFactors: ({ detail: n }) => {
       if (!n) return []
       const factors = []
       if (n.source === 'snapshot') factors.push(['approximate snapshot, unverified', 0.4])

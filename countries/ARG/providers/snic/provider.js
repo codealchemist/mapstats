@@ -10,11 +10,11 @@ export default [
     family: { id: 'snic', label: 'SNIC · official crime statistics', short: 'SNIC' },
     provides: ['homicide', 'propertyCrime', 'roadDeaths'],
     access: 'import', cadence: 'Annual (2000–latest year)', scope: 'Argentina · province & department', types: ['crime'],
-    weightFactors: ({ type, snic }) => {
+    weightFactors: ({ type, level, detail }) => {
       const factors = []
-      if (type === 'city' && snic?.level === 'department') factors.push(['department, not city boundary', 0.9])
-      const r = recency(snic?.latestYear)
-      if (r < 1) factors.push([`data from ${snic.latestYear}`, r])
+      if (type === 'city' && level === 'subregion') factors.push(['department, not city boundary', 0.9])
+      const r = recency(detail?.latestYear)
+      if (r < 1) factors.push([`data from ${detail.latestYear}`, r])
       return factors
     },
   }),

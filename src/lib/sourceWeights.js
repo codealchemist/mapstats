@@ -7,7 +7,7 @@ import { familyBase, familyProviders } from '../core/providers.js'
 
 /**
  * @param family  source family id
- * @param ctx     { type: 'city'|'province', snic, numbeo }
+ * @param ctx     { type: 'city'|'province', details } — details: the place's data per provider (src/core/resolve.js)
  * @param borrowed  value comes from the province, not the place itself
  * @returns { w, factors: [[label, multiplier]] }
  */
@@ -16,7 +16,10 @@ export function sourceWeight(family, ctx = {}, borrowed = false) {
   if (!base) return { w: 0, factors: [] }
   const providers = familyProviders(family)
   const factors = [[base.why, base.w]]
-  for (const p of providers) if (p.weightFactors) factors.push(...p.weightFactors(ctx))
+  for (const p of providers) {
+    const d = ctx.details?.[p.id]
+    if (p.weightFactors) factors.push(...p.weightFactors({ type: ctx.type, level: d?.level, detail: d }))
+  }
   // Families that only publish province-wide figures are discounted for a city; any other family's
   // value copied from the province is discounted as borrowed.
   const regionOnly = providers.every((p) => p.levels.every((l) => l === 'region'))
