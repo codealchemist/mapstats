@@ -2,76 +2,32 @@
 // publishes it, with the geographic level and period it refers to. Nothing here
 // is averaged across sources or borrowed from another area without saying so.
 import { INDICATORS } from '../data/metrics.js'
-import { SURVEY } from '../data/numbeoSurvey.js'
-import { providerById, providerOf, familyOf } from '../core/providers.js'
-import { isOwnValue } from './scoring.js'
-
-const NUMBEO_INDICES = [
-  ['crimeIndex', 'Crime index'], ['healthcareIndex', 'Health care index'], ['pollutionIndex', 'Pollution index'],
-  ['trafficIndex', 'Traffic commute time index'], ['costOfLiving', 'Cost of living index'],
-  ['purchasingPower', 'Purchasing power index'], ['qualityOfLife', 'Quality of life index'],
-]
-
-const SNIC_ROWS = [
-  ['homicide', 'Intentional homicide victims'], ['robbery', 'Robberies'], ['theft', 'Thefts'],
-  ['propertyCrime', 'Robberies + thefts'], ['injuries', 'Intentional injuries'], ['threats', 'Threats'],
-  ['sexualAssault', 'Rapes'], ['drugs', 'Drug law offences'], ['roadDeaths', 'Road traffic death victims'],
-]
+import { KINDS } from '../core/define.js'
+import { providerById, providerOf, providersFor, localFirst, familyOf, familyProviders } from '../core/providers.js'
 
 const POLLUTANTS = [['pm2_5', 'PM2.5'], ['pm10', 'PM10'], ['nitrogen_dioxide', 'NO₂'], ['ozone', 'O₃'], ['sulphur_dioxide', 'SO₂']]
 
 const row = (label, value, unit = '') => ({ label, value, unit })
-const SNIC = providerById('ARG/snic'), NUMBEO = providerById('numbeo')
 const src = (id) => providerById(id)
+
+// Families whose figures are only published per region and entered by hand (e.g. provincial statistics).
+const regionOnlyManual = (family) => {
+  const ps = familyProviders(family)
+  return ps.length > 0 && ps.every((p) => p.kind === 'manual' && p.levels.every((l) => l === 'region'))
+}
 
 /**
  * @returns [{ key, name, url, level, area, period, status, note, rows: [{ label, value, unit }] }]
  */
-export function valuesBySource({ entity, model, detail, quakes, live = {} }) {
+export function valuesBySource({ entity, model, country, detail, quakes, live = {} }) {
   const isCity = entity.type === 'city'
   const point = `${entity.lat.toFixed(3)}, ${entity.lon.toFixed(3)}`
   const groups = []
 
-  // ---- SNIC (official crime statistics) ----
-  const snic = entity.snic
-  if (snic) {
-    const y = snic.latestYear
-    const span = `${y - 2}–${String(y).slice(2)}`
-    groups.push({
-      key: 'SNIC', name: SNIC.name, url: SNIC.url,
-      level: snic.level === 'department' ? 'Department (partido)' : snic.level === 'city' ? 'City' : 'Province',
-      area: snic.level === 'department' ? `${snic.name} (INDEC ${snic.code})` : snic.name,
-      period: `${y} (+ ${span} average)`,
-      status: /mirror/i.test(model.snicOrigin || '') ? 'Unofficial mirror copy' : 'Official download',
-      rows: SNIC_ROWS.flatMap(([k, label]) => [
-        row(`${label}, ${y}`, snic.counts?.[k], 'count'),
-        row(`${label}, ${y}`, snic.latest[k], 'per 100k'),
-        row(`${label}, ${span} average`, snic.avg3[k], 'per 100k'),
-      ]).filter((r) => r.value != null),
-      note: `Rates as published by SNIC, rounded to 2 decimals. Counts are exact.${model.snicOrigin ? ` Files: ${model.snicOrigin}.` : ''}`,
-    })
-  } else if (isCity) {
-    groups.push({ key: 'SNIC', name: SNIC.name, url: SNIC.url, rows: [], note: `No SNIC department matched to ${entity.name}.` })
-  }
-
-  // ---- Numbeo (crowd-sourced) ----
-  const nb = entity.numbeo
-  if (isCity) {
-    const rows = nb
-      ? [
-          ...NUMBEO_INDICES.filter(([k]) => isOwnValue(entity, k)).map(([k, label]) => row(label, entity.values[k])),
-          ...(nb.safetyIndex != null ? [row('Safety index', nb.safetyIndex)] : []),
-          ...SURVEY.filter(([k]) => nb.survey?.[k] != null).map(([k, label]) => row(label, nb.survey[k], '0–100')),
-          ...(nb.contributors != null ? [row('Contributors', nb.contributors)] : []),
-        ]
-      : []
-    groups.push({
-      key: 'Numbeo', name: 'Numbeo', url: NUMBEO.urlFor(entity, 'safety') || NUMBEO.url,
-      level: 'City', area: entity.name, period: nb?.fetchedAt || null,
-      status: !nb ? null : nb.source === 'scraped' ? 'Downloaded from numbeo.com' : nb.source === 'snapshot' ? 'Approximate snapshot, not verified' : nb.source,
-      rows,
-      note: rows.length ? null : `No Numbeo data stored for ${entity.name}.`,
-    })
+  // ---- The country's datasets: each provider describes its own figures ----
+  for (const p of localFirst(providersFor(country))) {
+    const g = p.provenance?.({ entity, detail: entity.details?.[p.id], meta: model.datasets?.[p.id], country })
+    if (g) groups.push({ key: p.short, name: p.name, url: p.urlFor?.(entity, 'safety') || p.url, ...g })
   }
 
   // ---- Open-Meteo: climate (ERA5) ----
@@ -151,14 +107,14 @@ export function valuesBySource({ entity, model, detail, quakes, live = {} }) {
     })
   }
 
-  // ---- Statistics only available for the whole province (cities) / the province's own figures ----
-  const provRows = INDICATORS.filter((i) => familyOf(i.id) === 'provincial')
+  // ---- Statistics only available for the whole region (cities) / the region's own figures ----
+  const provRows = INDICATORS.filter((i) => regionOnlyManual(familyOf(i.id)))
     .filter((i) => (isCity ? entity.inherited?.has(i.id) : entity.values[i.id] != null))
     .map((i) => ({ ...row(i.label, entity.values[i.id], i.unit), source: providerOf(i.id).short }))
   if (provRows.length) {
     groups.push({
-      key: 'province', name: isCity ? `Province-level statistics (${entity.provinceName})` : 'Provincial statistics',
-      level: 'Province', area: isCity ? entity.provinceName : entity.name, status: 'Hand-entered approximations',
+      key: 'province', name: `${country.regionLabel}-level statistics${isCity ? ` (${entity.provinceName})` : ''}`,
+      level: country.regionLabel, area: isCity ? entity.provinceName : entity.name, status: `${KINDS.manual.why[0].toUpperCase()}${KINDS.manual.why.slice(1)}`,
       rows: provRows,
       note: isCity
         ? `Not published for ${entity.name}; shown for transparency because the score uses them. Each row names its reference source.`

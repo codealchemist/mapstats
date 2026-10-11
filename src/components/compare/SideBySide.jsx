@@ -2,11 +2,10 @@ import { useEffect, useRef } from 'react'
 import { Chart } from 'react-chartjs-2'
 import { Check, Focus } from 'lucide-react'
 import { CATEGORIES, INDICATORS } from '../../data/metrics.js'
-import { SURVEY } from '../../data/numbeoSurvey.js'
 import { baseOptions, barStyle, lineStyle } from '../charts/theme.js'
 import { fmtIndicator, fmtScore, MONTHS } from '../../lib/format.js'
 import { meterScale, isOwnValue } from '../../lib/scoring.js'
-import { providerOf } from '../../core/providers.js'
+import { providerOf, PROVIDERS, localFirst } from '../../core/providers.js'
 import { floodLevel } from '../mapLayers.js'
 import { matches } from './match.js'
 
@@ -164,21 +163,28 @@ function buildRows(filled, national, ranges) {
   for (const c of CATEGORIES) {
     const extra = []
     if (c.id === 'safety') {
-      const years = national.snic?.years || []
-      for (const [metric, label] of [['homicide', 'Homicide rate by year'], ['propertyCrime', 'Robberies + thefts by year']]) {
-        if (!filled.some(({ e }) => e.snic)) break
-        const scale = range(filled.map(({ e }) => e.snic?.series[metric] || []), { zero: true })
-        extra.push({
-          key: `snic:${metric}`, label, sub: 'per 100,000 · SNIC', chart: true, focus: `snic:${metric}`, na: 'No SNIC data',
-          cell: ({ e, i }, tk) => e.snic && <MiniChart cfg={mini(tk, { labels: years, data: e.snic.series[metric], color: tk.series[i], scale })} />,
-        })
-      }
-      const keys = SURVEY.filter(([k]) => filled.some(({ e }) => e.numbeo?.survey?.[k] != null))
-      if (keys.length) {
-        extra.push({
-          key: 'survey', label: 'Numbeo crime survey', sub: '0–100 · higher = worse, except walking safety', chart: true, focus: 'survey', na: 'No Numbeo survey',
-          cell: ({ e, i }, tk) => e.numbeo?.survey && <MiniChart height={keys.length * 18 + 30} cfg={mini(tk, { type: 'bar', horizontal: true, labels: keys.map(([, l]) => l.replace(/^(Worries|Problem): /, '')), data: keys.map(([k]) => e.numbeo.survey[k] ?? null), color: tk.series[i], scale: { min: 0, max: 100 } })} />,
-        })
+      // Yearly series and survey answers from the providers that publish them (their report metadata).
+      for (const p of localFirst(PROVIDERS).filter((x) => x.report?.category === c.id)) {
+        const of = (e) => e.details?.[p.id]
+        const t = p.report.trends
+        const years = national.details?.[p.id]?.years || []
+        if (t && filled.some(({ e }) => of(e)?.series)) {
+          for (const chart of t.charts.filter((x) => !x.focusOnly)) {
+            const scale = range(filled.map(({ e }) => of(e)?.series?.[chart.indicator] || []), { zero: true })
+            extra.push({
+              key: `trend:${p.id}:${chart.indicator}`, label: `${chart.title} by year`, sub: `${t.unit} · ${p.short}`, chart: true, focus: `trend:${p.id}:${chart.indicator}`, na: `No ${p.short} data`,
+              cell: ({ e, i }, tk) => of(e)?.series && <MiniChart cfg={mini(tk, { labels: years, data: of(e).series[chart.indicator], color: tk.series[i], scale })} />,
+            })
+          }
+        }
+        const s = p.report.survey
+        const keys = s ? s.questions.filter(([k]) => filled.some(({ e }) => of(e)?.survey?.[k] != null)) : []
+        if (keys.length) {
+          extra.push({
+            key: `survey:${p.id}`, label: s.compare.row, sub: s.compare.sub, chart: true, focus: `survey:${p.id}`, na: `No ${p.short} survey`,
+            cell: ({ e, i }, tk) => of(e)?.survey && <MiniChart height={keys.length * 18 + 30} cfg={mini(tk, { type: 'bar', horizontal: true, labels: keys.map(([, l]) => l.replace(/^(Worries|Problem): /, '')), data: keys.map(([k]) => of(e).survey[k] ?? null), color: tk.series[i], scale: { min: 0, max: 100 } })} />,
+          })
+        }
       }
     }
     if (c.id === 'hazards' && filled.some(({ flood }) => flood)) {

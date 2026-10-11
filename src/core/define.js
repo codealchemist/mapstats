@@ -90,6 +90,13 @@ export const DATA_TYPES = [
  * @property {string[]} types            DATA_TYPES ids
  * @property {string} [usedFor]          what it is used for when it provides no indicator
  * @property {(entity: object, category: string) => string | null} [urlFor]  deep link for a place
+ * @property {object} [report]            how the report and compare views present its details (src/components/report/)
+ *   { category, label, trends: { group, unit, charts: [{ indicator, title, subtitle, digits, focusOnly }] },
+ *     latestTable: { title, unit, rows }, footnote, facts: [{ key, label, digits }], note(detail, entity),
+ *     survey: { heading, status(detail), questions, saferHigh, worse, safer, compare } }
+ * @property {(e: object) => Array<{ label: string, url: string }>} [links]  external pages about a place
+ * @property {(ctx: { entity: object, detail?: object, meta?: object, country: object }) => object | null} [provenance]
+ *   its group in "values by source": { level, area, period, status, rows: [{ label, value, unit }], note }
  * @property {(ctx: { type: 'city' | 'province', level?: string, detail?: object }) => Array<[string, number]>} [weightFactors]
  *   extra reliability factors; `level` and `detail` describe this provider's data for the place (src/core/resolve.js)
  */

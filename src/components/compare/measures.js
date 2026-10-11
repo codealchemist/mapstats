@@ -2,7 +2,7 @@
 // selected places at once; colour always follows the place's slot.
 // places: [{ e: entity, i: slot index, d: detail { climate, air, uv }, flood }]
 import { CATEGORIES, INDICATORS } from '../../data/metrics.js'
-import { SURVEY } from '../../data/numbeoSurvey.js'
+import { PROVIDERS, localFirst } from '../../core/providers.js'
 import { baseOptions, barStyle, lineStyle } from '../charts/theme.js'
 import { MONTHS } from '../../lib/format.js'
 import { isOwnValue } from '../../lib/scoring.js'
@@ -49,14 +49,30 @@ const monthly = (field, label, unit, kind = 'line') => ({
     : groupedBars({ places, tk, labels: MONTHS, yTitle: unit, series: (p) => p.d.climate?.monthly.map((m) => m[field]) })),
 })
 
-const snicTrend = (metric, label) => ({
-  id: `snic:${metric}`, group: 'Crime trends (SNIC)', label, unit: 'per 100,000',
-  available: (ps) => ps.some((p) => p.e.snic),
+// Yearly series a provider publishes (its report.trends), e.g. official crime rates.
+const trendMeasures = (provider) => (provider.report?.trends?.charts || []).map((c) => ({
+  id: `trend:${provider.id}:${c.indicator}`, group: `${provider.report.trends.group} (${provider.short})`, label: `${c.title} by year`, unit: provider.report.trends.unit,
+  available: (ps) => ps.some((p) => p.e.details?.[provider.id]?.series),
   build: ({ places, tk, national }) => linePerPlace({
-    places, tk, labels: national.snic?.years || [], yTitle: 'per 100,000', zero: true, pointRadius: 3,
-    series: (p) => p.e.snic?.series[metric],
+    places, tk, labels: national.details?.[provider.id]?.years || [], yTitle: provider.report.trends.unit, zero: true, pointRadius: 3,
+    series: (p) => p.e.details?.[provider.id]?.series?.[c.indicator],
   }),
-})
+}))
+
+// Survey answers a provider publishes (its report.survey).
+const surveyMeasures = (provider) => {
+  const s = provider.report?.survey
+  if (!s) return []
+  const answers = (p) => p.e.details?.[provider.id]?.survey
+  return [{
+    id: `survey:${provider.id}`, group: s.compare.group, label: s.compare.label, unit: '0–100',
+    available: (ps) => ps.some(answers),
+    build: ({ places, tk }) => {
+      const keys = s.questions.filter(([k]) => places.some((p) => answers(p)?.[k] != null))
+      return groupedBars({ places, tk, labels: keys.map(([, l]) => l), horizontal: true, max: 100, series: (p) => answers(p) && keys.map(([k]) => answers(p)[k] ?? null) })
+    },
+  }]
+}
 
 export function buildMeasures() {
   const list = [
@@ -70,17 +86,8 @@ export function buildMeasures() {
       available: () => true,
       build: ({ places, tk }) => groupedBars({ places, tk, labels: CATEGORIES.map((c) => c.label), series: (p) => CATEGORIES.map((c) => r1(p.e.categories[c.id])), horizontal: true, max: 100 }),
     },
-    snicTrend('homicide', 'Homicide rate by year'),
-    snicTrend('propertyCrime', 'Robberies + thefts by year'),
-    snicTrend('roadDeaths', 'Road deaths by year'),
-    {
-      id: 'survey', group: 'Crime survey (Numbeo)', label: 'Crime perception survey', unit: '0–100',
-      available: (ps) => ps.some((p) => p.e.numbeo?.survey),
-      build: ({ places, tk }) => {
-        const keys = SURVEY.filter(([k]) => places.some((p) => p.e.numbeo?.survey?.[k] != null))
-        return groupedBars({ places, tk, labels: keys.map(([, l]) => l), horizontal: true, max: 100, series: (p) => p.e.numbeo?.survey && keys.map(([k]) => p.e.numbeo.survey[k] ?? null) })
-      },
-    },
+    ...localFirst(PROVIDERS).flatMap(trendMeasures),
+    ...localFirst(PROVIDERS).flatMap(surveyMeasures),
     monthly('tmax', 'Average daily maximum', '°C'),
     monthly('tmin', 'Average daily minimum', '°C'),
     monthly('precip', 'Precipitation', 'mm', 'bar'),

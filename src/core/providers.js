@@ -18,6 +18,9 @@ export function providersFor(country) {
   return [...ALWAYS_ON.map(providerById), ...listed]
 }
 
+/** The country's own providers first (local, usually official, data), then global ones. */
+export const localFirst = (providers) => [...providers.filter((p) => p.country), ...providers.filter((p) => !p.country)]
+
 // Indicator → the provider that supplies it. Each indicator has one provider today; when two countries
 // supply the same indicator through different providers, this becomes country-scoped.
 const indicatorProvider = {}

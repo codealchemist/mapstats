@@ -5,7 +5,7 @@ import { PROVIDERS, providerOf, familyOf, familyBase } from '../core/providers.j
 import { ACCESS, DATA_TYPES } from '../core/define.js'
 import { fold } from '../lib/format.js'
 
-export function SourcesView({ onClose, snicOrigin }) {
+export function SourcesView({ onClose, datasets = {} }) {
   const [q, setQ] = useState('')
   const [access, setAccess] = useState('all')
 
@@ -82,7 +82,7 @@ export function SourcesView({ onClose, snicOrigin }) {
                       {s.scope && <><dt>Coverage</dt><dd>{s.scope}</dd></>}
                       {s.cadence && <><dt>Updates</dt><dd>{s.cadence}</dd></>}
                       {s.weight != null && <><dt>Reliability</dt><dd>×{s.weight.toFixed(1)} in the weighted score</dd></>}
-                      {s.id === 'ARG/snic' && snicOrigin && <><dt>Files</dt><dd>{snicOrigin}</dd></>}
+                      {datasets[s.id]?.origin?.notes && <><dt>Origin</dt><dd>{datasets[s.id].origin.notes}</dd></>}
                     </dl>
                     {(s.indicators.length > 0 || s.usedFor) && (
                       <div className="src-used">

@@ -12,7 +12,6 @@ import { haversineKm, labelPoint } from './geo.js'
 import { familyOf, isMultiSource } from '../core/providers.js'
 import { sourceWeight, percentile } from './sourceWeights.js'
 import { resolvePlaces, weightedMean } from '../core/resolve.js'
-import { legacyFields } from './legacy.js'
 
 const SCORED = INDICATORS.filter((i) => i.better)
 const LIVE_KEYS = ['climateComfort', 'meanTemp', 'annualPrecip', 'snowfall', 'sunshine', 'elevation', 'aqi', 'quakes', 'tempMaxAnnual', 'tempMinAnnual', 'uvMean', 'floodWatch', 'floodPeakPast']
@@ -239,9 +238,7 @@ export function buildEntities({ provincesGeo, cities, datasets = [], live, weigh
 
   const national = nationalAverage(provEntities, weights, sourceMode, dist)
   national.details = base.national.details
-  const model = { provinces: provEntities, cities: cityEntities, national, dist, ranges: valueRanges(all), datasets: base.meta }
-  legacyFields(model)
-  return model
+  return { provinces: provEntities, cities: cityEntities, national, dist, ranges: valueRanges(all), datasets: base.meta }
 }
 
 function rank(list) {

@@ -6,6 +6,7 @@ import { PRIORITY } from '../lib/meteoQueue.js'
 import { countQuakesNear } from '../lib/scoring.js'
 import { pointInFeature } from '../lib/geo.js'
 import { useDismiss } from '../hooks/useDismiss.js'
+import { providerById } from '../core/providers.js'
 
 export function SearchBox({ model, country, live, geo, onSelect }) {
   const [q, setQ] = useState('')
@@ -116,8 +117,9 @@ export function SearchBox({ model, country, live, geo, onSelect }) {
                     <div>{it.e.name}</div>
                     <small>{it.e.type === 'city' ? it.e.provinceName : country.regionLabel}</small>
                   </div>
-                  {it.e.snic && <span className="sr-tag src" title="Official SNIC crime statistics">SNIC</span>}
-                  {it.e.numbeo && <span className="sr-tag src" title="Numbeo city data">Numbeo</span>}
+                  {Object.keys(it.e.details || {}).map(providerById).filter(Boolean).map((p) => (
+                    <span key={p.id} className="sr-tag src" title={`${p.name}: data for this place`}>{p.short}</span>
+                  ))}
                   {it.e.score != null && <span className="sr-score">{Math.round(it.e.score)}</span>}
                 </>
               ) : (

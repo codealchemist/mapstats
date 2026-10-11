@@ -15,9 +15,9 @@ import { downloadBlob, reportCsv, reportPdf } from '../lib/export.js'
 import { slug } from '../lib/format.js'
 import { scoreTone } from '../lib/colors.js'
 import { useToast } from './Toast.jsx'
-import { SURVEY, SURVEY_SAFER_HIGH } from '../data/numbeoSurvey.js'
 import { valuesBySource, fmtExact } from '../lib/provenance.js'
-import { familyById, SOURCE_FAMILIES, isMultiSource, sourcesForIndicators } from '../core/providers.js'
+import { familyById, SOURCE_FAMILIES, isMultiSource, sourcesForIndicators, providersFor } from '../core/providers.js'
+import { reportProviders, hasBlock, TrendBlock, SurveyBlock, ProviderFacts, ProviderNotes } from './report/ProviderBlocks.jsx'
 import { agreementOf } from '../lib/sourceWeights.js'
 import { floodLevel } from './mapLayers.js'
 import { NewsSection } from './NewsSection.jsx'
@@ -146,39 +146,11 @@ export function ReportPanel({ entity, model, country, live, theme, onClose, onSe
     options: baseOptions(t, { horizontal: true, suggestedMax: 100 }),
   }), [provinceCities])
 
-  const survey = entity.numbeo?.survey
-  const surveyRows = useMemo(() => (survey ? SURVEY.filter(([k]) => survey[k] != null && !SURVEY_SAFER_HIGH.has(k)) : []), [survey])
-  const safetyRows = useMemo(() => (survey ? SURVEY.filter(([k]) => survey[k] != null && SURVEY_SAFER_HIGH.has(k)) : []), [survey])
-  const surveyBar = (rows, color) => (t) => ({
-    type: 'bar',
-    data: { labels: rows.map(([, label]) => label), datasets: [{ label: 'Survey score (0–100)', data: rows.map(([k]) => survey[k]), ...barStyle(t.series[color]) }] },
-    options: baseOptions(t, { horizontal: true, suggestedMax: 100 }),
-  })
-  const buildSurvey = useCallback(surveyBar(surveyRows, 1), [surveyRows]) // eslint-disable-line react-hooks/exhaustive-deps
-  const buildWalking = useCallback(surveyBar(safetyRows, 0), [safetyRows]) // eslint-disable-line react-hooks/exhaustive-deps
+  // Providers presenting safety data for this place (official series, surveys…), and their external pages.
+  const safetyProviders = reportProviders(country, 'safety')
+  const links = providersFor(country).flatMap((p) => p.links?.(entity) || [])
 
-  // Official SNIC series: this place vs its province vs the country (cities sit in a SNIC department).
-  const snic = entity.snic
-  const snicProv = isCity ? model.provinces.find((p) => p.id === entity.province)?.snic : null
-  const snicNat = national.snic
-  const snicYears = snicNat?.years || []
-  const snicLabel = !snic ? '' : snic.level === 'department' ? `${snic.name} department` : snic.level === 'city' ? snic.name : entity.name
-  const buildSnicTrend = (metric) => (t) => ({
-    type: 'line',
-    data: {
-      labels: snicYears,
-      datasets: [
-        { label: snicLabel, data: snic.series[metric], ...lineStyle(t.series[0]), pointRadius: 2.5 },
-        ...(snicProv ? [{ label: snicProv.name, data: snicProv.series[metric], ...lineStyle(t.series[1]), pointRadius: 0 }] : []),
-        { label: 'Argentina', data: snicNat.series[metric], ...lineStyle(t.de), borderDash: [], pointRadius: 0 },
-      ],
-    },
-    options: baseOptions(t, { legend: true, yTitle: 'per 100,000' }),
-  })
-  const buildHomicideTrend = useCallback(buildSnicTrend('homicide'), [snic, snicProv, snicNat]) // eslint-disable-line react-hooks/exhaustive-deps
-  const buildPropertyTrend = useCallback(buildSnicTrend('propertyCrime'), [snic, snicProv, snicNat]) // eslint-disable-line react-hooks/exhaustive-deps
-
-  const sourceGroups = useMemo(() => valuesBySource({ entity, model, detail, quakes, live }), [entity, model, detail, quakes, live])
+  const sourceGroups = useMemo(() => valuesBySource({ entity, model, country, detail, quakes, live }), [entity, model, country, detail, quakes, live])
 
   // ---------- exports ----------
   const exportPdf = async () => {
@@ -298,14 +270,9 @@ export function ReportPanel({ entity, model, country, live, theme, onClose, onSe
               </div>
             )}
 
-            {(entity.numbeoSlug || isCity) && (
+            {(links.length > 0 || isCity) && (
               <div className="ext-links">
-                {entity.numbeoSlug && (
-                  <a href={`https://es.numbeo.com/criminalidad/ciudad/${entity.numbeoSlug}`} target="_blank" rel="noreferrer">Numbeo crime <ExternalLink size={12} /></a>
-                )}
-                {entity.numbeoSlug && (
-                  <a href={`https://es.numbeo.com/calidad-de-vida/ciudad/${entity.numbeoSlug}`} target="_blank" rel="noreferrer">Numbeo quality of life <ExternalLink size={12} /></a>
-                )}
+                {links.map((l) => <a key={l.url} href={l.url} target="_blank" rel="noreferrer">{l.label} <ExternalLink size={12} /></a>)}
                 <a href={`https://es.wikipedia.org/wiki/Special:Search?search=${encodeURIComponent(entity.name + ' ' + country.name)}`} target="_blank" rel="noreferrer">Wikipedia <ExternalLink size={12} /></a>
               </div>
             )}
@@ -314,65 +281,19 @@ export function ReportPanel({ entity, model, country, live, theme, onClose, onSe
           {/* ---------- Safety ---------- */}
           <section id="sec-safety" className="report-section">
             <SectionHead icon={ShieldAlert} title="Safety"
-              sub={[snic && 'Official SNIC statistics', entity.numbeo?.survey && 'Numbeo survey'].filter(Boolean).join(' · ') || (isCity ? 'City-level crime data' : 'Province crime statistics')}
+              sub={safetyProviders.filter((p) => hasBlock(p, entity)).map((p) => p.report.label).join(' · ') || (isCity ? 'City-level crime data' : 'Province crime statistics')}
               sources={sourcesForIndicators(['crimeIndex', 'homicide', 'propertyCrime', 'roadDeaths'].filter((k) => isOwnValue(entity, k)))} entity={entity} category="safety" />
             {['crimeIndex', 'homicide', 'propertyCrime', 'roadDeaths'].some((k) => isOwnValue(entity, k)) && (
               <div className="kv">
                 {['crimeIndex', 'homicide', 'propertyCrime', 'roadDeaths'].filter((k) => isOwnValue(entity, k)).map((k) => (
                   <span key={k}>{indicatorById[k].label} <b>{fmtIndicator(k, entity.values[k])}</b> <span className="faint">avg {fmtIndicator(k, national.values[k])}</span></span>
                 ))}
-                {entity.numbeo?.safetyIndex != null && <span>Safety index <b>{fmtNum(entity.numbeo.safetyIndex, 2)}</b></span>}
-                {entity.numbeo?.contributors != null && <span>Contributors <b>{entity.numbeo.contributors}</b></span>}
+                <ProviderFacts providers={safetyProviders} entity={entity} />
               </div>
             )}
-            {entity.numbeo?.source === 'snapshot' && (
-              <p className="note"><Info size={13} /> Numbeo values for {entity.name} are an approximate snapshot. Run the Numbeo scraper or check the live page.</p>
-            )}
-            {snic && snicYears.length > 0 && (
-              <>
-                <div className="sub-head">
-                  Official statistics · SNIC {snicYears[0]}–{snic.latestYear}
-                  <span className="muted small"> · {snic.level === 'department' ? `${snic.name} department (partido), the finest level SNIC publishes` : snic.level === 'city' ? 'city-wide' : 'province-wide'}</span>
-                </div>
-                <ChartCard id="snic-homicide" title="Homicide rate" subtitle="Victims of intentional homicide per 100,000 · SNIC" theme={theme} build={buildHomicideTrend} height={190}
-                  table={{ columns: ['Year', snicLabel, ...(snicProv ? [snicProv.name] : []), 'Argentina'], rows: snicYears.map((y, i) => [y, fmt2(snic.series.homicide[i]), ...(snicProv ? [fmt2(snicProv.series.homicide[i])] : []), fmt2(snicNat.series.homicide[i])]) }} />
-                <ChartCard id="snic-property" title="Robberies and thefts" subtitle="Incidents per 100,000 · SNIC" theme={theme} build={buildPropertyTrend} height={190}
-                  table={{ columns: ['Year', snicLabel, ...(snicProv ? [snicProv.name] : []), 'Argentina'], rows: snicYears.map((y, i) => [y, fmt0(snic.series.propertyCrime[i]), ...(snicProv ? [fmt0(snicProv.series.propertyCrime[i])] : []), fmt0(snicNat.series.propertyCrime[i])]) }} />
-                <div className="table-wrap">
-                  <table className="data-table">
-                    <thead><tr><th>Crime type ({snic.latestYear}, per 100k)</th><th className="num">{isCity ? 'Department' : entity.name}</th>{snicProv && <th className="num">Province</th>}<th className="num">Argentina</th></tr></thead>
-                    <tbody>
-                      {Object.entries(SNIC_TABLE).map(([k, label]) => (
-                        <tr key={k}>
-                          <td>{label}</td>
-                          <td className="num">{fmtRate(snic.latest[k])}</td>
-                          {snicProv && <td className="num">{fmtRate(snicProv.latest[k])}</td>}
-                          <td className="num">{fmtRate(snicNat.latest[k])}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-                <p className="chart-foot">Scores use 3-year averages. Rates are as published by SNIC; blank cells are not published for this area.</p>
-              </>
-            )}
-            {surveyRows.length > 0 && (
-              <div className="sub-head">
-                Numbeo crowd-sourced survey
-                <span className="muted small"> · {entity.numbeo.source === 'scraped' ? 'scraped' : entity.numbeo.source} {entity.numbeo.fetchedAt || ''}</span>
-              </div>
-            )}
-            {surveyRows.length > 0 && (
-              <ChartCard id="survey" title="Crime perception survey" subtitle="Numbeo, 0–100 · higher = worse" theme={theme} build={buildSurvey}
-                height={surveyRows.length * 26 + 40}
-                table={{ columns: ['Question', 'Score'], rows: surveyRows.map(([k, label]) => [label, survey[k]]) }}
-                footnote="0–20 very low · 20–40 low · 40–60 moderate · 60–80 high · 80–100 very high" />
-            )}
-            {safetyRows.length > 0 && (
-              <ChartCard id="walking" title="Perceived safety walking alone" subtitle="Numbeo, 0–100 · higher = safer" theme={theme} build={buildWalking}
-                height={safetyRows.length * 30 + 40}
-                table={{ columns: ['Question', 'Score'], rows: safetyRows.map(([k, label]) => [label, survey[k]]) }} />
-            )}
+            <ProviderNotes providers={safetyProviders} entity={entity} />
+            {safetyProviders.map((p) => <TrendBlock key={p.id} provider={p} entity={entity} model={model} country={country} theme={theme} />)}
+            {safetyProviders.map((p) => <SurveyBlock key={p.id} provider={p} entity={entity} theme={theme} />)}
             <MissingStats entity={entity} ids={['crimeIndex', 'homicide', 'propertyCrime', 'roadDeaths'].filter((k) => !isOwnValue(entity, k))} category="safety" />
           </section>
 
@@ -471,14 +392,6 @@ export function ReportPanel({ entity, model, country, live, theme, onClose, onSe
 }
 
 const round1 = (v) => (v == null ? null : Math.round(v * 10) / 10)
-const fmt2 = (v) => (v == null ? null : v.toFixed(2))
-const fmt0 = (v) => (v == null ? null : Math.round(v).toLocaleString('en'))
-const fmtRate = (v) => (v == null ? '—' : v >= 100 ? Math.round(v).toLocaleString('en') : v.toFixed(1))
-
-const SNIC_TABLE = {
-  homicide: 'Intentional homicide (victims)', robbery: 'Robbery', theft: 'Theft', injuries: 'Intentional injuries',
-  threats: 'Threats', sexualAssault: 'Rape', drugs: 'Drug law offences', roadDeaths: 'Road deaths (victims)',
-}
 
 function SectionHead({ icon: Icon, title, sub, status, sources, entity, category }) {
   return (

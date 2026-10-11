@@ -41,6 +41,8 @@ function fakeLive(points) {
 // Null and absent mean the same to every consumer, so only values that exist are compared.
 const present = (values) => Object.fromEntries(Object.entries(values).filter(([, v]) => v != null))
 const borrowed = (e) => (e.inherited ? [...e.inherited].filter((k) => e.values[k] != null).sort() : null)
+// Which providers have data for the place, at which level (and, for surveys, from what kind of copy).
+const detailLevels = (e) => Object.fromEntries(Object.entries(e.details || {}).map(([p, d]) => [p, [d.level, d.source || null]]))
 const r6 = (v) => (typeof v === 'number' ? +v.toFixed(6) : v)
 const round = (o) => JSON.parse(JSON.stringify(o, (k, v) => r6(v)))
 const pick = (e) => ({
@@ -59,7 +61,7 @@ async function snapshot(iso3) {
   const out = { entities: {}, runs: {} }
   const base = buildEntities({ country, provincesGeo: geo, cities, datasets, live, weights: DEFAULT_WEIGHTS })
   for (const e of [...base.provinces, ...base.cities, base.national]) {
-    out.entities[e.id] = { name: e.name, province: e.province, values: present(e.values), inherited: borrowed(e), snic: e.snic?.level || null, numbeo: e.numbeo?.source || null }
+    out.entities[e.id] = { name: e.name, province: e.province, values: present(e.values), inherited: borrowed(e), details: detailLevels(e) }
   }
   out.ranges = base.ranges
   out.families = Object.fromEntries(SOURCE_FAMILIES.map((f) => [f.id, f.label]))

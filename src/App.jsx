@@ -304,7 +304,7 @@ export default function App() {
         )}
 
         {showInfo && <Methodology onClose={() => setShowInfo(false)} weights={weights} onSources={() => { setShowInfo(false); setShowSources(true) }} />}
-        {showSources && <SourcesView onClose={() => setShowSources(false)} snicOrigin={model?.snicOrigin} />}
+        {showSources && <SourcesView onClose={() => setShowSources(false)} datasets={model?.datasets} />}
         {showCompare && model && (
           <CompareView
             slots={compareEntities}
