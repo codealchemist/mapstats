@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Search, MapPin, Building2, Globe, LoaderCircle, X } from 'lucide-react'
 import { fold } from '../lib/format.js'
-import { fetchAqiBatch, fetchClimateBatch, geocode } from '../lib/live.js'
+import { fetchAqiBatch, fetchClimateBatch, fetchThermalBatch, geocode } from '../lib/live.js'
 import { PRIORITY } from '../lib/meteoQueue.js'
 import { countQuakesNear, liveValuesFor } from '../lib/scoring.js'
 import { pointInFeature } from '../lib/geo.js'
@@ -56,9 +56,9 @@ export function SearchBox({ model, country, live, geo, onSelect }) {
     onSelect({ type: 'adhoc', id, input: { ...base, live: { quakes } } }, { fly: true })
     const pt = [{ id, lat: g.lat, lon: g.lon }]
     const opts = { priority: PRIORITY.user }
-    const [clim, aqi] = await Promise.all([fetchClimateBatch(pt, opts), fetchAqiBatch(pt, opts)])
+    const [clim, aqi, thermal] = await Promise.all([fetchClimateBatch(pt, opts), fetchAqiBatch(pt, opts), fetchThermalBatch(pt, opts)])
     // UV and river flow aren't loaded for a searched place.
-    const { uvMean, floodWatch, floodPeakPast, ...values } = liveValuesFor(id, g.lat, g.lon, { climate: clim.data, aqi: aqi.data })
+    const { uvMean, floodWatch, floodPeakPast, ...values } = liveValuesFor(id, g.lat, g.lon, { climate: clim.data, aqi: aqi.data, thermal: thermal.data })
     onSelect({ type: 'adhoc', id, input: { ...base, live: { ...values, quakes } } })
   }
 

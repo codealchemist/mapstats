@@ -7,6 +7,7 @@ import { ROOT, countryDir, providerTests } from './context.mjs'
 const suites = [
   'netlify/news/test/run.mjs',
   'src/lib/test/live.mjs',
+  'src/lib/test/thermal.mjs',
   'tests/golden.mjs',
   'tests/anchors.mjs',
   'tests/countries.mjs',

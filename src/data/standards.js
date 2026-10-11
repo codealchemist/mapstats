@@ -44,6 +44,44 @@ export const STANDARDS = {
       },
     ],
   },
+  // Heat and cold stress: each day scores by the worst category it reached (its hottest hour's heat index, its
+  // coldest hour's wind chill: src/lib/thermal.js), and the yearly mean of those day scores is the indicator's
+  // value. These standards measure risk to health, not comfort preferences: a cool, still day is "no stress".
+  // UTCI (the international index) needs radiation data and its official polynomial, so it isn't offered yet.
+  thermalStress: {
+    default: 'nws',
+    valueFromInput: true, // the indicator shows the selected standard's yearly score
+    options: [
+      {
+        id: 'nws', short: 'US NWS', name: 'US National Weather Service · Heat Index and Wind Chill',
+        url: 'https://www.weather.gov/safety/heat-index',
+        input: 'thermalNws', unit: 'heat index (°C felt)',
+        heat: { index: 'heatIndex', categories: [[26.7, 'Caution'], [32.2, 'Extreme caution'], [39.4, 'Danger'], [51.7, 'Extreme danger']] },
+        bands: [[26.7, 'No caution'], [32.2, 'Caution'], [39.4, 'Extreme caution'], [51.7, 'Danger'], [Infinity, 'Extreme danger']],
+        points: [[0, 0], [100, 100]],
+        daily: [
+          { indicator: 'heatDangerDays', limit: 39.4, allowed: 0, text: 'reaching the heat index "Danger" category (≥ 39.4 °C felt)', basis: 'heat illness likely with prolonged exposure or exertion' },
+          { indicator: 'frostbiteDays', limit: -28, allowed: 0, text: 'with frostbite risk (wind chill ≤ −28 °C)', basis: 'exposed skin can freeze in 10–30 minutes' },
+        ],
+      },
+      {
+        id: 'eccc', short: 'Environment Canada', name: 'Environment and Climate Change Canada · Humidex and Wind Chill',
+        url: 'https://www.canada.ca/en/environment-climate-change/services/climate-change/canadian-centre-climate-services/display-download/technical-documentation-humidex.html',
+        input: 'thermalEccc', unit: 'humidex',
+        heat: { index: 'humidex', categories: [[30, 'Some discomfort'], [40, 'Great discomfort'], [46, 'Dangerous']] },
+        bands: [[29, 'Little or no discomfort'], [39, 'Some discomfort'], [45, 'Great discomfort, avoid exertion'], [Infinity, 'Dangerous']],
+        points: [[0, 0], [100, 100]],
+        daily: [
+          { indicator: 'humidexDangerDays', limit: 46, allowed: 0, text: 'with a dangerous humidex (above 45)', basis: 'possible heat stroke' },
+          { indicator: 'frostbiteDays', limit: -28, allowed: 0, text: 'with frostbite risk (wind chill ≤ −28 °C)', basis: 'exposed skin can freeze in 10–30 minutes' },
+        ],
+      },
+    ],
+    // Cold side, shared: the 2001 North American wind chill index with Environment Canada's risk categories
+    // (upper bounds; NWS publishes no general cold categories).
+    cold: { categories: [[-10, 'Moderate risk'], [-28, 'High risk (frostbite in 10–30 min)'], [-40, 'Very high risk'], [-48, 'Severe risk']] },
+    note: 'Cold side for both: wind chill, with Environment Canada’s risk categories (moderate below −10, frostbite risk at −28, very high at −40, severe at −48).',
+  },
 }
 
 /** Every indicator's default standard: { indicatorId: standardId }. */

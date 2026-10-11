@@ -8,7 +8,8 @@ export default [
   defineProvider({
     ...live, id: 'open-meteo-era5', short: 'Open-Meteo ERA5 (live)', name: 'Open-Meteo · ERA5', family,
     url: 'https://open-meteo.com/en/docs/historical-weather-api', covers: 'Historical weather: temperature, rain, snow, sunshine, wind',
-    provides: ['climateComfort', 'meanTemp', 'annualPrecip', 'snowfall', 'sunshine', 'tempMaxAnnual', 'tempMinAnnual', 'hotDays', 'tropicalNights', 'frostDays', 'heavyRainDays', 'drySpell'],
+    provides: ['climateComfort', 'meanTemp', 'annualPrecip', 'snowfall', 'sunshine', 'tempMaxAnnual', 'tempMinAnnual', 'hotDays', 'tropicalNights', 'frostDays', 'heavyRainDays', 'drySpell',
+      'thermalStress', 'thermalNws', 'thermalEccc', 'heatDangerDays', 'humidexDangerDays', 'frostbiteDays'],
     cadence: 'Daily, ~5-day delay', scope: 'Global grid ≈ 25 km', types: ['climate'], usedFor: 'Climate charts, comfort model, climate surfaces',
   }),
   defineProvider({

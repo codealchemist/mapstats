@@ -71,8 +71,8 @@ export default function App() {
 
   // Only the data layers feed scoring: status/progress updates (one per loaded chunk) must not
   // rebuild the model and the map.
-  const { climate, aqi, quakes, uv, flood } = live
-  const liveData = useMemo(() => ({ climate, aqi, quakes, uv, flood }), [climate, aqi, quakes, uv, flood])
+  const { climate, aqi, thermal, quakes, uv, flood } = live
+  const liveData = useMemo(() => ({ climate, aqi, thermal, quakes, uv, flood }), [climate, aqi, thermal, quakes, uv, flood])
   // Dataset values per place change only with the country; scores also change with weights, mode and live data.
   const base = useMemo(() => (data.geo ? resolveCountry(data.geo, data.cities, data.datasets) : null), [data.geo, data.cities, data.datasets])
   const model = useMemo(

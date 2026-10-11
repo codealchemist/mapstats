@@ -9,10 +9,9 @@ export function warningsFor(entity, standards) {
   const out = []
   for (const id of Object.keys(STANDARDS)) {
     const std = standardFor(id, standards)
-    const d = std.daily
-    const n = d && entity.values[d.indicator]
-    if (n != null && n > d.allowed) {
-      out.push({ id: d.indicator, text: `${n} days in the last year ${d.text}`, why: `${std.short}: ${d.basis}`, source: std.short, url: std.url })
+    for (const d of [].concat(std.daily || [])) {
+      const n = entity.values[d.indicator]
+      if (n != null && n > d.allowed) out.push({ id: d.indicator, text: `${n} days in the last year ${d.text}`, why: `${std.short}: ${d.basis}`, source: std.short, url: std.url })
     }
   }
   for (const w of CLIMATE_WARNINGS) {

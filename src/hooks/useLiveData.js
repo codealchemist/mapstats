@@ -1,14 +1,14 @@
 import { useEffect, useState } from 'react'
-import { fetchAqiBatch, fetchClimateBatch, fetchFloodBatch, fetchQuakes, fetchUvBatch } from '../lib/live.js'
+import { fetchAqiBatch, fetchClimateBatch, fetchFloodBatch, fetchQuakes, fetchThermalBatch, fetchUvBatch } from '../lib/live.js'
 import { PRIORITY, isAbort } from '../lib/meteoQueue.js'
 import { gapGrid } from '../lib/geo.js'
 import { livePoints } from '../lib/scoring.js'
 
-const KEYS = ['climate', 'aqi', 'quakes', 'uv', 'flood']
+const KEYS = ['climate', 'aqi', 'thermal', 'quakes', 'uv', 'flood']
 const each = (v) => Object.fromEntries(KEYS.map((k) => [k, v]))
 
 // status per source: idle | loading | ready | partial (some points failed) | error (none loaded)
-const EMPTY = { climate: null, aqi: null, quakes: null, uv: null, flood: null, grid: [], status: each('idle'), progress: {}, errors: {} }
+const EMPTY = { climate: null, aqi: null, thermal: null, quakes: null, uv: null, flood: null, grid: [], status: each('idle'), progress: {}, errors: {} }
 
 // Fetches live layers for every city (and city-less province) of the loaded country.
 // Each source resolves independently so the map fills in progressively.
@@ -46,6 +46,7 @@ export function useLiveData({ iso3, geo, cities, bbox }) {
     // Scored layers first; UV and river flow are descriptive and wait for them.
     run('aqi', fetchAqiBatch, points, PRIORITY.map)
     run('climate', fetchClimateBatch, [...points, ...grid], PRIORITY.map)
+    run('thermal', fetchThermalBatch, points, PRIORITY.map)
     run('uv', fetchUvBatch, [...points, ...grid], PRIORITY.extra)
     run('flood', fetchFloodBatch, points, PRIORITY.extra)
     return () => ctrl.abort()

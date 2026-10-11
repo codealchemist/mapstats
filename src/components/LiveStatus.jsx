@@ -2,7 +2,7 @@ import { LoaderCircle, Check, CircleAlert } from 'lucide-react'
 
 const failed = (s) => s === 'error' || s === 'partial'
 
-const LABELS = { climate: 'Climate', aqi: 'Air quality', quakes: 'Earthquakes', uv: 'UV', flood: 'Rivers' }
+const LABELS = { climate: 'Climate', aqi: 'Air quality', thermal: 'Heat & cold', quakes: 'Earthquakes', uv: 'UV', flood: 'Rivers' }
 
 function tooltip(label, s, p, error) {
   if (s === 'loading' && p) return `${label}: ${p.loaded} of ${p.total} places loaded. Requests are paced to Open-Meteo's free limit (600 calls a minute), so large countries fill in over a few minutes.`

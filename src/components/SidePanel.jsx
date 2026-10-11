@@ -260,7 +260,7 @@ function StandardsPicker({ standards, onStandards }) {
               </select>
             </div>
             <p className="hint small">
-              Scores the {current.unit}: {current.bands.map(([max, label]) => (max === Infinity ? label : `${label} ≤ ${max}`)).join(' · ')}.{' '}
+              Scores the {current.unit}: {current.bands.map(([max, label]) => (max === Infinity ? label : `${label} ≤ ${max}`)).join(' · ')}.{s.note ? ` ${s.note}` : ''}{' '}
               <a href={current.url} target="_blank" rel="noreferrer">Source</a>
             </p>
           </div>

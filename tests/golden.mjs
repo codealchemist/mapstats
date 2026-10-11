@@ -23,7 +23,7 @@ const between = (id, salt, lo, hi, digits = 1) => +(lo + rand(id, salt) * (hi - 
 
 // Live layers shaped like useLiveData's output, for every point the app would fetch.
 function fakeLive(points) {
-  const live = { climate: {}, aqi: {}, uv: {}, flood: {}, quakes: [] }
+  const live = { climate: {}, aqi: {}, thermal: {}, uv: {}, flood: {}, quakes: [] }
   for (const { id, lat, lon } of points) {
     live.climate[id] = {
       climateComfort: between(id, 'cc', 30, 90, 0), meanTemp: between(id, 'mt', 5, 25), annualPrecip: between(id, 'ap', 100, 2000, 0),
@@ -33,6 +33,7 @@ function fakeLive(points) {
     }
     if (rand(id, 'aqi?') > 0.1) live.aqi[id] = { aqi: between(id, 'aqi', 10, 70, 0), usAqi: between(id, 'usaqi', 15, 120, 0), pm25: between(id, 'pm25', 2, 40), aqiRecent: between(id, 'aqr', 10, 70, 0), pm25WorstDay: between(id, 'pmw', 10, 90), aqiPoorDays: between(id, 'apd', 0, 60, 0), usAqiUnhealthyDays: between(id, 'uud', 0, 30, 0), pm25HighDays: between(id, 'phd', 0, 50, 0) }
     live.uv[id] = { uvMean: between(id, 'uv', 3, 12), uvMax: between(id, 'uvx', 8, 16) }
+    live.thermal[id] = { thermalNws: between(id, 'tnws', 40, 100, 0), thermalEccc: between(id, 'teccc', 35, 100, 0), heatDangerDays: between(id, 'hdd', 0, 20, 0), humidexDangerDays: between(id, 'xdd', 0, 15, 0), frostbiteDays: between(id, 'fbd', 0, 10, 0) }
     live.flood[id] = rand(id, 'river') > 0.4 ? { river: true, floodWatch: between(id, 'fw', 0.3, 2, 2), pastPeakRatio: between(id, 'pp', 1, 3, 2) } : { river: false }
     const n = Math.floor(rand(id, 'nq') * 6)
     for (let k = 0; k < n; k++) live.quakes.push({ lat: lat + between(id, `qa${k}`, -1, 1, 3), lon: lon + between(id, `qo${k}`, -1, 1, 3), mag: 5 })

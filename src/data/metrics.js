@@ -42,7 +42,15 @@ export const INDICATORS = [
   { id: 'aqiPoorDays', label: 'Days with poor air (EEA)', unit: 'days', category: 'environment', better: null, digits: 0, live: true, ramp: 'red' },
   { id: 'usAqiUnhealthyDays', label: 'Days unhealthy for sensitive groups (US EPA)', unit: 'days', category: 'environment', better: null, digits: 0, live: true, ramp: 'red' },
   { id: 'pm25HighDays', label: 'Days over WHO 24-h PM2.5 guideline', unit: 'days', category: 'environment', better: null, digits: 0, live: true, ramp: 'red' },
-  { id: 'climateComfort', label: 'Climate comfort', unit: '/100', category: 'environment', better: 'high', domain: [20, 90], digits: 0, live: true },
+  // Scored by the selected thermal standard (data/standards.js): the yearly mean of daily heat/cold stress scores.
+  { id: 'thermalStress', label: 'Heat and cold stress (yearly)', unit: '/100', category: 'environment', better: 'high', domain: [0, 100], digits: 0, live: true },
+  { id: 'thermalNws', label: 'Heat and cold stress (US NWS)', unit: '/100', category: 'environment', better: null, digits: 0, live: true, ramp: 'blue' },
+  { id: 'thermalEccc', label: 'Heat and cold stress (Environment Canada)', unit: '/100', category: 'environment', better: null, digits: 0, live: true, ramp: 'blue' },
+  { id: 'heatDangerDays', label: 'Days in heat index Danger (US NWS)', unit: 'days', category: 'environment', better: null, digits: 0, live: true, ramp: 'red' },
+  { id: 'humidexDangerDays', label: 'Days with dangerous humidex (Environment Canada)', unit: 'days', category: 'environment', better: null, digits: 0, live: true, ramp: 'red' },
+  { id: 'frostbiteDays', label: 'Days with frostbite risk (wind chill ≤ −28 °C)', unit: 'days', category: 'environment', better: null, digits: 0, live: true, ramp: 'blue' },
+  // Our own comfort model (16–24 °C ideal…): shown, no longer scored (health standards above score instead).
+  { id: 'climateComfort', label: 'Climate comfort (MapStats model)', unit: '/100', category: 'climate', better: null, digits: 0, live: true },
   // Services
   { id: 'doctors', label: 'Physicians', unit: '/1k', category: 'services', better: 'high', domain: [1.5, 6], digits: 1 },
   { id: 'water', label: 'Running water', unit: '%', category: 'services', better: 'high', domain: [70, 100], digits: 0 },
@@ -98,7 +106,10 @@ export const MAP_METRICS = [
   { id: 'aqi', group: 'Environment', icon: 'Wind' },
   { id: 'pm25', group: 'Environment', icon: 'Wind' },
   { id: 'pm25HighDays', group: 'Environment', icon: 'Wind' },
-  { id: 'climateComfort', group: 'Environment', icon: 'Sun' },
+  { id: 'thermalStress', group: 'Environment', icon: 'Thermometer' },
+  { id: 'heatDangerDays', group: 'Environment', icon: 'Thermometer' },
+  { id: 'frostbiteDays', group: 'Environment', icon: 'Snowflake' },
+  { id: 'climateComfort', group: 'Weather', icon: 'Sun' },
   { id: 'meanTemp', group: 'Weather', icon: 'Thermometer' },
   { id: 'annualPrecip', group: 'Weather', icon: 'CloudRain' },
   { id: 'snowfall', group: 'Weather', icon: 'Snowflake' },

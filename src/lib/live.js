@@ -4,6 +4,7 @@
 // Responses are summarised and cached in localStorage to stay well inside free quotas.
 import { PRIORITY, abortError, callWeight, getJSON, isAbort, meteo } from './meteoQueue.js'
 import { STANDARDS } from '../data/standards.js'
+import { HEAT_INDEX, windChill, heatStep, coldStep } from './thermal.js'
 
 const CACHE_PREFIX = 'mapstats:v1:'
 const DAY = 86_400_000
@@ -309,6 +310,49 @@ export function fetchAqiBatch(points, opts = {}) {
     url: (group) => `https://air-quality-api.open-meteo.com/v1/air-quality?${coordParams(group)}&hourly=${AIR_BATCH.join(',')}&start_date=${iso(start)}&end_date=${iso(end)}`,
     row: (r, point) => ({ id: point.id, ...summariseAir(r.hourly || {}) }),
     value: ({ id, ...air }) => air,
+  }, opts)
+}
+
+// ---------- Heat and cold stress ----------
+
+// Each day's hottest-hour heat index and coldest-hour wind chill, scored by each thermal standard's categories
+// (src/data/standards.js thermalStress); the yearly mean of day scores, and the days in each danger category.
+const THERMAL = STANDARDS.thermalStress
+const THERMAL_HOURLY = ['temperature_2m', 'relative_humidity_2m', 'wind_speed_10m']
+
+export function summariseThermal(hourly) {
+  const days = {}
+  ;(hourly.time || []).forEach((t, i) => {
+    const temp = hourly.temperature_2m?.[i], rh = hourly.relative_humidity_2m?.[i], wind = hourly.wind_speed_10m?.[i]
+    if (temp == null) return
+    const d = (days[t.slice(0, 10)] ||= { heat: {}, cold: Infinity })
+    for (const o of THERMAL.options) {
+      if (rh != null) d.heat[o.id] = Math.max(d.heat[o.id] ?? -Infinity, HEAT_INDEX[o.heat.index](temp, rh))
+    }
+    d.cold = Math.min(d.cold, wind != null ? windChill(temp, wind) : temp)
+  })
+  const list = Object.values(days)
+  if (!list.length) return {}
+  const out = {}
+  for (const o of THERMAL.options) {
+    const scores = list.map((d) => Math.min(d.heat[o.id] != null ? heatStep(d.heat[o.id], o.heat.categories) : 100, coldStep(d.cold, THERMAL.cold.categories)))
+    out[o.input] = Math.round(mean(scores))
+    for (const x of o.daily) {
+      out[x.indicator] = x.limit < 0 ? list.filter((d) => d.cold <= x.limit).length : list.filter((d) => (d.heat[o.id] ?? -Infinity) >= x.limit).length
+    }
+  }
+  return out
+}
+
+// The last full year of hourly ERA5 weather (≈ 8 calls per place, groups of 5), kept for a month.
+export function fetchThermalBatch(points, opts = {}) {
+  const year = lastFullYear()
+  const { start, end, days } = yearRange(year)
+  return batch(points, {
+    size: 5, key: `thermal:${year}`, ttl: 30 * DAY, timeout: 60000, cost: { variables: THERMAL_HOURLY.length, days },
+    url: (group) => `https://archive-api.open-meteo.com/v1/archive?${coordParams(group)}&start_date=${start}&end_date=${end}&hourly=${THERMAL_HOURLY.join(',')}&timezone=auto`,
+    row: (r, point) => ({ id: point.id, ...summariseThermal(r.hourly || {}) }),
+    value: ({ id, ...v }) => v,
   }, opts)
 }
 

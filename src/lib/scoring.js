@@ -9,7 +9,7 @@
 //    rewards nor punishes a place. `coverage` reports how much data was used.
 
 import { CATEGORIES, INDICATORS, indicatorById, scoreRange } from '../data/metrics.js'
-import { DEFAULT_STANDARDS, standardFor, standardScore } from '../data/standards.js'
+import { DEFAULT_STANDARDS, STANDARDS, standardFor, standardScore } from '../data/standards.js'
 import { haversineKm, labelPoint } from './geo.js'
 import { familyOf, isMultiSource, isRegionOnly } from '../core/providers.js'
 import { sourceWeight, percentile } from './sourceWeights.js'
@@ -19,7 +19,8 @@ const SCORED = INDICATORS.filter((i) => i.better)
 // Live values per place: the climate summary and the air summary (src/lib/live.js), plus nearby earthquakes.
 const CLIMATE_KEYS = ['climateComfort', 'meanTemp', 'annualPrecip', 'snowfall', 'sunshine', 'elevation', 'tempMaxAnnual', 'tempMinAnnual', 'hotDays', 'tropicalNights', 'frostDays', 'heavyRainDays', 'drySpell']
 const AIR_KEYS = ['aqi', 'usAqi', 'pm25', 'aqiRecent', 'pm25WorstDay', 'aqiPoorDays', 'usAqiUnhealthyDays', 'pm25HighDays']
-const LIVE_KEYS = [...CLIMATE_KEYS, ...AIR_KEYS, 'quakes', 'uvMean', 'floodWatch', 'floodPeakPast']
+const THERMAL_KEYS = ['thermalNws', 'thermalEccc', 'heatDangerDays', 'humidexDangerDays', 'frostbiteDays']
+const LIVE_KEYS = [...CLIMATE_KEYS, ...AIR_KEYS, ...THERMAL_KEYS, 'quakes', 'uvMean', 'floodWatch', 'floodPeakPast']
 
 // True when the entity's value for `id` was measured for the entity itself (not copied from its province).
 export const isOwnValue = (entity, id) => entity.values[id] != null && !entity.inherited?.has(id)
@@ -163,6 +164,13 @@ export function countQuakesNear(quakes, lat, lon, km = 200) {
   return n
 }
 
+// Indicators whose value is their selected standard's measure (data/standards.js valueFromInput), e.g. the heat
+// and cold stress score under US NWS or Environment Canada.
+function standardValues(values, standards) {
+  for (const [id, s] of Object.entries(STANDARDS)) if (s.valueFromInput) values[id] = values[standardFor(id, standards).input] ?? null
+  return values
+}
+
 /** Dataset values per place for a country: depends only on its boundaries, places and datasets. */
 export const resolveCountry = (provincesGeo, cities, datasets = []) =>
   resolvePlaces({ regionIds: provincesGeo.features.map((f) => f.properties.id), places: cities, datasets })
@@ -184,6 +192,7 @@ export function liveValuesFor(id, lat, lon, live) {
   return {
     ...Object.fromEntries(CLIMATE_KEYS.map((k) => [k, clim?.[k] ?? null])),
     ...Object.fromEntries(AIR_KEYS.map((k) => [k, air?.[k] ?? null])),
+    ...Object.fromEntries(THERMAL_KEYS.map((k) => [k, live.thermal?.[id]?.[k] ?? null])),
     uvMean: live.uv?.[id]?.uvMean ?? null,
     floodWatch: live.flood?.[id]?.river ? live.flood[id].floodWatch : null,
     floodPeakPast: live.flood?.[id]?.river ? live.flood[id].pastPeakRatio : null,
@@ -207,6 +216,7 @@ export function buildEntities({ provincesGeo, cities, datasets = [], base = reso
     const values = { ...b.values }, inherited = new Set(b.inherited), details = b.details
     const lv = liveValuesFor(c.id, c.lat, c.lon, live)
     for (const k of LIVE_KEYS) values[k] = lv[k]
+    standardValues(values, standards)
     return {
       type: 'city', id: c.id, name: c.name, province: c.region, lat: c.lat, lon: c.lon,
       capital: c.capital, codes: c.codes || {}, values, inherited, details,
@@ -222,6 +232,7 @@ export function buildEntities({ provincesGeo, cities, datasets = [], base = reso
     const values = { ...r.values }
     for (const k of LIVE_KEYS) values[k] = own.length ? weightedMean(own, k) : null
     if (!own.length) Object.assign(values, liveValuesFor(`prov:${id}`, lat, lon, live))
+    standardValues(values, standards)
     return { type: 'province', id, name: f.properties.name, lat, lon, values, cityCount: own.length, details: r.details, inheritable: r.inheritable }
   })
 
@@ -269,7 +280,7 @@ function nationalAverage(provinces, weights, sourceMode, dist, standards) {
 // (and what its region's cities borrow from it, when it falls inside the current country).
 export function adHocEntity({ place, provinceId, provinceName, provinceEntity, live, weights, sourceMode = 'combined', dist = null, standards = DEFAULT_STANDARDS }) {
   const prov = { ...provinceEntity?.inheritable }
-  const values = { ...prov, pop: place.pop, ...live }
+  const values = standardValues({ ...prov, pop: place.pop, ...live }, standards)
   const e = {
     type: 'city', id: place.id, name: place.name, province: provinceId, provinceName: provinceName || place.admin1 || '',
     lat: place.lat, lon: place.lon, values, inherited: new Set(Object.keys(prov).filter((k) => k !== 'pop')), adHoc: true,
