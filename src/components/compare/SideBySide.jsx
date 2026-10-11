@@ -147,6 +147,28 @@ function buildRows(filled, national, ranges) {
       },
     }
   }
+  // A provider's latest published value for an indicator (details.latest), real value, best marked.
+  const lastYearRow = (p, chart, unit) => {
+    const k = chart.indicator, better = INDICATORS.find((x) => x.id === k)?.better
+    const latest = (e) => e?.details?.[p.id]?.latest?.[k] ?? null
+    const vals = filled.map(({ e }) => latest(e)).filter((v) => v != null)
+    const top = vals.length > 1 && better ? (better === 'high' ? Math.max(...vals) : Math.min(...vals)) : null
+    const pos = meterScale(null, [...vals, latest(national)])
+    const year = national.details?.[p.id]?.latestYear
+    return {
+      key: `last:${p.id}:${k}`, label: `${chart.title} last year`, sub: `${year ? `${year} · ` : ''}${unit} · ${p.short}`, focus: `last:${p.id}:${k}`, na: `No ${p.short} data`,
+      cell: ({ e }) => {
+        const v = latest(e)
+        if (v == null) return null
+        return (
+          <div className={`sbs-value ${v === top ? 'best' : ''}`}>
+            <b>{v === top && <Check size={12} />} {fmtIndicator(k, v)}</b>
+            {better && <span className={`meter dir-${better}`} title={better === 'low' ? 'Lower is better' : 'Higher is better'}><span style={{ width: `${pos(v)}%` }} />{latest(national) != null && <i style={{ left: `${pos(latest(national))}%` }} />}</span>}
+          </div>
+        )
+      },
+    }
+  }
   const indicatorsOf = (cat, opts) => INDICATORS.filter((i) => i.category === cat && filled.some(({ e }) => e.values[i.id] != null)).map((i) => indicatorRow(i, opts))
 
   // Overview
@@ -176,6 +198,8 @@ function buildRows(filled, national, ranges) {
               cell: ({ e, i }, tk) => of(e)?.series && <MiniChart cfg={mini(tk, { labels: years, data: of(e).series[chart.indicator], color: tk.series[i], scale })} />,
             })
           }
+          // The latest year's published value, for charts that ask for it (e.g. robberies and thefts).
+          for (const chart of t.charts.filter((x) => x.lastYear)) extra.push(lastYearRow(p, chart, t.unit))
         }
       }
     }

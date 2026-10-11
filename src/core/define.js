@@ -97,7 +97,8 @@ export const DATA_TYPES = [
  * @property {string[]} types            DATA_TYPES ids
  * @property {string} [usedFor]          what it is used for when it provides no indicator
  * @property {object} [report]            how the report and compare views present its details (src/components/report/)
- *   { category, label, trends: { group, unit, charts: [{ indicator, title, subtitle, digits, focusOnly }] },
+ *   { category, label, trends: { group, unit, charts: [{ indicator, title, subtitle, digits, focusOnly, lastYear }] },
+ *     (lastYear: also compare the latest year's published value, details.latest[indicator])
  *     latestTable: { title, unit, rows }, footnote }
  * @property {(e: object) => Array<{ label: string, url: string }>} [links]  external pages about a place
  * @property {(ctx: { entity: object, detail?: object, meta?: object, country: object }) => object | null} [provenance]

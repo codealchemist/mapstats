@@ -59,6 +59,16 @@ const trendMeasures = (provider) => (provider.report?.trends?.charts || []).map(
   }),
 }))
 
+// The latest year's published value of a series (report.trends chart with `lastYear`), as one bar per place.
+const lastYearMeasures = (provider) => (provider.report?.trends?.charts || []).filter((c) => c.lastYear).map((c) => {
+  const latest = (d) => d?.[provider.id]?.latest?.[c.indicator] ?? null
+  return {
+    id: `last:${provider.id}:${c.indicator}`, group: `${provider.report.trends.group} (${provider.short})`, label: `${c.title} last year`, unit: provider.report.trends.unit,
+    available: (ps) => ps.some((p) => latest(p.e.details) != null),
+    build: ({ places, tk, national }) => barPerPlace({ places, tk, national, value: (e) => latest(e.details), nationalValue: (n) => latest(n.details), unit: provider.report.trends.unit }),
+  }
+})
+
 export function buildMeasures() {
   const list = [
     {
@@ -72,6 +82,7 @@ export function buildMeasures() {
       build: ({ places, tk }) => groupedBars({ places, tk, labels: CATEGORIES.map((c) => c.label), series: (p) => CATEGORIES.map((c) => r1(p.e.categories[c.id])), horizontal: true, max: 100 }),
     },
     ...localFirst(PROVIDERS).flatMap(trendMeasures),
+    ...localFirst(PROVIDERS).flatMap(lastYearMeasures),
     monthly('tmax', 'Average daily maximum', '°C'),
     monthly('tmin', 'Average daily minimum', '°C'),
     monthly('precip', 'Precipitation', 'mm', 'bar'),

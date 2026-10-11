@@ -29,7 +29,7 @@ export default [
         group: 'Crime trends', unit: 'per 100,000',
         charts: [
           { indicator: 'homicide', title: 'Homicide rate', subtitle: 'Victims of intentional homicide per 100,000', digits: 2 },
-          { indicator: 'propertyCrime', title: 'Robberies and thefts', subtitle: 'Incidents per 100,000', digits: 0 },
+          { indicator: 'propertyCrime', title: 'Robberies and thefts', subtitle: 'Incidents per 100,000', digits: 0, lastYear: true },
           { indicator: 'roadDeaths', title: 'Road deaths', subtitle: 'Victims of road traffic deaths per 100,000', digits: 2, focusOnly: true },
         ],
       },
