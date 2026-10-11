@@ -210,16 +210,29 @@ export async function fetchClimateDetail(lat, lon, { signal } = {}) {
 // ---------- UV climatology ----------
 
 // ERA5 has no UV, so a full year of archived forecasts (Open-Meteo historical forecast API) is used.
+// A year of daily maximum UV: the yearly mean, and its exposure under the Global Solar UV Index (standards.js
+// uvRisk): the yearly mean of day scores by category, and the days rated very high or extreme.
+const UV_CATEGORIES = STANDARDS.uvRisk.options[0].uv.categories
+
+export function summariseUv(daily) {
+  const v = (daily?.uv_index_max || []).filter((x) => x != null)
+  if (v.length <= 300) return { uvMean: null, uvMax: null, uvScore: null, uvVeryHighDays: null, uvExtremeDays: null }
+  return {
+    uvMean: Math.round(mean(v) * 10) / 10,
+    uvMax: Math.max(...v),
+    uvScore: Math.round(mean(v.map((x) => heatStep(x, UV_CATEGORIES)))),
+    uvVeryHighDays: v.filter((x) => x >= 8).length,
+    uvExtremeDays: v.filter((x) => x >= 11).length,
+  }
+}
+
 export function fetchUvBatch(points, opts = {}) {
   const year = lastFullYear()
   const { start, end, days } = yearRange(year)
   return batch(points, {
-    size: 40, key: `uvy:${year}`, ttl: 30 * DAY, timeout: 60000, cost: { variables: 1, days },
+    size: 40, key: `uvy2:${year}`, ttl: 30 * DAY, timeout: 60000, cost: { variables: 1, days },
     url: (group) => `https://historical-forecast-api.open-meteo.com/v1/forecast?${coordParams(group)}&start_date=${start}&end_date=${end}&daily=uv_index_max&timezone=auto`,
-    row: (r, point) => {
-      const v = r.daily.uv_index_max.filter((x) => x != null)
-      return { id: point.id, uvMean: v.length > 300 ? Math.round(mean(v) * 10) / 10 : null, uvMax: v.length > 300 ? Math.max(...v) : null }
-    },
+    row: (r, point) => ({ id: point.id, ...summariseUv(r.daily) }),
   }, opts)
 }
 

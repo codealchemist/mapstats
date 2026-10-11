@@ -82,6 +82,26 @@ export const STANDARDS = {
     cold: { categories: [[-10, 'Moderate risk'], [-28, 'High risk (frostbite in 10–30 min)'], [-40, 'Very high risk'], [-48, 'Severe risk']] },
     note: 'Cold side for both: wind chill, with Environment Canada’s risk categories (moderate below −10, frostbite risk at −28, very high at −40, severe at −48).',
   },
+  // UV exposure: one scale worldwide, the Global Solar UV Index (WHO, WMO, UNEP, ICNIRP), also used by the US EPA
+  // and Australia's ARPANSA. Each day scores by the category its maximum UV index reaches; the yearly mean of day
+  // scores is the value.
+  uvRisk: {
+    default: 'who',
+    valueFromInput: true,
+    options: [
+      {
+        id: 'who', short: 'WHO', name: 'WHO / WMO / UNEP / ICNIRP · Global Solar UV Index',
+        url: 'https://www.who.int/publications/i/item/9241590076',
+        input: 'uvScore', unit: 'daily maximum UV index',
+        uv: { categories: [[3, 'Moderate'], [6, 'High'], [8, 'Very high'], [11, 'Extreme']] },
+        bands: [[2, 'Low'], [5, 'Moderate'], [7, 'High'], [10, 'Very high'], [Infinity, 'Extreme']],
+        points: [[0, 0], [100, 100]],
+        daily: [
+          { indicator: 'uvExtremeDays', limit: 11, allowed: 0, text: 'with extreme UV (index 11 or more)', basis: 'unprotected skin burns in minutes; avoid the midday sun' },
+        ],
+      },
+    ],
+  },
 }
 
 /** Every indicator's default standard: { indicatorId: standardId }. */

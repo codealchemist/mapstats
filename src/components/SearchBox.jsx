@@ -58,7 +58,7 @@ export function SearchBox({ model, country, live, geo, onSelect }) {
     const opts = { priority: PRIORITY.user }
     const [clim, aqi, thermal] = await Promise.all([fetchClimateBatch(pt, opts), fetchAqiBatch(pt, opts), fetchThermalBatch(pt, opts)])
     // UV and river flow aren't loaded for a searched place.
-    const { uvMean, floodWatch, floodPeakPast, ...values } = liveValuesFor(id, g.lat, g.lon, { climate: clim.data, aqi: aqi.data, thermal: thermal.data })
+    const { uvMean, uvScore, uvVeryHighDays, uvExtremeDays, floodWatch, floodPeakPast, ...values } = liveValuesFor(id, g.lat, g.lon, { climate: clim.data, aqi: aqi.data, thermal: thermal.data })
     onSelect({ type: 'adhoc', id, input: { ...base, live: { ...values, quakes } } })
   }
 

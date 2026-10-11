@@ -20,7 +20,8 @@ const SCORED = INDICATORS.filter((i) => i.better)
 const CLIMATE_KEYS = ['climateComfort', 'meanTemp', 'annualPrecip', 'snowfall', 'sunshine', 'elevation', 'tempMaxAnnual', 'tempMinAnnual', 'hotDays', 'tropicalNights', 'frostDays', 'heavyRainDays', 'drySpell']
 const AIR_KEYS = ['aqi', 'usAqi', 'pm25', 'aqiRecent', 'pm25WorstDay', 'aqiPoorDays', 'usAqiUnhealthyDays', 'pm25HighDays']
 const THERMAL_KEYS = ['thermalNws', 'thermalEccc', 'heatDangerDays', 'humidexDangerDays', 'frostbiteDays']
-const LIVE_KEYS = [...CLIMATE_KEYS, ...AIR_KEYS, ...THERMAL_KEYS, 'quakes', 'uvMean', 'floodWatch', 'floodPeakPast']
+const UV_KEYS = ['uvMean', 'uvScore', 'uvVeryHighDays', 'uvExtremeDays']
+const LIVE_KEYS = [...CLIMATE_KEYS, ...AIR_KEYS, ...THERMAL_KEYS, ...UV_KEYS, 'quakes', 'floodWatch', 'floodPeakPast']
 
 // True when the entity's value for `id` was measured for the entity itself (not copied from its province).
 export const isOwnValue = (entity, id) => entity.values[id] != null && !entity.inherited?.has(id)
@@ -193,7 +194,7 @@ export function liveValuesFor(id, lat, lon, live) {
     ...Object.fromEntries(CLIMATE_KEYS.map((k) => [k, clim?.[k] ?? null])),
     ...Object.fromEntries(AIR_KEYS.map((k) => [k, air?.[k] ?? null])),
     ...Object.fromEntries(THERMAL_KEYS.map((k) => [k, live.thermal?.[id]?.[k] ?? null])),
-    uvMean: live.uv?.[id]?.uvMean ?? null,
+    ...Object.fromEntries(UV_KEYS.map((k) => [k, live.uv?.[id]?.[k] ?? null])),
     floodWatch: live.flood?.[id]?.river ? live.flood[id].floodWatch : null,
     floodPeakPast: live.flood?.[id]?.river ? live.flood[id].pastPeakRatio : null,
     quakes: live.quakes ? countQuakesNear(live.quakes, lat, lon) : null,

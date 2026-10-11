@@ -30,7 +30,7 @@ export default [
   defineProvider({
     ...live, id: 'open-meteo-uv-history', short: 'Open-Meteo UV history (live)', name: 'Open-Meteo · Historical forecast', family: family.id,
     url: 'https://open-meteo.com/en/docs/historical-forecast-api', covers: 'Daily maximum UV index over the last full year',
-    provides: ['uvMean'], cadence: 'Archived daily forecasts', scope: 'Global grid', types: ['air', 'climate'], usedFor: 'UV climate surface',
+    provides: ['uvMean', 'uvRisk', 'uvScore', 'uvVeryHighDays', 'uvExtremeDays'], cadence: 'Archived daily forecasts', scope: 'Global grid', types: ['air', 'climate'], usedFor: 'UV climate surface',
   }),
   defineProvider({
     ...live, id: 'open-meteo-glofas', short: 'Open-Meteo GloFAS (live)', name: 'Open-Meteo · Flood (GloFAS)', family: family.id,

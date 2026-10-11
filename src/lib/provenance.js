@@ -76,7 +76,8 @@ export function valuesBySource({ entity, model, country, detail, quakes, live = 
     groups.push({
       key: 'Open-Meteo UV history (live)', name: s.name, url: s.url, level: 'Point', area: point,
       period: String(new Date().getFullYear() - 1), status: 'Live',
-      rows: [row('UV index, mean of daily maxima', uvy.uvMean), row('UV index, highest daily maximum', uvy.uvMax)].filter((r) => r.value != null),
+      rows: [row('UV index, mean of daily maxima', uvy.uvMean), row('UV index, highest daily maximum', uvy.uvMax),
+        row('Days with very high UV or worse (index ≥ 8)', uvy.uvVeryHighDays, 'days'), row('Days with extreme UV (index ≥ 11)', uvy.uvExtremeDays, 'days')].filter((r) => r.value != null),
     })
   }
   const fl = live.flood?.[entity.id]
