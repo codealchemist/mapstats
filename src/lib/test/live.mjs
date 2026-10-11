@@ -54,7 +54,7 @@ const fill = (v) => DAYS.map(() => v)
 const BODY = {
   'archive-api.open-meteo.com': () => ({ elevation: 120, daily: { time: DAYS, temperature_2m_max: fill(22), temperature_2m_min: fill(12), precipitation_sum: fill(1), snowfall_sum: fill(0), sunshine_duration: fill(30000) } }),
   'historical-forecast-api.open-meteo.com': () => ({ daily: { uv_index_max: fill(5) } }),
-  'air-quality-api.open-meteo.com': () => ({ hourly: { european_aqi: [20, 30] } }),
+  'air-quality-api.open-meteo.com': () => ({ hourly: { european_aqi: [20, 30], us_aqi: [40, 60], pm2_5: [8, 12] } }),
   'example.test': () => ({ ok: true }),
   'other.test': () => ({ ok: true }),
 }

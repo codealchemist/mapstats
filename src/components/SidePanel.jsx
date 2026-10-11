@@ -11,6 +11,7 @@ import { sourcesForIndicators, familiesFor, familyOf, familyById, isMultiSource 
 import { INDICATORS } from '../data/metrics.js'
 import { SURFACE_VARS } from '../lib/surface.js'
 import { isCurated } from '../core/countries.js'
+import { STANDARDS, standardFor } from '../data/standards.js'
 
 const TABS = [
   { id: 'layers', label: 'Layers', icon: Layers },
@@ -206,7 +207,7 @@ function RankingTab({ model, country, selected, onSelect, mapRef, sourceMode }) 
 
 // ---------------- Weights ----------------
 
-function WeightsTab({ weights, onWeights, onInfo, country }) {
+function WeightsTab({ weights, onWeights, onInfo, country, standards, onStandards }) {
   const total = Object.values(weights).reduce((s, x) => s + x, 0) || 1
   return (
     <>
@@ -233,11 +234,39 @@ function WeightsTab({ weights, onWeights, onInfo, country }) {
           )
         })}
       </div>
+      <StandardsPicker standards={standards} onStandards={onStandards} />
       <div className="row-between">
         <button className="btn ghost" onClick={() => onWeights(DEFAULT_WEIGHTS)}><RotateCcw size={14} /> Reset</button>
         <button className="btn ghost" onClick={onInfo}><Info size={14} /> How the score works</button>
       </div>
     </>
+  )
+}
+
+// One standard per indicator, applied to every place (map, ranking, reports and compare alike).
+function StandardsPicker({ standards, onStandards }) {
+  return (
+    <div className="standards">
+      <span className="eyebrow">Standards</span>
+      <p className="hint">Which health standard says how good or bad a value is. One applies to every place.</p>
+      {Object.entries(STANDARDS).map(([id, s]) => {
+        const current = standardFor(id, standards)
+        return (
+          <div key={id} className="standard-row">
+            <label htmlFor={`std-${id}`}>{indicatorById[id].label.replace(/\s*\(.*\)$/, '')}</label>
+            <div className="select-wrap">
+              <select id={`std-${id}`} value={current.id} onChange={(e) => onStandards((x) => ({ ...x, [id]: e.target.value }))}>
+                {s.options.map((o) => <option key={o.id} value={o.id}>{o.name}</option>)}
+              </select>
+            </div>
+            <p className="hint small">
+              Scores the {current.unit}: {current.bands.map(([max, label]) => (max === Infinity ? label : `${label} ≤ ${max}`)).join(' · ')}.{' '}
+              <a href={current.url} target="_blank" rel="noreferrer">Source</a>
+            </p>
+          </div>
+        )
+      })}
+    </div>
   )
 }
 

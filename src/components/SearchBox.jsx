@@ -63,7 +63,7 @@ export function SearchBox({ model, country, live, geo, onSelect }) {
       input: {
         ...base,
         live: {
-          quakes, aqi: aqi.data[id] ?? null, climateComfort: c.climateComfort ?? null, meanTemp: c.meanTemp ?? null,
+          quakes, aqi: aqi.data[id]?.aqi ?? null, usAqi: aqi.data[id]?.usAqi ?? null, pm25: aqi.data[id]?.pm25 ?? null, climateComfort: c.climateComfort ?? null, meanTemp: c.meanTemp ?? null,
           annualPrecip: c.annualPrecip ?? null, snowfall: c.snowfall ?? null, sunshine: c.sunshine ?? null, elevation: c.elevation ?? null,
         },
       },

@@ -1,20 +1,22 @@
 // MapStats livability score.
 //
-// 1. Each indicator is normalised to 0–100 on its fixed score range (metrics.js scoreRange: anchors from
-//    the data, else the hand-set domain), flipped when lower is better, and clamped.
+// 1. Each indicator is scored 0–100: by the selected standard when it has standards (data/standards.js, the
+//    same for every place), else on its fixed score range (metrics.js scoreRange: anchors from the data, else
+//    the hand-set domain), flipped when lower is better, and clamped.
 // 2. A category score is the mean of its available indicator scores.
 // 3. The MapStats score is the weight-averaged category score, renormalising
 //    weights over the categories that have data, so missing data neither
 //    rewards nor punishes a place. `coverage` reports how much data was used.
 
 import { CATEGORIES, INDICATORS, indicatorById, scoreRange } from '../data/metrics.js'
+import { DEFAULT_STANDARDS, standardFor, standardScore } from '../data/standards.js'
 import { haversineKm, labelPoint } from './geo.js'
 import { familyOf, isMultiSource, isRegionOnly } from '../core/providers.js'
 import { sourceWeight, percentile } from './sourceWeights.js'
 import { resolvePlaces, weightedMean } from '../core/resolve.js'
 
 const SCORED = INDICATORS.filter((i) => i.better)
-const LIVE_KEYS = ['climateComfort', 'meanTemp', 'annualPrecip', 'snowfall', 'sunshine', 'elevation', 'aqi', 'quakes', 'tempMaxAnnual', 'tempMinAnnual', 'uvMean', 'floodWatch', 'floodPeakPast']
+const LIVE_KEYS = ['climateComfort', 'meanTemp', 'annualPrecip', 'snowfall', 'sunshine', 'elevation', 'aqi', 'usAqi', 'pm25', 'quakes', 'tempMaxAnnual', 'tempMinAnnual', 'uvMean', 'floodWatch', 'floodPeakPast']
 
 // True when the entity's value for `id` was measured for the entity itself (not copied from its province).
 export const isOwnValue = (entity, id) => entity.values[id] != null && !entity.inherited?.has(id)
@@ -72,7 +74,8 @@ const median = (a) => {
  * Only values measured for the place itself vote. Values borrowed from the province (`inherited`)
  * fill a category only when no source has local data for it. Region-only families (e.g. provincial
  * statistics) are region-level by nature and always count.
- * ctx: { type, details, dist } — dist[type][indicator] = sorted own values (for percentiles).
+ * ctx: { type, details, dist, standards } — dist[type][indicator] = sorted own values (for percentiles);
+ * standards: the selected standard per indicator (data/standards.js), applied to every place alike.
  */
 export function scoreValues(values, weights, mode = 'combined', inherited = null, ctx = {}) {
   const multi = isMultiSource(mode)
@@ -86,7 +89,9 @@ export function scoreValues(values, weights, mode = 'combined', inherited = null
       possible++
       const v = values[i.id]
       if (v == null) continue
-      const n = mode === 'weighted' ? percentileScore(i, v, f, ctx) : normalise(i.id, v)
+      const std = standardFor(i.id, ctx.standards)
+      const fixed = std ? standardScore(std, values[std.input]) : normalise(i.id, v)
+      const n = mode === 'weighted' ? percentileScore(i, v, f, ctx, fixed) : fixed
       if (n == null) continue
       const isBorrowed = inherited?.has(i.id) && !isRegionOnly(f)
       ;((isBorrowed ? borrowed : own)[f] ||= []).push(n)
@@ -121,13 +126,13 @@ export function scoreValues(values, weights, mode = 'combined', inherited = null
   return { score: wsum ? acc / wsum : null, categories, bySource, spread, sourceWeights, coverage: possible ? used / possible : 0 }
 }
 
-// Percentile among places of the same type covered by the source; falls back to the fixed domain
+// Percentile among places of the same type covered by the source; falls back to the fixed-scale score
 // when fewer than 3 places have the value (a percentile of 1–2 places says nothing).
-function percentileScore(ind, v, family, ctx) {
+function percentileScore(ind, v, family, ctx, fixed) {
   // Province-level statistics are compared against provinces, even when shown for a city.
   const type = isRegionOnly(family) ? 'province' : ctx.type
   const sorted = ctx.dist?.[type]?.[ind.id]
-  if (!sorted || sorted.length < 3) return normalise(ind.id, v)
+  if (!sorted || sorted.length < 3) return fixed
   const p = percentile(sorted, v)
   return ind.better === 'high' ? p : 100 - p
 }
@@ -146,7 +151,7 @@ function distributions(entities) {
   return dist
 }
 
-const ctxOf = (e, dist) => ({ type: e.type === 'national' ? 'province' : e.type, details: e.details, dist })
+const ctxOf = (e, dist, standards) => ({ type: e.type === 'national' ? 'province' : e.type, details: e.details, dist, standards })
 
 export function countQuakesNear(quakes, lat, lon, km = 200) {
   if (!quakes) return null
@@ -180,7 +185,9 @@ export function liveValuesFor(id, lat, lon, live) {
     snowfall: clim?.snowfall ?? null,
     sunshine: clim?.sunshine ?? null,
     elevation: clim?.elevation ?? null,
-    aqi: live.aqi?.[id] ?? null,
+    aqi: live.aqi?.[id]?.aqi ?? null,
+    usAqi: live.aqi?.[id]?.usAqi ?? null,
+    pm25: live.aqi?.[id]?.pm25 ?? null,
     tempMaxAnnual: clim?.tempMaxAnnual ?? null,
     tempMinAnnual: clim?.tempMinAnnual ?? null,
     uvMean: live.uv?.[id]?.uvMean ?? null,
@@ -197,8 +204,9 @@ export function liveValuesFor(id, lat, lon, live) {
  * @param datasets      the country's datasets (countries/<ISO3>/data), see src/core/resolve.js
  * @param base          resolvePlaces() of the same geo, cities and datasets, when the caller keeps it between builds
  * @param live          live layers (useLiveData)
+ * @param standards     the standard chosen per indicator (data/standards.js)
  */
-export function buildEntities({ provincesGeo, cities, datasets = [], base = resolveCountry(provincesGeo, cities, datasets), live, weights, sourceMode = 'combined' }) {
+export function buildEntities({ provincesGeo, cities, datasets = [], base = resolveCountry(provincesGeo, cities, datasets), live, weights, sourceMode = 'combined', standards = DEFAULT_STANDARDS }) {
   // Cities: dataset values (own or borrowed from the region) + live. Copied: `base` outlives this build.
   const cityEntities = cities.map((c) => {
     const b = base.cities[c.id]
@@ -226,7 +234,7 @@ export function buildEntities({ provincesGeo, cities, datasets = [], base = reso
   const all = [...provEntities, ...cityEntities]
   const dist = distributions(all)
   for (const e of all) {
-    const ctx = ctxOf(e, dist)
+    const ctx = ctxOf(e, dist, standards)
     Object.assign(e, scoreValues(e.values, weights, sourceMode, e.inherited, ctx))
     // Both integration methods, always, so reports can compare them side by side.
     e.compare = {
@@ -240,7 +248,7 @@ export function buildEntities({ provincesGeo, cities, datasets = [], base = reso
   const provinceName = Object.fromEntries(provEntities.map((p) => [p.id, p.name]))
   cityEntities.forEach((c) => (c.provinceName = provinceName[c.province] || ''))
 
-  const national = nationalAverage(provEntities, weights, sourceMode, dist)
+  const national = nationalAverage(provEntities, weights, sourceMode, dist, standards)
   national.details = base.national.details
   return { provinces: provEntities, cities: cityEntities, national, dist, ranges: valueRanges(all), datasets: base.meta }
 }
@@ -251,12 +259,12 @@ function rank(list) {
   list.forEach((e) => (e.rankOf = sorted.length))
 }
 
-function nationalAverage(provinces, weights, sourceMode, dist) {
+function nationalAverage(provinces, weights, sourceMode, dist, standards) {
   const values = {}
   for (const ind of INDICATORS) values[ind.id] = weightedMean(provinces, ind.id)
   const totalPop = provinces.reduce((s, p) => s + (p.values.pop || 0), 0)
   values.pop = totalPop || null
-  const ctx = { type: 'province', dist }
+  const ctx = { type: 'province', dist, standards }
   return {
     type: 'national', id: 'national', name: 'National average', values, ...scoreValues(values, weights, sourceMode, null, ctx),
     compare: { combined: scoreValues(values, weights, 'combined', null, ctx), weighted: scoreValues(values, weights, 'weighted', null, ctx) },
@@ -265,14 +273,14 @@ function nationalAverage(provinces, weights, sourceMode, dist) {
 
 // For a city typed into search that isn't in our list: score it with live data
 // (and what its region's cities borrow from it, when it falls inside the current country).
-export function adHocEntity({ place, provinceId, provinceName, provinceEntity, live, weights, sourceMode = 'combined', dist = null }) {
+export function adHocEntity({ place, provinceId, provinceName, provinceEntity, live, weights, sourceMode = 'combined', dist = null, standards = DEFAULT_STANDARDS }) {
   const prov = { ...provinceEntity?.inheritable }
   const values = { ...prov, pop: place.pop, ...live }
   const e = {
     type: 'city', id: place.id, name: place.name, province: provinceId, provinceName: provinceName || place.admin1 || '',
     lat: place.lat, lon: place.lon, values, inherited: new Set(Object.keys(prov).filter((k) => k !== 'pop')), adHoc: true,
   }
-  const ctx = { type: 'city', dist }
+  const ctx = { type: 'city', dist, standards }
   Object.assign(e, scoreValues(values, weights, sourceMode, e.inherited, ctx))
   e.compare = { combined: scoreValues(values, weights, 'combined', e.inherited, ctx), weighted: scoreValues(values, weights, 'weighted', e.inherited, ctx) }
   return e

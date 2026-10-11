@@ -14,7 +14,7 @@ export default [
   defineProvider({
     ...live, id: 'open-meteo-cams', short: 'Open-Meteo CAMS (live)', name: 'Open-Meteo · CAMS', family: family.id,
     url: 'https://open-meteo.com/en/docs/air-quality-api', covers: 'Air quality (European AQI, pollutants)',
-    provides: ['aqi'], cadence: 'Hourly', scope: 'Global grid ≈ 10–40 km', types: ['air'], usedFor: 'Air-quality charts in reports',
+    provides: ['aqi', 'usAqi', 'pm25'], cadence: 'Hourly', scope: 'Global grid ≈ 10–40 km', types: ['air'], usedFor: 'Air-quality charts in reports',
   }),
   defineProvider({
     ...live, id: 'open-meteo-dem', short: 'Open-Meteo DEM (live)', name: 'Open-Meteo · Elevation', family: family.id,

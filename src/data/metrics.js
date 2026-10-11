@@ -33,6 +33,9 @@ export const INDICATORS = [
   { id: 'floodRisk', label: 'Flood exposure', unit: '/5', category: 'hazards', better: 'low', domain: [1, 5], digits: 0 },
   // Environment
   { id: 'aqi', label: 'Air quality (EAQI, 30-day)', unit: '', category: 'environment', better: 'low', domain: [10, 70], digits: 0, live: true },
+  // Descriptive: the measures the US EPA and WHO air-quality standards score (src/data/standards.js).
+  { id: 'usAqi', label: 'US AQI (30-day)', unit: '', category: 'environment', better: null, digits: 0, live: true, ramp: 'red' },
+  { id: 'pm25', label: 'PM2.5 (30-day)', unit: 'µg/m³', category: 'environment', better: null, digits: 1, live: true, ramp: 'red' },
   { id: 'climateComfort', label: 'Climate comfort', unit: '/100', category: 'environment', better: 'high', domain: [20, 90], digits: 0, live: true },
   // Services
   { id: 'doctors', label: 'Physicians', unit: '/1k', category: 'services', better: 'high', domain: [1.5, 6], digits: 1 },
@@ -81,6 +84,7 @@ export const MAP_METRICS = [
   { id: 'propertyCrime', group: 'Safety', icon: 'ShieldAlert' },
   { id: 'roadDeaths', group: 'Safety', icon: 'ShieldAlert' },
   { id: 'aqi', group: 'Environment', icon: 'Wind' },
+  { id: 'pm25', group: 'Environment', icon: 'Wind' },
   { id: 'climateComfort', group: 'Environment', icon: 'Sun' },
   { id: 'meanTemp', group: 'Weather', icon: 'Thermometer' },
   { id: 'annualPrecip', group: 'Weather', icon: 'CloudRain' },

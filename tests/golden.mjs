@@ -6,6 +6,7 @@ import { countryByIso } from '../src/core/countries.js'
 import { DEFAULT_WEIGHTS, INDICATORS } from '../src/data/metrics.js'
 import { SOURCE_FAMILIES, familyOf } from '../src/core/providers.js'
 import { loadCountry } from '../tools/cli/context.mjs'
+import { STANDARDS } from '../src/data/standards.js'
 
 const UPDATE = process.argv.includes('--update')
 const MODES = ['combined', 'weighted', 'snic', 'openmeteo', 'usgs', 'provincial']
@@ -29,7 +30,7 @@ function fakeLive(points) {
       snowfall: between(id, 'sn', 0, 80, 0), sunshine: between(id, 'su', 1500, 3200, 0), elevation: between(id, 'el', 0, 3500, 0),
       tempMaxAnnual: between(id, 'tx', 28, 44), tempMinAnnual: between(id, 'tn', -15, 8),
     }
-    if (rand(id, 'aqi?') > 0.1) live.aqi[id] = between(id, 'aqi', 10, 70, 0)
+    if (rand(id, 'aqi?') > 0.1) live.aqi[id] = { aqi: between(id, 'aqi', 10, 70, 0), usAqi: between(id, 'usaqi', 15, 120, 0), pm25: between(id, 'pm25', 2, 40) }
     live.uv[id] = { uvMean: between(id, 'uv', 3, 12), uvMax: between(id, 'uvx', 8, 16) }
     live.flood[id] = rand(id, 'river') > 0.4 ? { river: true, floodWatch: between(id, 'fw', 0.3, 2, 2), pastPeakRatio: between(id, 'pp', 1, 3, 2) } : { river: false }
     const n = Math.floor(rand(id, 'nq') * 6)
@@ -79,6 +80,13 @@ async function snapshot(iso3) {
       out.runs[`w${w}:${mode}`].push({ ...pick(adHoc), values: present(adHoc.values), inherited: borrowed(adHoc) })
     }
   })
+  // Every alternative standard, default weights, median of sources: each scores every place alike.
+  for (const [ind, s] of Object.entries(STANDARDS)) {
+    for (const o of s.options.filter((x) => x.id !== s.default)) {
+      const m = buildEntities({ provincesGeo: geo, cities, base: resolved, live, weights: DEFAULT_WEIGHTS, standards: { [ind]: o.id } })
+      out.runs[`std:${ind}=${o.id}`] = [...m.provinces, ...m.cities, m.national].map(pick)
+    }
+  }
   return round(out)
 }
 

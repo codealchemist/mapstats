@@ -11,6 +11,7 @@ import { CompareView } from './components/CompareView.jsx'
 import { ToastProvider } from './components/Toast.jsx'
 import { COUNTRIES, countryByIso } from './core/countries.js'
 import { DEFAULT_WEIGHTS, metricById } from './data/metrics.js'
+import { DEFAULT_STANDARDS, STANDARDS } from './data/standards.js'
 import { familyOf, familiesFor, isMultiSource } from './core/providers.js'
 import { useCountryData } from './hooks/useCountryData.js'
 import { useLiveData } from './hooks/useLiveData.js'
@@ -38,6 +39,11 @@ export default function App() {
   // Bumped by the logo (home view) to remount stateful panels: search text, side-panel tab.
   const [homeKey, setHomeKey] = useState(0)
   const [weights, setWeights] = useState(() => ({ ...DEFAULT_WEIGHTS, ...store.get('weights', {}) }))
+  // The standard chosen per indicator (air quality: EEA, US EPA or WHO); unknown remembered choices are dropped.
+  const [standards, setStandards] = useState(() => {
+    const saved = store.get('standards', {})
+    return Object.fromEntries(Object.entries(DEFAULT_STANDARDS).map(([id, d]) => [id, STANDARDS[id].options.some((o) => o.id === saved[id]) ? saved[id] : d]))
+  })
   // A mode remembered by an older build may name a source that no longer exists, or one the country lacks.
   const [sourceMode, setSourceMode] = useState(() => {
     const mode = store.get('sourceMode', 'combined')
@@ -59,6 +65,7 @@ export default function App() {
   useEffect(() => { document.documentElement.dataset.theme = theme; store.set('theme', theme) }, [theme])
   useEffect(() => store.set('country', iso3), [iso3])
   useEffect(() => store.set('weights', weights), [weights])
+  useEffect(() => store.set('standards', standards), [standards])
   useEffect(() => store.set('sourceMode', sourceMode), [sourceMode])
 
   // Only the data layers feed scoring: status/progress updates (one per loaded chunk) must not
@@ -68,16 +75,16 @@ export default function App() {
   // Dataset values per place change only with the country; scores also change with weights, mode and live data.
   const base = useMemo(() => (data.geo ? resolveCountry(data.geo, data.cities, data.datasets) : null), [data.geo, data.cities, data.datasets])
   const model = useMemo(
-    () => (base ? buildEntities({ provincesGeo: data.geo, cities: data.cities, base, live: liveData, weights, sourceMode }) : null),
-    [base, data.geo, data.cities, liveData, weights, sourceMode],
+    () => (base ? buildEntities({ provincesGeo: data.geo, cities: data.cities, base, live: liveData, weights, sourceMode, standards }) : null),
+    [base, data.geo, data.cities, liveData, weights, sourceMode, standards],
   )
 
   // Ad-hoc (searched) places are rescored when weights change.
   const adHoc = useMemo(() => {
     if (selected?.type !== 'adhoc') return null
     const provinceEntity = model?.provinces.find((p) => p.id === selected.input.provinceId)
-    return adHocEntity({ ...selected.input, provinceEntity, weights, sourceMode, dist: model?.dist })
-  }, [selected, model, weights, sourceMode])
+    return adHocEntity({ ...selected.input, provinceEntity, weights, sourceMode, standards, dist: model?.dist })
+  }, [selected, model, weights, sourceMode, standards])
 
   const adHocPoint = useMemo(() => adHoc && { lat: adHoc.lat, lon: adHoc.lon }, [adHoc?.lat, adHoc?.lon]) // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -182,10 +189,10 @@ export default function App() {
     if (!sel || !model) return null
     if (sel.type === 'adhoc') {
       const provinceEntity = model.provinces.find((p) => p.id === sel.input.provinceId)
-      return adHocEntity({ ...sel.input, provinceEntity, weights, sourceMode, dist: model.dist })
+      return adHocEntity({ ...sel.input, provinceEntity, weights, sourceMode, standards, dist: model.dist })
     }
     return (sel.type === 'city' ? model.cities : model.provinces).find((e) => e.id === sel.id) || null
-  }), [compare, model, weights, sourceMode])
+  }), [compare, model, weights, sourceMode, standards])
 
   const addToCompare = useCallback((sel, slot) => {
     if (!sel) return
@@ -284,6 +291,8 @@ export default function App() {
           onOverlays={setOverlays}
           weights={weights}
           onWeights={setWeights}
+          standards={standards}
+          onStandards={setStandards}
           selected={selected}
           onSelect={select}
           mapRef={mapRef}
@@ -311,7 +320,7 @@ export default function App() {
           />
         )}
 
-        {showInfo && <Methodology onClose={() => setShowInfo(false)} weights={weights} onSources={() => { setShowInfo(false); setShowSources(true) }} />}
+        {showInfo && <Methodology onClose={() => setShowInfo(false)} weights={weights} standards={standards} onSources={() => { setShowInfo(false); setShowSources(true) }} />}
         {showSources && <SourcesView onClose={() => setShowSources(false)} datasets={model?.datasets} />}
         {showCompare && model && (
           <CompareView
@@ -320,6 +329,7 @@ export default function App() {
             country={country}
             theme={theme}
             sourceMode={sourceMode}
+            standards={standards}
             live={live}
             onAdd={addToCompare}
             onRemove={(i) => setCompare((c) => c.map((x, k) => (k === i ? null : x)))}

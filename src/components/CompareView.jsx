@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { X, Maximize2, Minimize2, Plus, FileSpreadsheet, Columns3, MapPin, Building2, ChartLine, Search, ArrowLeft } from 'lucide-react'
-import { CATEGORIES, INDICATORS } from '../data/metrics.js'
+import { CATEGORIES, INDICATORS, indicatorById } from '../data/metrics.js'
+import { STANDARDS, standardFor } from '../data/standards.js'
 import { familyById } from '../core/providers.js'
 import { TOKENS } from './charts/theme.js'
 import { useEntityDetail } from '../hooks/useEntityDetail.js'
@@ -18,7 +19,7 @@ export const MAX_COMPARE = 3
  *  - Focus chart: one measure for all places as a single full-screen chart.
  * `slots` is fixed-length (nulls for empty slots) so each place keeps its colour.
  */
-export function CompareView({ slots, model, country, theme, sourceMode, live, onAdd, onRemove, onClose, onOpen }) {
+export function CompareView({ slots, model, country, theme, sourceMode, standards, live, onAdd, onRemove, onClose, onOpen }) {
   const ref = useRef(null)
   const toast = useToast()
   const [isFull, setIsFull] = useState(false)
@@ -126,7 +127,7 @@ export function CompareView({ slots, model, country, theme, sourceMode, live, on
             <button role="tab" aria-selected={mode === 'side'} className={mode === 'side' ? 'active' : ''} onClick={() => switchMode('side')}><Columns3 size={13} /> Side by side</button>
             <button role="tab" aria-selected={mode === 'focus'} className={mode === 'focus' ? 'active' : ''} onClick={() => switchMode('focus')}><ChartLine size={13} /> Focus chart</button>
           </div>
-          <span className="muted small">up to {MAX_COMPARE} places · scores from {familyById[sourceMode].short}</span>
+          <span className="muted small">up to {MAX_COMPARE} places · scores from {familyById[sourceMode].short}{Object.keys(STANDARDS).map((id) => ` · ${indicatorById[id].label.replace(/\s*\(.*\)$/, '').toLowerCase()}: ${standardFor(id, standards).short}`).join('')}</span>
         </div>
         <div className="search-inline measure-search">
           <Search size={15} />

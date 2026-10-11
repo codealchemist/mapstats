@@ -252,12 +252,20 @@ export function summariseFlood(id, daily, today) {
 
 // ---------- Air quality ----------
 
+// 30-day means of the measures each air-quality standard scores (src/data/standards.js): European AQI (EEA),
+// US AQI (US EPA) and PM2.5 (WHO).
+const AIR_BATCH = ['european_aqi', 'us_aqi', 'pm2_5']
+const round1 = (v) => (v == null ? null : Math.round(v * 10) / 10)
+
 export function fetchAqiBatch(points, opts = {}) {
   return batch(points, {
-    size: 50, key: `aqi:${new Date().toISOString().slice(0, 10)}`, ttl: DAY, cost: { variables: 1, days: 31 },
-    url: (group) => `https://air-quality-api.open-meteo.com/v1/air-quality?${coordParams(group)}&hourly=european_aqi&past_days=30&forecast_days=1`,
-    row: (r, point) => ({ id: point.id, aqi: Math.round(mean(r.hourly.european_aqi)) }),
-    value: (d) => d.aqi,
+    size: 50, key: `air:${new Date().toISOString().slice(0, 10)}`, ttl: DAY, cost: { variables: AIR_BATCH.length, days: 31 },
+    url: (group) => `https://air-quality-api.open-meteo.com/v1/air-quality?${coordParams(group)}&hourly=${AIR_BATCH.join(',')}&past_days=30&forecast_days=1`,
+    row: (r, point) => {
+      const m = (k) => mean(r.hourly[k] || [])
+      return { id: point.id, aqi: m('european_aqi') == null ? null : Math.round(m('european_aqi')), usAqi: m('us_aqi') == null ? null : Math.round(m('us_aqi')), pm25: round1(m('pm2_5')) }
+    },
+    value: ({ id, ...air }) => air,
   }, opts)
 }
 

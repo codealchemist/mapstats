@@ -2,8 +2,9 @@ import { useEffect } from 'react'
 import { X, ExternalLink } from 'lucide-react'
 import { CATEGORIES, INDICATORS, scoreRange, anchorsInfo } from '../data/metrics.js'
 import { PROVIDERS, providerOf } from '../core/providers.js'
+import { STANDARDS, standardFor } from '../data/standards.js'
 
-export function Methodology({ onClose, weights, onSources }) {
+export function Methodology({ onClose, weights, standards, onSources }) {
   useEffect(() => {
     const onKey = (e) => e.key === 'Escape' && onClose()
     window.addEventListener('keydown', onKey)
@@ -39,7 +40,9 @@ export function Methodology({ onClose, weights, onSources }) {
                     <tr key={i.id}>
                       <td>{k === 0 ? `${c.label} (${Math.round((weights[c.id] / total) * 100)}%)` : ''}</td>
                       <td>{i.label}</td>
-                      <td className="num">{(([lo, hi]) => (i.better === 'low' ? `${lo} → ${hi}` : `${hi} → ${lo}`))(scoreRange(i.id).range)} {i.unit}</td>
+                      <td className="num">{standardFor(i.id, standards)
+                        ? `${standardFor(i.id, standards).short} bands (${standardFor(i.id, standards).unit})`
+                        : `${(([lo, hi]) => (i.better === 'low' ? `${lo} → ${hi}` : `${hi} → ${lo}`))(scoreRange(i.id).range)} ${i.unit}`}</td>
                       <td>{providerOf(i.id)?.short}</td>
                     </tr>
                   )),
@@ -47,6 +50,17 @@ export function Methodology({ onClose, weights, onSources }) {
               </tbody>
             </table>
           </div>
+
+          <h3 className="eyebrow">Standards</h3>
+          <p className="hint">Where a recognised standard says how good or bad a value is for people, it sets the score instead of the range above. Pick one per indicator in the Weights tab; it applies to every place.</p>
+          <ul className="sources">
+            {Object.entries(STANDARDS).flatMap(([id, s]) => s.options.map((o) => (
+              <li key={`${id}:${o.id}`}>
+                <a href={o.url} target="_blank" rel="noreferrer">{o.name} <ExternalLink size={12} /></a>
+                <span>{o.id === standardFor(id, standards).id ? '(in use) ' : ''}Scores the {o.unit}: {o.bands.map(([max, label]) => (max === Infinity ? label : `${label} ≤ ${max}`)).join(' · ')}</span>
+              </li>
+            )))}
+          </ul>
 
           <h3 className="eyebrow">Data sources {onSources && <button className="link small" onClick={onSources}>· open the full sources view</button>}</h3>
           <ul className="sources">
