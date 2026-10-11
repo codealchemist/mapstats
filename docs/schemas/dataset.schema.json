@@ -1,0 +1,102 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://mapstats.app/schemas/dataset.schema.json",
+  "title": "MapStats country dataset",
+  "description": "Output of a provider prefill (countries/<ISO3>/data/<provider>.json). See docs/architecture.md section 4.4. Indicator ids, place ids and value ranges are checked against the catalogue and geo by `npm run country:check`, beyond this schema.",
+  "type": "object",
+  "required": ["schema", "provider", "country", "generatedAt", "period", "origin", "values"],
+  "additionalProperties": false,
+  "properties": {
+    "schema": { "const": 1 },
+    "provider": {
+      "description": "Global provider id (e.g. \"numbeo\") or country provider id namespaced by ISO3 (e.g. \"ARG/snic\").",
+      "type": "string",
+      "pattern": "^([A-Z]{3}/)?[a-z0-9][a-z0-9-]*$"
+    },
+    "country": { "type": "string", "pattern": "^[A-Z]{3}$" },
+    "generatedAt": { "type": "string", "format": "date-time" },
+    "period": {
+      "type": "object",
+      "required": ["latest"],
+      "additionalProperties": false,
+      "properties": {
+        "latest": { "description": "Latest year the values refer to.", "type": "integer", "minimum": 1900 },
+        "aggregation": { "description": "How values were aggregated over time, e.g. \"mean of 2023–2025\".", "type": "string" }
+      }
+    },
+    "origin": {
+      "type": "object",
+      "required": ["files"],
+      "additionalProperties": false,
+      "properties": {
+        "files": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "required": ["name", "sha256", "retrievedAt"],
+            "additionalProperties": false,
+            "properties": {
+              "name": { "type": "string" },
+              "url": { "description": "Omitted for files obtained by hand; then `note` says how.", "type": "string", "format": "uri" },
+              "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+              "retrievedAt": { "type": "string", "format": "date" },
+              "note": { "type": "string" }
+            }
+          }
+        },
+        "notes": { "type": "string" }
+      }
+    },
+    "quality": {
+      "description": "Dataset-wide quality signals read by the provider's weightFactors (e.g. snapshot: true for unverified copies).",
+      "type": "object"
+    },
+    "values": {
+      "description": "level → place id → indicator id → value in the indicator's unit (null = not published).",
+      "type": "object",
+      "minProperties": 1,
+      "additionalProperties": false,
+      "properties": {
+        "national": { "$ref": "#/$defs/placeValues" },
+        "region": { "$ref": "#/$defs/placeValues" },
+        "subregion": { "$ref": "#/$defs/placeValues" },
+        "city": { "$ref": "#/$defs/placeValues" }
+      }
+    },
+    "names": {
+      "description": "Display names for places the geo files don't name (usually subregions).",
+      "type": "object",
+      "additionalProperties": { "type": "object", "additionalProperties": { "type": "string" } }
+    },
+    "series": {
+      "description": "Yearly values aligned with `years`; drives trend charts.",
+      "type": "object",
+      "required": ["years"],
+      "properties": {
+        "years": { "type": "array", "items": { "type": "integer" }, "minItems": 2 }
+      },
+      "additionalProperties": {
+        "type": "object",
+        "additionalProperties": {
+          "type": "object",
+          "additionalProperties": { "type": "array", "items": { "type": ["number", "null"] } }
+        }
+      }
+    },
+    "details": {
+      "description": "Provider-specific detail for 'values by source' and generic sections (e.g. counts, survey). Keyed by level → place id.",
+      "type": "object"
+    }
+  },
+  "$defs": {
+    "placeValues": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "propertyNames": { "pattern": "^[a-z][A-Za-z0-9]*$" },
+        "additionalProperties": { "type": ["number", "null"] }
+      }
+    }
+  }
+}

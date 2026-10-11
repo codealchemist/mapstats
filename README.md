@@ -105,6 +105,15 @@ public/geo/          per-country boundaries and city lists
 scripts/             data import and build scripts
 ```
 
+## Documentation
+
+| Document | For |
+|---|---|
+| [Architecture](docs/architecture.md) | Core structure, the country/provider/dataset contracts, the prefill process and the migration plan |
+| [Country integration guide](docs/country-guide.md) | Developers adding or improving a country: choosing sources, writing a provider, testing, PR checklist |
+| [Country template](docs/samples/country-template/) | A complete sample country folder with one provider, a fixture and a test |
+| [Dataset schema](docs/schemas/dataset.schema.json) | The JSON format every prefill produces |
+
 ## Deployment
 
 The app is a static Vite build plus one Netlify function (`/api/news`) that uses Netlify Blobs as a 24-hour cache. It runs on the Netlify free plan. `netlify.toml` defines the build command, the publish folder and the functions folder.
