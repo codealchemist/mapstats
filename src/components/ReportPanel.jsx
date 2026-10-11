@@ -2,6 +2,7 @@ import { useCallback, useMemo, useRef, useState } from 'react'
 import {
   X, FileText, FileSpreadsheet, ExternalLink, MapPin, Building2, Users, Mountain, Thermometer, CloudRain,
   Wind, Sun, LoaderCircle, ShieldAlert, Database, Columns3, CircleAlert, Activity, ChevronRight, Smile, Meh, Frown, Info,
+  TriangleAlert,
 } from 'lucide-react'
 import { CATEGORIES, INDICATORS, indicatorById } from '../data/metrics.js'
 import { ICONS } from './icons.js'
@@ -18,6 +19,7 @@ import { useToast } from './Toast.jsx'
 import { valuesBySource, fmtExact } from '../lib/provenance.js'
 import { familyById, SOURCE_FAMILIES, isMultiSource, sourcesForIndicators, providersFor, reportProviders } from '../core/providers.js'
 import { hasBlock, TrendBlock } from './report/ProviderBlocks.jsx'
+import { warningsFor } from '../lib/warnings.js'
 import { agreementOf } from '../lib/sourceWeights.js'
 import { floodLevel } from './mapLayers.js'
 import { NewsSection } from './NewsSection.jsx'
@@ -42,7 +44,7 @@ const SECTIONS = [
   { id: 'indicators', label: 'Indicators' },
 ]
 
-export function ReportPanel({ entity, model, country, live, theme, onClose, onSelect, sourceMode = 'combined', onCompare, compareState = 'open' }) {
+export function ReportPanel({ entity, model, country, live, theme, onClose, onSelect, sourceMode = 'combined', standards, onCompare, compareState = 'open' }) {
   const registryRef = useRef(null)
   const scrollRef = useRef(null)
   const toast = useToast()
@@ -251,6 +253,8 @@ export function ReportPanel({ entity, model, country, live, theme, onClose, onSe
               <Tile icon={Sun} label="UV today" value={uvToday != null ? fmtNum(uvToday, 1) : '—'} status={uvLvl} />
             </div>
 
+            <Warnings list={warningsFor(entity, standards)} />
+
             <ChartCard id="categories" title="Score by category" subtitle="0–100, higher is better" theme={theme} build={buildCategories} height={230}
               table={{ columns: ['Category', entity.name, 'Country avg.'], rows: CATEGORIES.map((c) => [c.label, fmtScore(entity.categories[c.id]), fmtScore(national.categories[c.id])]) }} />
 
@@ -390,6 +394,20 @@ export function ReportPanel({ entity, model, country, live, theme, onClose, onSe
 }
 
 const round1 = (v) => (v == null ? null : Math.round(v * 10) / 10)
+
+// Extremes a good yearly mean would hide (lib/warnings.js).
+function Warnings({ list }) {
+  if (!list.length) return null
+  return (
+    <div className="warnings" role="note" aria-label="Warnings">
+      {list.map((w) => (
+        <p key={w.id} className="note warn">
+          <TriangleAlert size={13} /> <span><b>{w.text}</b> <span className="muted small">· {w.why} · <a href={w.url} target="_blank" rel="noreferrer">{w.source}</a></span></span>
+        </p>
+      ))}
+    </div>
+  )
+}
 
 function SectionHead({ icon: Icon, title, sub, status, sources }) {
   return (

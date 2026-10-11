@@ -3,6 +3,7 @@
 //  - USGS: earthquake catalogue
 // Responses are summarised and cached in localStorage to stay well inside free quotas.
 import { PRIORITY, abortError, callWeight, getJSON, isAbort, meteo } from './meteoQueue.js'
+import { STANDARDS } from '../data/standards.js'
 
 const CACHE_PREFIX = 'mapstats:v1:'
 const DAY = 86_400_000
@@ -123,7 +124,16 @@ export function summariseDaily(daily) {
     M.snow[key] = (M.snow[key] || 0) + (daily.snowfall_sum[i] || 0)
     M.sun[key] = (M.sun[key] || 0) + (daily.sunshine_duration[i] || 0) / 3600
     M.wet[key] = (M.wet[key] || 0) + ((daily.precipitation_sum[i] || 0) >= 1 ? 1 : 0)
-    const Y = (years[y] ||= { t: [], p: 0, hi: -Infinity, lo: Infinity })
+    const Y = (years[y] ||= { t: [], p: 0, hi: -Infinity, lo: Infinity, hot: 0, tropical: 0, frost: 0, heavy: 0, run: 0, dry: 0 })
+    // Climate extremes (ETCCDI-style counts): very hot days, tropical nights, frost days, very heavy rain days,
+    // longest run of dry days (< 1 mm).
+    const tx = daily.temperature_2m_max[i], tn = daily.temperature_2m_min[i], pr = daily.precipitation_sum[i]
+    if (tx != null && tx >= 35) Y.hot++
+    if (tn != null && tn >= 20) Y.tropical++
+    if (tn != null && tn < 0) Y.frost++
+    if (pr != null && pr >= 20) Y.heavy++
+    if (pr != null && pr < 1) Y.dry = Math.max(Y.dry, ++Y.run)
+    else Y.run = 0
     if (daily.temperature_2m_max[i] != null) Y.t.push((daily.temperature_2m_max[i] + daily.temperature_2m_min[i]) / 2)
     if (daily.temperature_2m_max[i] != null) Y.hi = Math.max(Y.hi, daily.temperature_2m_max[i])
     if (daily.temperature_2m_min[i] != null) Y.lo = Math.min(Y.lo, daily.temperature_2m_min[i])
@@ -151,6 +161,12 @@ export function summariseDaily(daily) {
     monthly,
     tempMaxAnnual: r1(mean(full.map((Y) => Y.hi))),
     tempMinAnnual: r1(mean(full.map((Y) => Y.lo))),
+    // Per year, averaged over the full years in range.
+    hotDays: Math.round(mean(full.map((Y) => Y.hot))),
+    tropicalNights: Math.round(mean(full.map((Y) => Y.tropical))),
+    frostDays: Math.round(mean(full.map((Y) => Y.frost))),
+    heavyRainDays: Math.round(mean(full.map((Y) => Y.heavy))),
+    drySpell: Math.round(mean(full.map((Y) => Y.dry))),
     meanTemp: Math.round(mean(monthly.map((m) => (m.tmax + m.tmin) / 2)) * 10) / 10,
     annualPrecip: Math.round(sum('precip')),
     snowfall: Math.round(sum('snow')),
@@ -169,7 +185,7 @@ export function fetchClimateBatch(points, opts = {}) {
   const year = lastFullYear()
   const { start, end, days } = yearRange(year)
   return batch(points, {
-    size: 40, key: `clim2:${year}`, ttl: 30 * DAY, timeout: 60000, cost: { variables: N_DAILY, days },
+    size: 40, key: `clim3:${year}`, ttl: 30 * DAY, timeout: 60000, cost: { variables: N_DAILY, days },
     url: (group) => `https://archive-api.open-meteo.com/v1/archive?${coordParams(group)}&start_date=${start}&end_date=${end}&daily=${DAILY_VARS}&timezone=auto`,
     row: (r, point) => {
       const { monthly, yearly, ...rest } = summariseDaily(r.daily)
@@ -182,7 +198,7 @@ export function fetchClimateBatch(points, opts = {}) {
 export async function fetchClimateDetail(lat, lon, { signal } = {}) {
   const end = lastFullYear()
   const start = end - 9
-  return cached(`climd2:${lat.toFixed(2)},${lon.toFixed(2)}:${end}`, 30 * DAY, async () => {
+  return cached(`climd3:${lat.toFixed(2)},${lon.toFixed(2)}:${end}`, 30 * DAY, async () => {
     const url = `https://archive-api.open-meteo.com/v1/archive?latitude=${lat}&longitude=${lon}&start_date=${start}-01-01&end_date=${end}-12-31&daily=${DAILY_VARS}&timezone=auto`
     const cost = { variables: N_DAILY, days: daysBetween(`${start}-01-01`, `${end}-12-31`) }
     const r = await meteoJSON(url, cost, { priority: PRIORITY.user, signal, timeout: 90000 })
@@ -252,19 +268,46 @@ export function summariseFlood(id, daily, today) {
 
 // ---------- Air quality ----------
 
-// 30-day means of the measures each air-quality standard scores (src/data/standards.js): European AQI (EEA),
-// US AQI (US EPA) and PM2.5 (WHO).
-const AIR_BATCH = ['european_aqi', 'us_aqi', 'pm2_5']
+// The last 365 days of hourly air quality: the measures each air-quality standard scores (src/data/standards.js)
+// as yearly means, the last 30 days' mean, PM2.5's worst day, and the days whose daily mean exceeds each
+// standard's daily limit. One year of hourly data per place costs ~8 calls, so groups are small and the result is
+// kept for a week.
+const AIR_INPUT = { aqi: 'european_aqi', usAqi: 'us_aqi', pm25: 'pm2_5' }
+const AIR_BATCH = Object.values(AIR_INPUT)
 const round1 = (v) => (v == null ? null : Math.round(v * 10) / 10)
+const AIR_DAILY = STANDARDS.aqi.options.filter((o) => o.daily)
+
+export function summariseAir(hourly) {
+  const time = hourly.time || []
+  const days = {}
+  time.forEach((t, i) => {
+    const d = (days[t.slice(0, 10)] ||= {})
+    for (const v of AIR_BATCH) if (hourly[v]?.[i] != null) (d[v] ||= []).push(hourly[v][i])
+  })
+  const daily = (v) => Object.values(days).map((d) => mean(d[v] || [])).filter((x) => x != null)
+  const yearly = (v) => mean(hourly[v] || [])
+  const recent = (v) => mean((hourly[v] || []).slice(-30 * 24))
+  const out = {
+    aqi: yearly('european_aqi') == null ? null : Math.round(yearly('european_aqi')),
+    usAqi: yearly('us_aqi') == null ? null : Math.round(yearly('us_aqi')),
+    pm25: round1(yearly('pm2_5')),
+    aqiRecent: recent('european_aqi') == null ? null : Math.round(recent('european_aqi')),
+    pm25WorstDay: daily('pm2_5').length ? round1(Math.max(...daily('pm2_5'))) : null,
+  }
+  for (const o of AIR_DAILY) {
+    const values = daily(AIR_INPUT[o.input])
+    out[o.daily.indicator] = values.length ? values.filter((x) => x > o.daily.limit).length : null
+  }
+  return out
+}
 
 export function fetchAqiBatch(points, opts = {}) {
+  const iso = (d) => d.toISOString().slice(0, 10)
+  const end = new Date(Date.now() - DAY), start = new Date(Date.now() - 365 * DAY)
   return batch(points, {
-    size: 50, key: `air:${new Date().toISOString().slice(0, 10)}`, ttl: DAY, cost: { variables: AIR_BATCH.length, days: 31 },
-    url: (group) => `https://air-quality-api.open-meteo.com/v1/air-quality?${coordParams(group)}&hourly=${AIR_BATCH.join(',')}&past_days=30&forecast_days=1`,
-    row: (r, point) => {
-      const m = (k) => mean(r.hourly[k] || [])
-      return { id: point.id, aqi: m('european_aqi') == null ? null : Math.round(m('european_aqi')), usAqi: m('us_aqi') == null ? null : Math.round(m('us_aqi')), pm25: round1(m('pm2_5')) }
-    },
+    size: 5, key: `airy:${Math.floor(Date.now() / (7 * DAY))}`, ttl: 7 * DAY, timeout: 60000, cost: { variables: AIR_BATCH.length, days: 366 },
+    url: (group) => `https://air-quality-api.open-meteo.com/v1/air-quality?${coordParams(group)}&hourly=${AIR_BATCH.join(',')}&start_date=${iso(start)}&end_date=${iso(end)}`,
+    row: (r, point) => ({ id: point.id, ...summariseAir(r.hourly || {}) }),
     value: ({ id, ...air }) => air,
   }, opts)
 }

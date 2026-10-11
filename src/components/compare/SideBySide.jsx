@@ -7,6 +7,7 @@ import { fmtIndicator, fmtScore, MONTHS } from '../../lib/format.js'
 import { meterScale, isOwnValue } from '../../lib/scoring.js'
 import { providerOf, PROVIDERS, localFirst } from '../../core/providers.js'
 import { floodLevel } from '../mapLayers.js'
+import { warningsFor } from '../../lib/warnings.js'
 import { matches } from './match.js'
 
 /**
@@ -14,9 +15,9 @@ import { matches } from './match.js'
  * columns always scroll together and line up. Charts in a row share one axis range.
  * places: fixed-length array (3) of { e, i, d, flood } or null for an empty slot.
  */
-export function SideBySide({ places, header, national, ranges, tk, onFocus, query = '', scrollRef, initialScroll, flashKey, onFlashDone }) {
+export function SideBySide({ places, header, national, ranges, standards, tk, onFocus, query = '', scrollRef, initialScroll, flashKey, onFlashDone }) {
   const filled = places.filter(Boolean)
-  const rows = filterRows(buildRows(filled, national, ranges), query)
+  const rows = filterRows(buildRows(filled, national, ranges, standards), query)
   // Phones hide every empty slot but the first, so the filled places get the width.
   const firstEmpty = places.findIndex((p) => !p)
   const spare = places.map((p, k) => !p && k !== firstEmpty)
@@ -116,7 +117,7 @@ function MiniChart({ cfg, height = 140 }) {
 }
 
 // ---------- rows ----------
-function buildRows(filled, national, ranges) {
+function buildRows(filled, national, ranges, standards) {
   const rows = []
   const bestOf = (ind) => {
     if (!ind.better || filled.length < 2) return null
@@ -178,6 +179,16 @@ function buildRows(filled, national, ranges) {
     key: 'score', label: 'MapStats score', sub: `Country average ${fmtScore(national.score)}`, focus: 'score',
     cell: ({ e }) => <div className="sbs-score">{fmtScore(e.score)}<small>/100</small><span className="muted small">{e.rank ? `#${e.rank} of ${e.rankOf}` : 'not ranked'}</span></div>,
   })
+  // Extremes a good yearly mean would hide (lib/warnings.js), under the selected standards.
+  if (filled.some(({ e }) => warningsFor(e, standards).length)) {
+    rows.push({
+      key: 'warnings', label: 'Warnings', sub: 'Extremes in the last year', na: 'None',
+      cell: ({ e }) => {
+        const list = warningsFor(e, standards)
+        return list.length > 0 && <div className="sbs-warnings">{list.map((w) => <span key={w.id} title={w.why}>⚠ {w.text}</span>)}</div>
+      },
+    })
+  }
   rows.push({
     key: 'cats', label: 'Score by category', sub: '0–100', chart: true, focus: 'categories',
     cell: ({ e, i }, tk) => <MiniChart height={170} cfg={mini(tk, { type: 'bar', horizontal: true, labels: CATEGORIES.map((c) => c.label), data: CATEGORIES.map((c) => e.categories[c.id]), color: tk.series[i], scale: { min: 0, max: 100 } })} />,

@@ -16,7 +16,10 @@ import { sourceWeight, percentile } from './sourceWeights.js'
 import { resolvePlaces, weightedMean } from '../core/resolve.js'
 
 const SCORED = INDICATORS.filter((i) => i.better)
-const LIVE_KEYS = ['climateComfort', 'meanTemp', 'annualPrecip', 'snowfall', 'sunshine', 'elevation', 'aqi', 'usAqi', 'pm25', 'quakes', 'tempMaxAnnual', 'tempMinAnnual', 'uvMean', 'floodWatch', 'floodPeakPast']
+// Live values per place: the climate summary and the air summary (src/lib/live.js), plus nearby earthquakes.
+const CLIMATE_KEYS = ['climateComfort', 'meanTemp', 'annualPrecip', 'snowfall', 'sunshine', 'elevation', 'tempMaxAnnual', 'tempMinAnnual', 'hotDays', 'tropicalNights', 'frostDays', 'heavyRainDays', 'drySpell']
+const AIR_KEYS = ['aqi', 'usAqi', 'pm25', 'aqiRecent', 'pm25WorstDay', 'aqiPoorDays', 'usAqiUnhealthyDays', 'pm25HighDays']
+const LIVE_KEYS = [...CLIMATE_KEYS, ...AIR_KEYS, 'quakes', 'uvMean', 'floodWatch', 'floodPeakPast']
 
 // True when the entity's value for `id` was measured for the entity itself (not copied from its province).
 export const isOwnValue = (entity, id) => entity.values[id] != null && !entity.inherited?.has(id)
@@ -177,19 +180,10 @@ export function livePoints(provincesGeo, cities) {
 }
 
 export function liveValuesFor(id, lat, lon, live) {
-  const clim = live.climate?.[id]
+  const clim = live.climate?.[id], air = live.aqi?.[id]
   return {
-    climateComfort: clim?.climateComfort ?? null,
-    meanTemp: clim?.meanTemp ?? null,
-    annualPrecip: clim?.annualPrecip ?? null,
-    snowfall: clim?.snowfall ?? null,
-    sunshine: clim?.sunshine ?? null,
-    elevation: clim?.elevation ?? null,
-    aqi: live.aqi?.[id]?.aqi ?? null,
-    usAqi: live.aqi?.[id]?.usAqi ?? null,
-    pm25: live.aqi?.[id]?.pm25 ?? null,
-    tempMaxAnnual: clim?.tempMaxAnnual ?? null,
-    tempMinAnnual: clim?.tempMinAnnual ?? null,
+    ...Object.fromEntries(CLIMATE_KEYS.map((k) => [k, clim?.[k] ?? null])),
+    ...Object.fromEntries(AIR_KEYS.map((k) => [k, air?.[k] ?? null])),
     uvMean: live.uv?.[id]?.uvMean ?? null,
     floodWatch: live.flood?.[id]?.river ? live.flood[id].floodWatch : null,
     floodPeakPast: live.flood?.[id]?.river ? live.flood[id].pastPeakRatio : null,

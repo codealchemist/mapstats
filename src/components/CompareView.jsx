@@ -153,7 +153,7 @@ export function CompareView({ slots, model, country, theme, sourceMode, standard
       </header>
 
       {mode === 'side' ? (
-        <SideBySide places={places} header={header} national={model.national} ranges={model.ranges} tk={t} onFocus={focus} query={query}
+        <SideBySide places={places} header={header} national={model.national} ranges={model.ranges} standards={standards} tk={t} onFocus={focus} query={query}
           scrollRef={sideScrollRef} initialScroll={sideScroll.current} flashKey={flashKey} onFlashDone={() => setFlashKey(null)} />
       ) : (
         <div className="fullview-body focus-body">

@@ -21,6 +21,7 @@ import { renderSurface, surfaceSamples, surfaceVarById } from './lib/surface.js'
 import { livePoints } from './lib/scoring.js'
 import { floodLevel } from './components/mapLayers.js'
 import { isNarrow } from './lib/viewport.js'
+import { warningsFor } from './lib/warnings.js'
 
 const store = {
   get: (k, d) => { try { const v = localStorage.getItem(`mapstats:${k}`); return v ? JSON.parse(v) : d } catch { return d } },
@@ -108,6 +109,9 @@ export default function App() {
     return scaleFor(metric, [...model.provinces, ...model.cities].map(valueOf), theme)
   }, [model, metric, valueOf, theme])
 
+  // Map features carry their warnings as text, one per line (feature properties are flat).
+  const warningText = useCallback((e) => warningsFor(e, standards).map((w) => w.text).join('\n'), [standards])
+
   const provincesFC = useMemo(() => {
     if (!model) return null
     const byId = Object.fromEntries(model.provinces.map((p) => [p.id, p]))
@@ -116,10 +120,10 @@ export default function App() {
       features: data.geo.features.map((f) => {
         const e = byId[f.properties.id]
         const v = valueOf(e)
-        return { ...f, properties: { id: e.id, name: e.name, value: v ?? undefined, score: e.score ?? undefined, rank: e.rank, color: colorAt(scale, v, theme) } }
+        return { ...f, properties: { id: e.id, name: e.name, value: v ?? undefined, score: e.score ?? undefined, rank: e.rank, color: colorAt(scale, v, theme), warnings: warningText(e) } }
       }),
     }
-  }, [model, data.geo, valueOf, scale, theme])
+  }, [model, data.geo, valueOf, scale, theme, warningText])
 
   const citiesFC = useMemo(() => {
     if (!model) return null
@@ -136,11 +140,12 @@ export default function App() {
             id: c.id, name: c.name, provinceName: c.provinceName, pop: c.values.pop || 50000, value: v ?? undefined,
             score: c.score ?? undefined, rank: c.rank, color: colorAt(scale, v, theme),
             heatWeight: c.score == null || hi === lo ? 0 : ((c.score - lo) / (hi - lo)) ** 1.5,
+            warnings: warningText(c),
           },
         }
       }),
     }
-  }, [model, valueOf, scale, theme])
+  }, [model, valueOf, scale, theme, warningText])
 
   const quakesFC = useMemo(() => live.quakes && {
     type: 'FeatureCollection',
@@ -309,6 +314,7 @@ export default function App() {
             key={selectedEntity.id}
             entity={selectedEntity}
             model={model}
+            standards={standards}
             country={country}
             live={live}
             theme={theme}

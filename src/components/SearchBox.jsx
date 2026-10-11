@@ -3,7 +3,7 @@ import { Search, MapPin, Building2, Globe, LoaderCircle, X } from 'lucide-react'
 import { fold } from '../lib/format.js'
 import { fetchAqiBatch, fetchClimateBatch, geocode } from '../lib/live.js'
 import { PRIORITY } from '../lib/meteoQueue.js'
-import { countQuakesNear } from '../lib/scoring.js'
+import { countQuakesNear, liveValuesFor } from '../lib/scoring.js'
 import { pointInFeature } from '../lib/geo.js'
 import { useDismiss } from '../hooks/useDismiss.js'
 import { providerById } from '../core/providers.js'
@@ -57,17 +57,9 @@ export function SearchBox({ model, country, live, geo, onSelect }) {
     const pt = [{ id, lat: g.lat, lon: g.lon }]
     const opts = { priority: PRIORITY.user }
     const [clim, aqi] = await Promise.all([fetchClimateBatch(pt, opts), fetchAqiBatch(pt, opts)])
-    const c = clim.data[id] || {}
-    onSelect({
-      type: 'adhoc', id,
-      input: {
-        ...base,
-        live: {
-          quakes, aqi: aqi.data[id]?.aqi ?? null, usAqi: aqi.data[id]?.usAqi ?? null, pm25: aqi.data[id]?.pm25 ?? null, climateComfort: c.climateComfort ?? null, meanTemp: c.meanTemp ?? null,
-          annualPrecip: c.annualPrecip ?? null, snowfall: c.snowfall ?? null, sunshine: c.sunshine ?? null, elevation: c.elevation ?? null,
-        },
-      },
-    })
+    // UV and river flow aren't loaded for a searched place.
+    const { uvMean, floodWatch, floodPeakPast, ...values } = liveValuesFor(id, g.lat, g.lon, { climate: clim.data, aqi: aqi.data })
+    onSelect({ type: 'adhoc', id, input: { ...base, live: { ...values, quakes } } })
   }
 
   const choose = (it) => {

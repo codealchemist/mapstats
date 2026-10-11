@@ -202,9 +202,10 @@ section('Batches')
   const p = fetchAqiBatch(points('aqi', 120), { queue, onProgress: (s) => progress.push(s.loaded + s.failed) })
   await clock.run()
   const r = await p
-  check('a failed chunk keeps the other chunks', r.loaded === 70 && r.failed === 50 && Object.keys(r.data).length === 70, `loaded ${r.loaded}, failed ${r.failed}`)
+  // Air groups hold 5 places (a year of hourly data each): one bad group fails 5, the other 115 load.
+  check('a failed chunk keeps the other chunks', r.loaded === 115 && r.failed === 5 && Object.keys(r.data).length === 115, `loaded ${r.loaded}, failed ${r.failed}`)
   check('the batch resolves with the error', r.error?.message === 'Invalid coordinates')
-  check('progress after every chunk', progress.length === 3 && progress.at(-1) === 120, progress.join(', '))
+  check('progress after every chunk', progress.length === 24 && progress.at(-1) === 120, `${progress.length} updates, last ${progress.at(-1)}`)
 }
 {
   mem.clear()
@@ -225,7 +226,8 @@ section('Batches')
   check('cold load: climate is real data', clim.data['fra-0'].meanTemp === 17 && clim.data['fra-0'].elevation === 120)
   console.log(`  last request sent: AQI ${last('air-quality')} s, climate ${last('archive')} s, UV ${last('historical-forecast')} s (virtual time)`)
   const again = await fetchClimateBatch(pts, { queue })
-  check('a second load comes from the cache', again.loaded === 103 && api.log.length === 9)
+  // Cold load: 21 air groups of 5 + 3 climate and 3 UV groups of 40; the second climate load sends nothing.
+  check('a second load comes from the cache', again.loaded === 103 && api.log.length === 27, `${api.log.length} requests`)
 }
 {
   mem.clear()

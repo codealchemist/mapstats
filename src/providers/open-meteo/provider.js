@@ -8,13 +8,13 @@ export default [
   defineProvider({
     ...live, id: 'open-meteo-era5', short: 'Open-Meteo ERA5 (live)', name: 'Open-Meteo · ERA5', family,
     url: 'https://open-meteo.com/en/docs/historical-weather-api', covers: 'Historical weather: temperature, rain, snow, sunshine, wind',
-    provides: ['climateComfort', 'meanTemp', 'annualPrecip', 'snowfall', 'sunshine', 'tempMaxAnnual', 'tempMinAnnual'],
+    provides: ['climateComfort', 'meanTemp', 'annualPrecip', 'snowfall', 'sunshine', 'tempMaxAnnual', 'tempMinAnnual', 'hotDays', 'tropicalNights', 'frostDays', 'heavyRainDays', 'drySpell'],
     cadence: 'Daily, ~5-day delay', scope: 'Global grid ≈ 25 km', types: ['climate'], usedFor: 'Climate charts, comfort model, climate surfaces',
   }),
   defineProvider({
     ...live, id: 'open-meteo-cams', short: 'Open-Meteo CAMS (live)', name: 'Open-Meteo · CAMS', family: family.id,
     url: 'https://open-meteo.com/en/docs/air-quality-api', covers: 'Air quality (European AQI, pollutants)',
-    provides: ['aqi', 'usAqi', 'pm25'], cadence: 'Hourly', scope: 'Global grid ≈ 10–40 km', types: ['air'], usedFor: 'Air-quality charts in reports',
+    provides: ['aqi', 'usAqi', 'pm25', 'aqiRecent', 'pm25WorstDay', 'aqiPoorDays', 'usAqiUnhealthyDays', 'pm25HighDays'], cadence: 'Hourly, last 365 days', scope: 'Global grid ≈ 10–40 km', types: ['air'], usedFor: 'Air-quality charts in reports',
   }),
   defineProvider({
     ...live, id: 'open-meteo-dem', short: 'Open-Meteo DEM (live)', name: 'Open-Meteo · Elevation', family: family.id,

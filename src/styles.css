@@ -396,6 +396,11 @@ input[type='range']::-moz-range-thumb {
 .src-group .data-table td:last-child { width: 1%; white-space: nowrap; }
 
 .source-picker { padding: 12px 14px 4px; border-bottom: 1px solid var(--line); }
+.warnings { display: grid; gap: 6px; margin: 10px 0; }
+.note.warn { color: var(--ink); background: color-mix(in srgb, #e8705f 14%, transparent); border-radius: 8px; padding: 6px 8px; }
+.note.warn svg { color: #d44a3d; flex: none; }
+.pp-warn { font-size: 11.5px; color: #d44a3d; margin-top: 2px; }
+.sbs-warnings { display: grid; gap: 4px; font-size: 12px; }
 .standards { margin: 14px 0 10px; }
 .standards .eyebrow { display: block; margin-bottom: 4px; }
 .standard-row { margin-top: 8px; }

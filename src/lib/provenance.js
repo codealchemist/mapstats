@@ -34,6 +34,9 @@ export function valuesBySource({ entity, model, country, detail, quakes, live = 
         row('Annual snowfall', clim.snowfall, 'cm'), row('Sunshine', clim.sunshine, 'h/yr'),
         row('Hottest day (mean of annual maxima)', clim.tempMaxAnnual, '°C'), row('Coldest night (mean of annual minima)', clim.tempMinAnnual, '°C'),
         row('Grid elevation', clim.elevation, 'm'), row('Climate comfort (MapStats model on ERA5)', clim.climateComfort, '/100'),
+        row('Very hot days (≥ 35 °C), per year', clim.hotDays, 'days'), row('Tropical nights (min ≥ 20 °C), per year', clim.tropicalNights, 'days'),
+        row('Frost days (min < 0 °C), per year', clim.frostDays, 'days'), row('Very heavy rain days (≥ 20 mm), per year', clim.heavyRainDays, 'days'),
+        row('Longest dry spell (< 1 mm), per year', clim.drySpell, 'days'),
       ].filter((r) => r.value != null),
     })
   }
@@ -44,10 +47,15 @@ export function valuesBySource({ entity, model, country, detail, quakes, live = 
     const cur = air?.current || {}
     groups.push({
       key: 'Open-Meteo CAMS (live)', name: src('open-meteo-cams').name, url: src('open-meteo-cams').url,
-      level: 'Point (≈ 10–40 km grid)', area: point, period: cur.time ? `now (${cur.time.replace('T', ' ')}) · last 92 days` : 'last 30–92 days', status: 'Live',
+      level: 'Point (≈ 10–40 km grid)', area: point, period: cur.time ? `now (${cur.time.replace('T', ' ')}) · last 92 days · last 365 days` : 'last 30–365 days', status: 'Live',
       rows: [
         row('European AQI, now', cur.european_aqi), row('US AQI, now', cur.us_aqi),
-        row('European AQI, 30-day mean', entity.values.aqi),
+        row('European AQI, mean of the last 365 days', entity.values.aqi), row('European AQI, mean of the last 30 days', entity.values.aqiRecent),
+        row('US AQI, mean of the last 365 days', entity.values.usAqi), row('PM2.5, mean of the last 365 days', entity.values.pm25, 'µg/m³'),
+        row('PM2.5, worst day of the last 365', entity.values.pm25WorstDay, 'µg/m³'),
+        row('Days with poor air or worse (European AQI daily mean > 60)', entity.values.aqiPoorDays, 'days'),
+        row('Days unhealthy for sensitive groups (US AQI daily mean > 100)', entity.values.usAqiUnhealthyDays, 'days'),
+        row('Days above the WHO 24-hour PM2.5 guideline (15 µg/m³)', entity.values.pm25HighDays, 'days'),
         ...POLLUTANTS.map(([k, l]) => row(`${l}, now`, cur[k], 'µg/m³')),
         ...POLLUTANTS.map(([k, l]) => row(`${l}, 92-day mean`, air?.means?.[k], 'µg/m³')),
       ].filter((r) => r.value != null),

@@ -6,8 +6,9 @@
 // pairs, interpolated linearly and clamped at the ends. Bands are mapped to equal score steps, so each band
 // boundary moves a place by the same amount.
 //
-// Our air values are 30-day means of hourly values, while the standards' bands are defined for hourly to annual
-// averages: a mean says how a place usually is, not how bad its worst days are.
+// Scores use yearly means (last 365 days of hourly values). A mean says how a place usually is, not how bad its
+// worst days are, so each air standard also has a daily limit (`daily`): the days whose daily mean exceeds it are
+// counted, and a warning shows when they exceed what that standard itself allows in a year.
 
 export const STANDARDS = {
   aqi: {
@@ -19,6 +20,8 @@ export const STANDARDS = {
         input: 'aqi', unit: 'EAQI',
         bands: [[20, 'Good'], [40, 'Fair'], [60, 'Moderate'], [80, 'Poor'], [100, 'Very poor'], [Infinity, 'Extremely poor']],
         points: [[0, 100], [20, 80], [40, 60], [60, 40], [80, 20], [100, 0]],
+        // EU air-quality law allows a daily limit (PM10) to be exceeded at most 35 times a year (Directive 2008/50/EC).
+        daily: { indicator: 'aqiPoorDays', limit: 60, allowed: 35, text: 'with poor air or worse (EEA index above 60)', basis: 'EU daily limits may be exceeded at most 35 days a year' },
       },
       {
         id: 'epa', short: 'US EPA', name: 'US Environmental Protection Agency · Air Quality Index',
@@ -26,6 +29,8 @@ export const STANDARDS = {
         input: 'usAqi', unit: 'US AQI',
         bands: [[50, 'Good'], [100, 'Moderate'], [150, 'Unhealthy for sensitive groups'], [200, 'Unhealthy'], [300, 'Very unhealthy'], [Infinity, 'Hazardous']],
         points: [[0, 100], [50, 80], [100, 60], [150, 40], [200, 20], [300, 0]],
+        // The US 24-hour PM2.5 standard is met at the 98th percentile of daily values: about 7 days a year.
+        daily: { indicator: 'usAqiUnhealthyDays', limit: 100, allowed: 7, text: 'unhealthy for sensitive groups or worse (US AQI above 100)', basis: 'the US 24-hour standard tolerates about 7 days a year (98th percentile)' },
       },
       {
         id: 'who', short: 'WHO', name: 'World Health Organization · Air quality guidelines 2021 (PM2.5)',
@@ -34,6 +39,8 @@ export const STANDARDS = {
         // Guideline level, then interim targets 4 → 1 (annual means).
         bands: [[5, 'Meets the guideline'], [10, 'Interim target 4'], [15, 'Interim target 3'], [25, 'Interim target 2'], [35, 'Interim target 1'], [Infinity, 'Above all targets']],
         points: [[5, 100], [10, 75], [15, 50], [25, 25], [35, 0]],
+        // WHO's 24-hour guideline (15 µg/m³) is the 99th percentile of daily means: 3–4 days a year above it.
+        daily: { indicator: 'pm25HighDays', limit: 15, allowed: 3, text: 'above the WHO 24-hour PM2.5 guideline (15 µg/m³)', basis: 'the WHO 24-hour guideline tolerates 3–4 days a year (99th percentile)' },
       },
     ],
   },
