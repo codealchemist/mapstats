@@ -46,12 +46,12 @@ The quality of MapStats depends on this step more than any other. For each indic
 2. Official sample surveys with published methodology (labour force, household surveys).
 3. International harmonised datasets at subnational level (Global Data Lab, Eurostat NUTS, World Bank subnational).
 4. Measurements and reanalysis. These are mostly covered already by global providers.
-5. Crowd-sourced surveys (Numbeo-style).
+5. Crowd-sourced surveys. Read their terms first: many, Numbeo included, forbid collecting or republishing their data without consent. MapStats only links to Numbeo for that reason.
 6. Estimates and hand-entered figures. Use these only to fill a gap, and mark them `kind: 'manual'` or `'estimate'`.
 
 **Checklist for every source.** Record the answers in the provider's `README.md`.
 
-- [ ] **Licence** allows publishing derived figures with attribution. Record the exact licence or terms URL.
+- [ ] **Licence** allows showing the values on a public website and publishing derived figures, with attribution. Record the exact licence or terms URL. If it doesn't, link to the source instead of using its data.
 - [ ] **Definition** matches the indicator's `definition` in the core catalogue. If it differs (for example incidents instead of victims, or a different age band), say how. If it is not comparable, don't use it for that indicator: propose a new one instead.
 - [ ] **Geography:** the finest level published (city > subregion > region). Finer is better, because the core weighs closeness.
 - [ ] **Period:** latest year available and how far back it goes. ≥ 5 years enables trend charts.
@@ -86,7 +86,7 @@ export default defineCountry({
   regionLabel: 'Region', subregionLabel: 'Commune',
   bounds: [-76, -56, -66, -17],                 // only when islands or territories zoom the map out too far
   geo: { simplify: '8%', minCityPop: 100_000, maxCities: 120 },
-  providers: [cead],                            // your provider definitions, plus opt-in global ids such as 'numbeo'
+  providers: [cead],                            // your provider definitions, plus opt-in global ids such as 'numbeo' (links only)
   news,
   maintainers: ['@your-handle'],
 })
@@ -138,7 +138,7 @@ export default defineProvider({
 })
 ```
 
-Optional fields present your data without writing UI (examples in `countries/ARG/providers/snic/provider.js` and `src/providers/numbeo/provider.js`):
+Optional fields present your data without writing UI (examples in `countries/ARG/providers/snic/provider.js`; `links` in `src/providers/numbeo/provider.js`):
 
 | Field | Gives you |
 |---|---|
@@ -199,13 +199,13 @@ ARG · Argentina
   config................ Province / Department · 30 providers · maintainers @codealchemist
   geo................... 24 regions · 74 curated places (places.js)
   ARG/snic.............. 2025 · national 1 · region 24 · subregion 533 · city 1 · series 2016–2025
-     homicide            24/24 regions  range 0–14.16        domain [0, 8]  ⚠ 10 outside
+     homicide            24/24 regions  range 0–14.16        scored [1.312, 6.062]  · 167 beyond
   test.................. providers/snic/provider.test.mjs passed
 
   Tier 3 · Local
 ```
 
-A **domain warning** is not an error. It means the global domain may need recalibrating: open an issue for the core team. Don't change your data to fit the domain.
+**Score ranges.** `scored [a, b]` is the range that maps to 0–100 (the 2nd and 98th percentile of region values across all countries, `src/data/anchors.json`). Values *beyond* it are expected: here, departments outside the regions' range; they score 0 or 100 on that indicator. When you add or update a dataset, run `npm run anchors` and commit the file: `npm test` fails until you do, and your PR should say that scores move. A ⚠ appears only where an indicator still uses a hand-set `domain` that clips values. Never change data to fit a range.
 
 ### 4.6 News: `news.js`
 
@@ -219,7 +219,7 @@ Fill in `countries/CHL/README.md`: tier, sources table, coverage, known gaps, ne
 
 **PR checklist**
 
-- [ ] `npm run lint`, `npm test` and `npm run country:check -- CHL` pass
+- [ ] `npm run lint`, `npm test` and `npm run country:check -- CHL` pass (after `npm run anchors` if datasets changed)
 - [ ] Every new provider has a README with the source checklist, a fixture and a test
 - [ ] `data/raw/CHL/*/manifest.json` committed; raw files not committed
 - [ ] No values invented, carried over from a neighbouring area, or averaged across sources inside a dataset
@@ -261,4 +261,4 @@ Fill in `countries/CHL/README.md`: tier, sources table, coverage, known gaps, ne
 
 **The data release moved to a new URL.** Update `urlFor` in the prefill, run it, and commit the new dataset and manifest. Add the old and new URLs to the provider README so the next person can find them.
 
-**Scores in my country look wrong.** Run `country:check` for domain warnings, then open the place's report: *values by source* shows every input, its level and its weight.
+**Scores in my country look wrong.** Run `country:check` to see each indicator's range and score range, then open the place's report: *values by source* shows every input, its level and its weight.

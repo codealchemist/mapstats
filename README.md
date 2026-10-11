@@ -24,7 +24,7 @@ Every number links back to its source, and you can switch between data sources t
 
 ### Place reports
 - Overview with score, rank, data coverage and key figures (population, elevation, temperature, rain, air quality now, UV today).
-- Sections for sources, safety (official crime statistics and crime surveys), news, climate (10-year monthly normals), air quality and UV, natural risks, and every indicator compared with the country average.
+- Sections for sources, safety (official crime statistics), news, climate (10-year monthly normals), air quality and UV, natural risks, and every indicator compared with the country average.
 - Export a report as **PDF** or **CSV**, and copy or download any chart.
 
 ### Compare places
@@ -45,11 +45,12 @@ Every number links back to its source, and you can switch between data sources t
 | Kind | Sources |
 |---|---|
 | Live (fetched in the browser and cached locally) | Open-Meteo (ERA5 climate, CAMS air quality, UV, GloFAS river flow, elevation), USGS earthquakes, geocoding |
-| Curated / imported | SNIC official crime statistics (Argentina), Numbeo city indices (snapshot), provincial statistics |
+| Curated / imported | SNIC official crime statistics (Argentina), provincial statistics |
+| Linked only | Numbeo city pages (its terms don't allow republishing its data) |
 | Map | Natural Earth boundaries and places, CARTO basemaps, terrain tiles |
 | News | Google News RSS and outlet feeds, through the `/api/news` function (never used in scores) |
 
-Argentina has the most complete data: official crime statistics by department, Numbeo city data and socio-economic baselines. The other countries are scored mainly on live environmental and natural-risk data.
+Argentina has the most complete data: official crime statistics by department and socio-economic baselines. The other countries are scored mainly on live environmental and natural-risk data.
 
 Live data is paced to Open-Meteo's free limits, so a large country can take a few minutes to fill in on first load. After that it is cached in your browser: climate for 30 days, air quality for 1 day, earthquakes for 7 days.
 
@@ -87,11 +88,10 @@ Each country lives in `countries/<ISO3>/`; the [country guide](docs/country-guid
 | `npm run country:new -- <ISO3> --iso2 XX --name "…" --region-label …` | Start a country folder and register it |
 | `npm run geo -- <ISO3>` | Rebuild boundaries and city lists in `countries/<ISO3>/geo/` from Natural Earth, with the country's `geo` settings (`NE_DIR=/path/to/natural-earth`; no country = all) |
 | `npm run prefill -- <ISO3> [--provider <id>]` | Run a country's provider prefills: check each dataset and write `countries/<ISO3>/data/<id>.json` |
-| `npm run country:check -- <ISO3>` | Check a country folder: datasets, coverage, domain warnings, provider tests, tier |
+| `npm run country:check -- <ISO3>` | Check a country folder: datasets, coverage, score ranges, provider tests, tier |
 | `npm run prefill:due` | List datasets older than their providers' refresh period (also run monthly by CI, which opens an issue) |
 | `npm run snic:import` | Argentina: official SNIC crime statistics from the stored bases (see `countries/ARG/providers/snic/prefill.mjs`) |
-| `npm run numbeo:fetch` | Argentina: download the Numbeo pages that were never requested (each page at most once), then build |
-| `npm run numbeo:build` | Argentina: rebuild `countries/ARG/data/numbeo.json` from the snapshot, values copied by hand and the stored pages |
+| `npm run anchors` | Recompute the score ranges from all countries' data (`src/data/anchors.json`); run it when datasets change (`npm test` fails until you do) |
 
 ## Project structure
 
@@ -103,7 +103,7 @@ src/
   components/compare/side-by-side grid, focus chart and their measures
   components/report/ report blocks drawn from any provider's data (trends, surveys)
   core/              registries and contracts: countries, providers, the dataset resolver
-  providers/         global data sources (Open-Meteo, USGS, Numbeo, Natural Earth, basemaps, news)
+  providers/         global data sources (Open-Meteo, USGS, Natural Earth, basemaps, news; Numbeo as links)
   data/              indicator catalogue and categories
   hooks/             data loading (country data, live data, place details, news)
   lib/               scoring, reliability weights, colours, formatting, live APIs and request queue, exports

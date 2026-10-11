@@ -3,7 +3,7 @@
 How MapStats is structured so that each country can be integrated by its own developers, in its own folder, without touching the rendering engine.
 
 - **Audience:** the core team, and developers who will own a country.
-- **Status:** built and in use for all 16 countries. Argentina, the only curated country, runs fully on it (migration steps 0–6, [section 8](#8-migration)). Items marked *not built yet* are the agreed direction.
+- **Status:** built and in use for all 16 countries. Argentina, the only curated country, runs fully on it (migration steps 0–8, [section 8](#8-migration)). Items marked *not built yet* are the agreed direction.
 - **Related:** [Country integration guide](country-guide.md) · [Dataset schema](schemas/dataset.schema.json) · [Worked example country](../countries/_template/)
 
 ---
@@ -12,7 +12,7 @@ How MapStats is structured so that each country can be integrated by its own dev
 
 1. **Country work stays in the country folder.** A country developer works only in `countries/<ISO3>/`. They never need to edit the core to add a data source, a city list, news outlets or a yearly import.
 2. **The core renders any country.** The map, scoring, reports, compare view, sources view and news are generic. They only read data that follows the contracts in [section 4](#4-contracts).
-3. **Scores stay comparable across countries.** Indicators are defined once, globally, with fixed definitions and domains. Countries supply values for them. They do not redefine them.
+3. **Scores stay comparable across countries.** Indicators are defined once, globally, with fixed definitions and score ranges. Countries supply values for them. They do not redefine them.
 4. **Every number can be traced.** Each value records its provider, the geographic level it was measured at, its period and the files it came from.
 5. **The best available source wins, and the choice is explicit.** Reliability comes from what kind of source a provider is, how close its geography is to the place, and how recent its data is. The rules are the same for every country.
 6. **Long-term data is prepared offline.** Yearly and other slow-moving statistics are produced by a prefill and shipped as files. The browser only calls free, keyless, CORS-enabled APIs.
@@ -87,8 +87,7 @@ countries/
     providers/
       snic/             provider.js · dataset.mjs · parse.mjs · prefill.mjs · fixtures/ · provider.test.mjs
       provincial-stats/ provider.js (12 hand-entered references)
-      numbeo/           Argentina's Numbeo inputs and scripts (snapshot.json, manual.json, fetch.mjs, prefill.mjs…)
-    data/               datasets (committed): snic.json · numbeo.json · provincial-stats.json
+    data/               datasets (committed): snic.json · provincial-stats.json
     geo/                Natural Earth boundaries and cities: regions.json · cities.json
   BOL/ … URY/           country.config.js + geo/ (live global data only)
 
@@ -127,8 +126,8 @@ An indicator defines **what** is measured, never who measures it ([`src/data/met
 Rules:
 
 - New scored indicators are added to the catalogue by pull request, reviewed by the core team.
-- **The domain is only for scores.** It maps an indicator to 0–100 so different units can be averaged into category scores and the MapStats score. Everything that renders or compares an indicator uses its **real values**: map colours, legends, meters (between the country's lowest and highest value, `model.ranges`), the "best" mark in compare, charts and exports. Report and compare components never import `normalise`.
-- **Domains must become global.** Today they fit Argentina; `country:check` reports every value outside a domain, so recalibration can be based on data ([open decisions](#9-open-decisions)).
+- **The score range is only for scores.** It maps an indicator to 0–100 so different units can be averaged into category scores and the MapStats score. Everything that renders or compares an indicator uses its **real values**: map colours, legends, meters (between the country's lowest and highest value, `model.ranges`), the "best" mark in compare, charts and exports. Report and compare components never import `normalise`.
+- **Score ranges come from the data.** For each scored indicator, the values scoring 0 and 100 are the 2nd and 98th percentile of region-level values pooled across every country with data (`npm run anchors` → `src/data/anchors.json`, `scoreRange(id)` in `metrics.js`). Region level only, because small areas are noisier and one department would set everyone's scale. The few places beyond the anchors score 0 or 100 on that indicator. The file is frozen: it changes only when someone regenerates it, and `npm test` fails while it is out of date with the datasets, so every data PR carries its score changes explicitly. Live indicators (climate, air, earthquakes) keep the hand-set `domain` until there is offline data to anchor them on. Scores are therefore relative to the places MapStats covers, not absolute judgements, and users still weigh the categories.
 - *Not built yet:* a `definition` per indicator, precise enough for two statistics offices to produce comparable numbers; a `topic` per indicator following the base structure (crime, weather, services.health…); country-declared descriptive extras.
 
 ### 3.2 Country
@@ -144,7 +143,7 @@ export default defineCountry({
   iso3: 'ARG', iso2: 'AR', name: 'Argentina',
   regionLabel: 'Province', subregionLabel: 'Department',
   geo: { simplify: '18%' },                         // Natural Earth build settings (defaults: 8 %, cities ≥ 100k, 120 max)
-  providers: ['numbeo', snic, provincialStats],     // opt-in global ids + its own definitions
+  providers: ['numbeo', snic, provincialStats],     // opt-in global ids (numbeo: links only) + its own definitions
   news,
   maintainers: ['@codealchemist'],
 })
@@ -191,11 +190,11 @@ defineProvider({
 | `register` | 1.0 | Official count of recorded cases | SNIC |
 | `measurement` | 1.0 | Instrument or reanalysis | Open-Meteo, USGS |
 | `official-survey` | 0.8 | Statistics office survey with published methodology | the template's example |
-| `crowd-survey` | 0.5 | Perception survey, self-selected respondents | Numbeo |
+| `crowd-survey` | 0.5 | Perception survey, self-selected respondents | none (Numbeo is links only, section 9) |
 | `estimate` | 0.3 | Modelled or derived | |
 | `manual` | 0.3 | Hand-entered from a publication | Argentina's provincial statistics |
 
-**Generic factors**, applied by the core to every family: a family that only publishes region-wide figures counts ×0.5 for a city; any other family's value borrowed from the region counts ×0.5. Provider-specific factors (SNIC: department ×0.9, recency; Numbeo: contributors, snapshot, recency) come from `weightFactors`.
+**Generic factors**, applied by the core to every family: a family that only publishes region-wide figures counts ×0.5 for a city; any other family's value borrowed from the region counts ×0.5. Provider-specific factors (SNIC: department ×0.9, recency) come from `weightFactors`.
 
 ### 3.4 Places and levels
 
@@ -206,7 +205,7 @@ defineProvider({
 | `subregion` | Second level (partido, municipality, county) | the national statistical code, e.g. `06441` | provider data; no polygons needed |
 | `city` | Point place | `ISO3-slug`, e.g. `ARG-la-plata` | `places.js`, else the Natural Earth city list |
 
-A curated city carries `codes` linking it to other sources' identifiers. `codes.subregion` is read by the core, and the other codes by their provider (`codes.numbeo`):
+A curated city carries `codes` linking it to other sources' identifiers. `codes.subregion` is read by the core, and the other codes by their provider (`codes.numbeo`: the city's Numbeo page, for links):
 
 ```js
 { id: 'ARG-la-plata', name: 'La Plata', region: 'AR-B', lat: -34.9214, lon: -57.9545, pop: 772618, codes: { subregion: '06441', numbeo: 'La-Plata' } }
@@ -294,8 +293,8 @@ select country
 | Rule | Example |
 |---|---|
 | A city takes its own city-level values, then its subregion's (`codes.subregion`). Both count as its own, even when published as `null`. | La Plata gets its SNIC department's rates |
-| A region takes its region-level values. Indicators only published per city are the population-weighted mean of the region's cities that have them. | Buenos Aires province's Numbeo indices |
-| A city without its own value borrows its region's, marked `inherited`. Scores and labels treat it as the region's figure. | a town without Numbeo data |
+| A region takes its region-level values. Indicators only published per city are the population-weighted mean of the region's cities that have them. | none in Argentina today |
+| A city without its own value borrows its region's, marked `inherited`. Scores and labels treat it as the region's figure. | the provincial statistics, for every Argentine city |
 | Population is never borrowed. | |
 
 Each place also gets `details[providerId] = { level, code, name, series, …provider fields }`, which the report, compare, search, provenance and weight factors read.
@@ -322,9 +321,10 @@ Node only, used by prefills and tests.
 | `prefill -- <ISO3> [--provider id] [--out file]` | Runs `providers/<id>/prefill.mjs`, checks the dataset, writes `data/<id>.json` only without errors |
 | `country:check -- <ISO3>` | Config, geo, places, datasets (coverage, domain warnings), provider tests, the tier reached |
 | `prefill:due` | Datasets older than their providers' `refresh` |
-| `test` | Every offline suite: news, live, golden, every `provider.test.mjs` (template included) |
+| `anchors` | Recompute the score anchors from every country's datasets (`src/data/anchors.json`) |
+| `test` | Every offline suite: news, live, golden, anchors up to date, every `provider.test.mjs` (template included) |
 
-Argentina's commands run through these: `snic:import` = `prefill -- ARG --provider snic`, `numbeo:build` = `prefill -- ARG --provider numbeo`; `numbeo:fetch` stays Numbeo-specific.
+Argentina's `snic:import` is `prefill -- ARG --provider snic`.
 
 ## 6. Admin: the prefill process
 
@@ -346,7 +346,8 @@ write    → countries/<ISO3>/data/<id>.json                              commit
 
 | Check | Runs in | Guards |
 |---|---|---|
-| `tests/golden.mjs` | `npm test`, CI | Scores, categories, per-source scores, weights and reasons, ranks and values for Argentina and Bolivia, every source mode, against a snapshot. Every migration step kept it identical. |
+| `tests/anchors.mjs` | `npm test`, CI | The committed score anchors match the datasets |
+| `tests/golden.mjs` | `npm test`, CI | Scores, categories, per-source scores, weights and reasons, ranks and values for Argentina and Bolivia, every source mode, against a snapshot. Every migration step kept it identical; the two intended score changes (Numbeo, anchors) updated it with their impact in the commit. |
 | `provider.test.mjs` per provider | `npm test`, `country:check` | Each source's parsing and mapping rules, on fixtures |
 | `defineCountry` / `defineProvider` | load time | Manifests and provider definitions |
 | `country:check` | by developers and reviewers | A country folder as a whole |
@@ -363,12 +364,14 @@ write    → countries/<ISO3>/data/<id>.json                              commit
 | 4 | Generic report, compare, search and provenance | Done (wording changes listed in the commit) |
 | 5 | News settings and outlets per country | Done (queries and outlets identical for 116 places) |
 | 6 | SDK, CLI, Argentina's importers as provider prefills, template | Done (SNIC prefill reproduces its dataset exactly) |
-| 7 | **Pilot:** a developer new to the codebase curates a second country with only the guide; global domains recalibrated on two countries' data (scores change, announced); guide fixed from their feedback | Next |
+| 7 | Numbeo: links only (its terms forbid collecting or republishing its data without consent) | Done (scores change: 2.9 points on average for affected places) |
+| 8 | Score anchors from the data (2nd–98th percentile of region values) | Done (scores change: 2.6–3.2 points on average; Argentina's spread widens) |
+| 9 | **Pilot:** a developer new to the codebase curates a second country with only the guide; anchors regenerated with two countries (scores change, announced); guide fixed from their feedback | Next |
 
 ## 9. Open decisions
 
-1. **Global domains (step 7).** Today's domains fit Argentina. For example, `lifeExp: [74, 79]` puts Germany and Bolivia at the two ends, and `country:check` already reports 10 Argentine homicide values above `[0, 8]`. Proposal: derive each domain from the 5th–95th percentile of curated countries' regions (a log scale for skewed rates such as homicide), recorded in a versioned file. Use a documented hand-set anchor only where one is meaningful (100 % water, WHO air limits).
-2. **Numbeo as a global provider.** Numbeo's terms restrict automated collection and republication. Scaling it beyond Argentina needs their API, or keeping it for link-outs only.
+1. **Anchors for live indicators.** Climate, air quality and earthquake scores still use hand-set ranges. Anchoring them needs region-level samples saved offline (one Open-Meteo / USGS run per country, stored like a dataset). Also open: a log scale for skewed rates such as homicide, where most regions sit near zero.
+2. **Numbeo.** MapStats shows no Numbeo data: its terms (as reported in October 2026, not verified against the live pages) forbid automated collection without written permission and republishing on public sites without consent, and allow storing API data only while subscribed (€49–299 a month). Showing Numbeo values again needs Numbeo's written consent for a free public site (contact@numbeo.com); the academic licence form is marked temporarily unavailable.
 3. **JSDoc or TypeScript.** JSDoc with `// @ts-check` is in place; revisit TypeScript once the contracts settle.
 4. **Global harmonised sources**, to give every country a baseline before it has local maintainers. Candidates, each to be evaluated against the [source checklist](country-guide.md#3-choosing-sources): Global Data Lab (subnational HDI, education, health), World Bank / UNODC (national homicide), Eurostat NUTS-2 for the European countries, Ookla Open Data (broadband), WorldPop (population).
 5. **Ownership.** A `CODEOWNERS` file: `/countries/<ISO3>/` to each country's maintainers, `src/` and `tools/` to the core team.
