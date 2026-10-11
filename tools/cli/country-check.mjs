@@ -49,7 +49,8 @@ for (const ds of datasets) {
     for (const [k, s] of Object.entries(r.indicators)) {
       const region = s.levels.region || 0
       const range = Number.isFinite(s.min) ? `${+s.min.toFixed(2)}–${+s.max.toFixed(2)}` : '—'
-      console.log(`     ${k.padEnd(18)} ${String(region).padStart(3)}/${regionIds.length} regions  range ${range.padEnd(14)} domain [${indicatorById[k].domain?.join(', ') ?? 'descriptive'}]${s.outside ? `  ⚠ ${s.outside} outside` : ''}`)
+      const sr = s.range ? `${s.range.from === 'anchors' ? 'scored' : 'domain'} [${s.range.range.join(', ')}]` : 'descriptive'
+      console.log(`     ${k.padEnd(18)} ${String(region).padStart(3)}/${regionIds.length} regions  range ${range.padEnd(14)} ${sr}${s.outside ? `  · ${s.outside} beyond${s.range.from === 'domain' ? ' ⚠' : ''}` : ''}`)
     }
   }
   for (const [k, s] of Object.entries(r.indicators)) {

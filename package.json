@@ -27,7 +27,8 @@
     "prefill": "node tools/cli/prefill.mjs",
     "country:check": "node tools/cli/country-check.mjs",
     "country:new": "node tools/cli/country-new.mjs",
-    "prefill:due": "node tools/cli/prefill-due.mjs"
+    "prefill:due": "node tools/cli/prefill-due.mjs",
+    "anchors": "node tools/cli/anchors.mjs"
   },
   "dependencies": {
     "@mozilla/readability": "^0.6.0",

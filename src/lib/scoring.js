@@ -1,13 +1,13 @@
 // MapStats livability score.
 //
-// 1. Each indicator is normalised to 0–100 on its fixed domain (metrics.js),
-//    flipped when lower is better, and clamped.
+// 1. Each indicator is normalised to 0–100 on its fixed score range (metrics.js scoreRange: anchors from
+//    the data, else the hand-set domain), flipped when lower is better, and clamped.
 // 2. A category score is the mean of its available indicator scores.
 // 3. The MapStats score is the weight-averaged category score, renormalising
 //    weights over the categories that have data, so missing data neither
 //    rewards nor punishes a place. `coverage` reports how much data was used.
 
-import { CATEGORIES, INDICATORS, indicatorById } from '../data/metrics.js'
+import { CATEGORIES, INDICATORS, indicatorById, scoreRange } from '../data/metrics.js'
 import { haversineKm, labelPoint } from './geo.js'
 import { familyOf, isMultiSource } from '../core/providers.js'
 import { sourceWeight, percentile } from './sourceWeights.js'
@@ -48,7 +48,7 @@ export function meterScale(range, shown = []) {
 export function normalise(id, v) {
   const ind = indicatorById[id]
   if (v == null || !ind?.better) return null
-  const [lo, hi] = ind.domain
+  const [lo, hi] = scoreRange(id).range
   const n = Math.max(0, Math.min(1, (v - lo) / (hi - lo)))
   return (ind.better === 'high' ? n : 1 - n) * 100
 }

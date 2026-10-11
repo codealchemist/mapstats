@@ -1,4 +1,4 @@
-// npm test — every offline test: news pipeline, live-data queue, golden scoring snapshot, each provider's
+// npm test — every offline test: news pipeline, live-data queue, golden scoring snapshot, score anchors, each provider's
 // provider.test.mjs (countries/*/providers/*/, the template included) and the template's manifest.
 import fs from 'node:fs'
 import path from 'node:path'
@@ -15,6 +15,7 @@ const suites = [
   'netlify/news/test/run.mjs',
   'src/lib/test/live.mjs',
   'tests/golden.mjs',
+  'tests/anchors.mjs',
   ...providerTests.map((f) => path.relative(ROOT, f)),
 ]
 

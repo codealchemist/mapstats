@@ -2,7 +2,7 @@
 // providers, its regions and its places.
 import fs from 'node:fs'
 import path from 'node:path'
-import { indicatorById } from '../../src/data/metrics.js'
+import { indicatorById, scoreRange } from '../../src/data/metrics.js'
 import { providersFor } from '../../src/core/providers.js'
 
 const LEVELS = ['national', 'region', 'subregion', 'city']
@@ -40,12 +40,12 @@ export function checkDataset(ds, { country, regionIds, places }) {
         const ind = indicatorById[k]
         if (!ind) { err(`unknown indicator ${k} (not in src/data/metrics.js)`); continue }
         if (v !== null && typeof v !== 'number') { err(`${level} ${id} ${k}: ${JSON.stringify(v)} is not a number`); continue }
-        const s = (indicators[k] ||= { provider: providerOfValue(k), levels: {}, min: Infinity, max: -Infinity, outside: 0 })
+        const s = (indicators[k] ||= { provider: providerOfValue(k), levels: {}, min: Infinity, max: -Infinity, outside: 0, range: scoreRange(k) })
         if (v == null) continue
         s.levels[level] = (s.levels[level] || 0) + 1
         s.min = Math.min(s.min, v)
         s.max = Math.max(s.max, v)
-        if (ind.domain && (v < ind.domain[0] || v > ind.domain[1])) s.outside++
+        if (s.range && (v < s.range.range[0] || v > s.range.range[1])) s.outside++
       }
     }
     if (missing.length) err(`${level} ids not in ${level === 'city' ? 'the place list' : level === 'region' ? 'geo/regions.json' : 'the country'}: ${missing.slice(0, 5).join(', ')}${missing.length > 5 ? ` (+${missing.length - 5})` : ''}`)
@@ -55,8 +55,9 @@ export function checkDataset(ds, { country, regionIds, places }) {
     const unlinked = places.filter((p) => p.codes?.subregion && !subregions.has(p.codes.subregion)).map((p) => p.id)
     if (unlinked.length) warn(`no ${country.subregionLabel || 'subregion'} values for ${unlinked.length} place(s) linked to one: ${unlinked.slice(0, 5).join(', ')}`)
   }
+  // Anchored ranges leave a few values outside by design; a hand-set domain that clips values may need data-based anchors.
   for (const [k, s] of Object.entries(indicators)) {
-    if (s.outside) warn(`${k}: ${s.outside} value(s) outside the indicator's domain [${indicatorById[k].domain.join(', ')}] (scores saturate there; consider recalibrating the domain, never the data)`)
+    if (s.outside && s.range?.from === 'domain') warn(`${k}: ${s.outside} value(s) outside the hand-set domain [${s.range.range.join(', ')}] (scores saturate there; never change the data to fit)`)
   }
   return { errors, warnings, indicators }
 }

@@ -1,6 +1,6 @@
 import { useEffect } from 'react'
 import { X, ExternalLink } from 'lucide-react'
-import { CATEGORIES, INDICATORS } from '../data/metrics.js'
+import { CATEGORIES, INDICATORS, scoreRange, anchorsInfo } from '../data/metrics.js'
 import { PROVIDERS, providerOf } from '../core/providers.js'
 
 export function Methodology({ onClose, weights, onSources }) {
@@ -20,7 +20,7 @@ export function Methodology({ onClose, weights, onSources }) {
         </div>
         <div className="modal-body">
           <ol className="steps">
-            <li><b>Normalise.</b> Each indicator is mapped to 0–100 on a fixed range (below), flipped when lower is better and clamped at the ends. Fixed ranges keep scores comparable across countries.</li>
+            <li><b>Normalise.</b> Each indicator is mapped to 0–100 between two fixed values (below), flipped when lower is better and clamped at the ends. For statistics, they are the {anchorsInfo.method} ({anchorsInfo.countries.length} {anchorsInfo.countries.length === 1 ? 'country' : 'countries'} so far): the few places beyond them score 0 or 100, and the rest spread over the whole scale. Live measurements use ranges set by hand. The same ranges apply to every country, so scores stay comparable; they are relative to the places MapStats covers, not absolute judgements. Charts, map layers and comparisons always show real values.</li>
             <li><b>Combine sources.</b> Within a category, each source (official crime statistics, Open-Meteo, USGS, provincial statistics) gets its own score: the average of its normalised indicators. The category score is the median of those source scores (with two sources, their mean). Only data measured for the place votes; province figures fill a category only when no source has local data. The data-source selector shows a single source instead.</li>
             <li><b>Weighted integration</b> (selectable): each source ranks the place as a percentile among the places it covers, then sources are averaged by reliability — base weight (official register or measurement 1.0, crowd survey 0.5, hand-entered estimate 0.3) × geographic match (department 0.9, province-wide figure 0.5) × recency (−15% per year beyond one). The ± shown is the weighted standard deviation between sources.</li>
             <li><b>Weight.</b> The MapStats score is the weighted average of category scores. Missing categories are left out and the remaining weights re-normalised, so absent data neither helps nor hurts. Each report shows its data coverage.</li>
@@ -39,7 +39,7 @@ export function Methodology({ onClose, weights, onSources }) {
                     <tr key={i.id}>
                       <td>{k === 0 ? `${c.label} (${Math.round((weights[c.id] / total) * 100)}%)` : ''}</td>
                       <td>{i.label}</td>
-                      <td className="num">{i.better === 'low' ? `${i.domain[0]} → ${i.domain[1]}` : `${i.domain[1]} → ${i.domain[0]}`} {i.unit}</td>
+                      <td className="num">{(([lo, hi]) => (i.better === 'low' ? `${lo} → ${hi}` : `${hi} → ${lo}`))(scoreRange(i.id).range)} {i.unit}</td>
                       <td>{providerOf(i.id)?.short}</td>
                     </tr>
                   )),

@@ -1,7 +1,11 @@
-// Indicator catalogue. Every indicator is normalised to 0–100 against a fixed
-// domain (not relative to the current country), so scores stay comparable
-// across countries and don't shift when one province's data changes.
+// Indicator catalogue. Scored indicators are normalised to 0–100 between two fixed values (scoreRange), the
+// same for every country, so scores stay comparable and don't shift when one province's data changes:
+//  - anchors.json (npm run anchors): the 2nd and 98th percentile of region values across all countries with data
+//  - otherwise `domain`, set by hand (live indicators: climate, air, earthquakes)
+// The range only turns values into scores: everything that shows or compares an indicator uses real values.
 //
+import ANCHORS from './anchors.json' with { type: 'json' }
+
 // better: 'high' | 'low' | null (null = descriptive only, not scored)
 // The provider behind each indicator is declared by the provider (`provides`), see src/core/providers.js.
 
@@ -58,6 +62,16 @@ export const INDICATORS = [
 ]
 
 export const indicatorById = Object.fromEntries(INDICATORS.map((i) => [i.id, i]))
+
+/** Values scoring 0 and 100 (in value order: [low, high]) and where they come from. */
+export function scoreRange(id) {
+  const a = ANCHORS.indicators[id]
+  if (a) return { range: [a.lo, a.hi], from: 'anchors', n: a.n }
+  const d = indicatorById[id]?.domain
+  return d ? { range: d, from: 'domain' } : null
+}
+
+export const anchorsInfo = { method: ANCHORS.method, countries: ANCHORS.countries }
 
 // Map layer menu. `score:*` entries are category scores, others are raw indicators.
 export const MAP_METRICS = [

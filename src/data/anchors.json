@@ -1,0 +1,88 @@
+{
+ "method": "2nd–98th percentile of region values",
+ "countries": [
+  "ARG"
+ ],
+ "indicators": {
+  "homicide": {
+   "lo": 1.312,
+   "hi": 6.062,
+   "n": 24
+  },
+  "propertyCrime": {
+   "lo": 850.8,
+   "hi": 3341,
+   "n": 24
+  },
+  "roadDeaths": {
+   "lo": 3.624,
+   "hi": 16.6,
+   "n": 24
+  },
+  "seismicZone": {
+   "lo": 0,
+   "hi": 4,
+   "n": 24
+  },
+  "fireRisk": {
+   "lo": 1.46,
+   "hi": 4,
+   "n": 24
+  },
+  "floodRisk": {
+   "lo": 1,
+   "hi": 4,
+   "n": 24
+  },
+  "doctors": {
+   "lo": 2.4,
+   "hi": 7.332,
+   "n": 24
+  },
+  "water": {
+   "lo": 77.3,
+   "hi": 98.54,
+   "n": 24
+  },
+  "sewer": {
+   "lo": 24.44,
+   "hi": 96.62,
+   "n": 24
+  },
+  "internet": {
+   "lo": 30,
+   "hi": 97.7,
+   "n": 24
+  },
+  "roadPaved": {
+   "lo": 42.3,
+   "hi": 90.8,
+   "n": 24
+  },
+  "transit": {
+   "lo": 30,
+   "hi": 84.42,
+   "n": 24
+  },
+  "poverty": {
+   "lo": 22.84,
+   "hi": 51.32,
+   "n": 24
+  },
+  "unemployment": {
+   "lo": 3,
+   "hi": 8.27,
+   "n": 24
+  },
+  "lifeExp": {
+   "lo": 74.85,
+   "hi": 77.98,
+   "n": 24
+  },
+  "hdi": {
+   "lo": 0.7753,
+   "hi": 0.8618,
+   "n": 24
+  }
+ }
+}
