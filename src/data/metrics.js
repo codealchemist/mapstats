@@ -28,6 +28,9 @@ export const INDICATORS = [
   { id: 'roadDeaths', label: 'Road deaths (3-yr avg)', unit: '/100k', category: 'safety', better: 'low', domain: [0, 30], digits: 1 },
   // Natural risks
   { id: 'seismicZone', label: 'Seismic zone', unit: '/4', category: 'hazards', better: 'low', domain: [0, 4], digits: 0 },
+  // GEM seismic hazard (countries that ran its prefill): shown; scoring by hazard standards comes with the data.
+  { id: 'pga475', label: 'Seismic hazard (GEM, PGA 10 % in 50 years)', unit: 'g', category: 'hazards', better: null, digits: 2, ramp: 'red' },
+  { id: 'pga475Max', label: 'Seismic hazard, highest in the region (GEM)', unit: 'g', category: 'hazards', better: null, digits: 2, ramp: 'red' },
   { id: 'quakes', label: 'Earthquakes M5+ ≤200 km', unit: '', category: 'hazards', better: 'low', domain: [0, 120], digits: 0, live: true },
   { id: 'fireRisk', label: 'Wildfire exposure', unit: '/5', category: 'hazards', better: 'low', domain: [1, 5], digits: 0 },
   { id: 'floodRisk', label: 'Flood exposure', unit: '/5', category: 'hazards', better: 'low', domain: [1, 5], digits: 0 },
@@ -136,6 +139,9 @@ export const MAP_METRICS = [
   { id: 'heavyRainDays', group: 'Terrain & risks', icon: 'CloudRain' },
   { id: 'drySpell', group: 'Terrain & risks', icon: 'Sun' },
   { id: 'elevation', group: 'Terrain & risks', icon: 'Mountain' },
+  // GEM seismic hazard (countries that ran its prefill): shown; scoring by hazard standards comes with the data.
+  { id: 'pga475', label: 'Seismic hazard (GEM, PGA 10 % in 50 years)', unit: 'g', category: 'hazards', better: null, digits: 2, ramp: 'red' },
+  { id: 'pga475Max', label: 'Seismic hazard, highest in the region (GEM)', unit: 'g', category: 'hazards', better: null, digits: 2, ramp: 'red' },
   { id: 'quakes', group: 'Terrain & risks', icon: 'Activity' },
   { id: 'seismicZone', group: 'Terrain & risks', icon: 'Activity' },
   { id: 'fireRisk', group: 'Terrain & risks', icon: 'Flame' },

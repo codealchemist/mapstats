@@ -6,7 +6,8 @@ import numbeo from './numbeo/provider.js'
 import naturalEarth from './natural-earth/provider.js'
 import basemaps from './basemaps/provider.js'
 import news from './news/provider.js'
+import gem from './gem/provider.js'
 
-export const GLOBAL_PROVIDERS = [...openMeteo, ...usgs, ...numbeo, ...naturalEarth, ...basemaps, ...news]
+export const GLOBAL_PROVIDERS = [...openMeteo, ...usgs, ...numbeo, ...naturalEarth, ...basemaps, ...news, ...gem]
 
 export const ALWAYS_ON = GLOBAL_PROVIDERS.filter((p) => !p.optIn).map((p) => p.id)

@@ -6,3 +6,5 @@ logs
 # Downloaded source files stay local (licences, size); their manifests (URL, date, SHA-256) are committed.
 countries/*/providers/*/raw/*
 !countries/*/providers/*/raw/manifest.json
+src/providers/*/raw/*
+!src/providers/*/raw/manifest.json

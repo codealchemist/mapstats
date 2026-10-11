@@ -171,6 +171,8 @@ export async function prefill({ args, log }) {
 
 The CLI completes the header (`schema`, `provider`, `country`, `generatedAt`), checks the dataset against the catalogue, your providers, regions and places, and writes `data/<id>.json` only when there are no errors:
 
+Global providers can ship a prefill any country runs (`src/providers/<id>/prefill.mjs`), e.g. the GEM seismic hazard map: list the provider in your config, then `npm run prefill -- CHL --provider gem`.
+
 ```bash
 npm run prefill -- CHL --provider cead --year 2025
 npm run prefill -- CHL --provider cead --out /tmp/cead.json    # write elsewhere, e.g. to compare

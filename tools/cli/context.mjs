@@ -17,13 +17,13 @@ export function countryOrExit(code) {
   return country
 }
 
-// Every provider test (countries/<ISO3>/providers/<id>/provider.test.mjs) of one country, or of all of them.
+// Every provider test (countries/<ISO3>/providers/<id>/provider.test.mjs) of one country, or of all of them
+// plus the global providers' (src/providers/<id>/provider.test.mjs).
 export function providerTests(iso3) {
-  const dirs = iso3 ? [iso3] : fs.readdirSync(path.join(ROOT, 'countries'), { withFileTypes: true }).filter((d) => d.isDirectory()).map((d) => d.name)
-  return dirs.flatMap((d) => {
-    const dir = path.join(countryDir(d), 'providers')
-    return fs.existsSync(dir) ? fs.readdirSync(dir).map((p) => path.join(dir, p, 'provider.test.mjs')).filter((f) => fs.existsSync(f)) : []
-  })
+  const inDir = (dir) => (fs.existsSync(dir) ? fs.readdirSync(dir).map((p) => path.join(dir, p, 'provider.test.mjs')).filter((f) => fs.existsSync(f)) : [])
+  if (iso3) return inDir(path.join(countryDir(iso3), 'providers'))
+  const countries = fs.readdirSync(path.join(ROOT, 'countries'), { withFileTypes: true }).filter((d) => d.isDirectory()).map((d) => d.name)
+  return [...countries.flatMap((d) => inDir(path.join(countryDir(d), 'providers'))), ...inDir(path.join(ROOT, 'src', 'providers'))]
 }
 
 export async function loadCountry(country) {

@@ -20,7 +20,10 @@ export async function runPrefill(country, id, args = {}) {
   // A folder named after a global provider prepares that provider's data for this country.
   const provider = providerById(`${country.iso3}/${id}`) || providerById(id)
   if (!provider) throw new Error(`providers/${id}: no provider "${country.iso3}/${id}" or "${id}" (country.config.js)`)
-  const mod = await import(pathToFileURL(path.join(countryDir(country.iso3), 'providers', id, 'prefill.mjs')))
+  // The country's own prefill, or a global provider's (src/providers/<id>/prefill.mjs, e.g. gem) run for it.
+  const own = path.join(countryDir(country.iso3), 'providers', id, 'prefill.mjs')
+  const global = path.join(ROOT, 'src', 'providers', id, 'prefill.mjs')
+  const mod = await import(pathToFileURL(fs.existsSync(own) ? own : global))
   const parts = await mod.prefill({ country, args, log: (...a) => console.log(`  ${a.join(' ')}`) })
   const { regionIds, places } = await loadCountry(country)
   const file = path.resolve(args.out || path.join(countryDir(country.iso3), 'data', `${id}.json`))
