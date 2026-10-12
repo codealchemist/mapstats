@@ -1,0 +1,40 @@
+{
+  "files": {
+    "cnphv2022_condiciones_habitacionales.xlsx": {
+      "url": "https://www.indec.gob.ar/ftp/cuadros/poblacion/cnphv2022_condiciones_habitacionales.xlsx",
+      "retrievedAt": "2026-10-12",
+      "sha256": "9c2e7ab1faf697fd6dff569410e29428913a8cb2e6cadd66e20f64a6a5d56b0f",
+      "bytes": 182443
+    },
+    "proyecciones_jurisdicciones_2022_2040_c1.xlsx": {
+      "url": "https://www.indec.gob.ar/ftp/cuadros/poblacion/proyecciones_jurisdicciones_2022_2040_c1.xlsx",
+      "retrievedAt": "2026-10-12",
+      "sha256": "7dd84165fe90415793f6788338ed3273ed1d2fe9ea25cbe355110805e1cc89f3",
+      "bytes": 84288
+    },
+    "proyecciones_jurisdicciones_2022_2040_c3_c4.xlsx": {
+      "url": "https://www.indec.gob.ar/ftp/cuadros/poblacion/proyecciones_jurisdicciones_2022_2040_c3_c4.xlsx",
+      "retrievedAt": "2026-10-12",
+      "sha256": "a5b7e0ac0eb667a0274d61b7b347a060b21c9e069d3a69462369ad048a00a6bd",
+      "bytes": 17313
+    },
+    "cuadros_informe_pobreza_09_26.xls": {
+      "url": "https://www.indec.gob.ar/ftp/cuadros/sociedad/cuadros_informe_pobreza_09_26.xls",
+      "retrievedAt": "2026-10-12",
+      "sha256": "d6fe78610628a8c3c4397d9fb2ce35da98b458dff4af2c78ec9e70208bdaea59",
+      "bytes": 399360
+    },
+    "indicadores_eph_total_urbano_3t_2025.xls": {
+      "url": "https://www.indec.gob.ar/ftp/cuadros/sociedad/indicadores_eph_total_urbano_3t_2025.xls",
+      "retrievedAt": "2026-10-12",
+      "sha256": "480662be3bf10586c6ff8a3bca7a8e69b01d3ab121b9abfba3aed1c99f159789",
+      "bytes": 159232
+    },
+    "cuadros_tasas_indicadores_eph_09_26.xls": {
+      "url": "https://www.indec.gob.ar/ftp/cuadros/sociedad/cuadros_tasas_indicadores_eph_09_26.xls",
+      "retrievedAt": "2026-10-12",
+      "sha256": "28d794d8f76b0ddc1732d12ed9f9b08429a8d358a0bb9c56fd3fd1d1ef4e3685",
+      "bytes": 344064
+    }
+  }
+}

@@ -1,0 +1,130 @@
+{
+  "note": "Hand-entered per province until an official file replaces them (see prefill.mjs). seismicZone: INPRES-CIRSOC 103 zone 0–4, highest zone in populated areas, copied from the official INPRES map · doctors: physicians per 1,000 inhabitants (REFEPS) · hdi: provincial HDI (PNUD Argentina).",
+  "providers": {
+    "seismicZone": "ARG/inpres",
+    "doctors": "ARG/refeps",
+    "hdi": "ARG/pnud"
+  },
+  "values": {
+    "AR-C": {
+      "seismicZone": 0,
+      "doctors": 10,
+      "hdi": 0.882
+    },
+    "AR-B": {
+      "seismicZone": 0,
+      "doctors": 3.2,
+      "hdi": 0.827
+    },
+    "AR-K": {
+      "seismicZone": 2,
+      "doctors": 2.6,
+      "hdi": 0.809
+    },
+    "AR-H": {
+      "seismicZone": 0,
+      "doctors": 2.4,
+      "hdi": 0.778
+    },
+    "AR-U": {
+      "seismicZone": 1,
+      "doctors": 3,
+      "hdi": 0.83
+    },
+    "AR-X": {
+      "seismicZone": 1,
+      "doctors": 4,
+      "hdi": 0.834
+    },
+    "AR-W": {
+      "seismicZone": 0,
+      "doctors": 3,
+      "hdi": 0.795
+    },
+    "AR-E": {
+      "seismicZone": 0,
+      "doctors": 3.3,
+      "hdi": 0.816
+    },
+    "AR-P": {
+      "seismicZone": 0,
+      "doctors": 2.4,
+      "hdi": 0.773
+    },
+    "AR-Y": {
+      "seismicZone": 3,
+      "doctors": 2.6,
+      "hdi": 0.799
+    },
+    "AR-L": {
+      "seismicZone": 0,
+      "doctors": 3.2,
+      "hdi": 0.825
+    },
+    "AR-F": {
+      "seismicZone": 3,
+      "doctors": 3.8,
+      "hdi": 0.81
+    },
+    "AR-M": {
+      "seismicZone": 4,
+      "doctors": 3.7,
+      "hdi": 0.83
+    },
+    "AR-N": {
+      "seismicZone": 0,
+      "doctors": 2.4,
+      "hdi": 0.789
+    },
+    "AR-Q": {
+      "seismicZone": 2,
+      "doctors": 3.6,
+      "hdi": 0.837
+    },
+    "AR-R": {
+      "seismicZone": 1,
+      "doctors": 3.2,
+      "hdi": 0.823
+    },
+    "AR-A": {
+      "seismicZone": 3,
+      "doctors": 2.8,
+      "hdi": 0.807
+    },
+    "AR-J": {
+      "seismicZone": 4,
+      "doctors": 3.4,
+      "hdi": 0.814
+    },
+    "AR-D": {
+      "seismicZone": 2,
+      "doctors": 3,
+      "hdi": 0.819
+    },
+    "AR-Z": {
+      "seismicZone": 1,
+      "doctors": 3,
+      "hdi": 0.836
+    },
+    "AR-S": {
+      "seismicZone": 0,
+      "doctors": 4.2,
+      "hdi": 0.829
+    },
+    "AR-G": {
+      "seismicZone": 1,
+      "doctors": 2.6,
+      "hdi": 0.784
+    },
+    "AR-V": {
+      "seismicZone": 2,
+      "doctors": 3.2,
+      "hdi": 0.838
+    },
+    "AR-T": {
+      "seismicZone": 2,
+      "doctors": 3.6,
+      "hdi": 0.812
+    }
+  }
+}

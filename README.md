@@ -2,7 +2,7 @@
 
 **Compare places by what matters to you, and find your next place to live.**
 
-MapStats is an interactive map that scores and compares regions and cities on safety, natural risks, environment, services, infrastructure and economy. Choose a country, weigh the criteria you care about, and the map shows where places rank. You can open a detailed report for any place, or put up to three side by side.
+MapStats is an interactive map that scores and compares regions and cities on safety, natural risks, environment, services and economy. Choose a country, weigh the criteria you care about, and the map shows where places rank. You can open a detailed report for any place, or put up to three side by side.
 
 Every number links back to its source, and you can switch between data sources to see how much they agree.
 

@@ -14,7 +14,6 @@ export const CATEGORIES = [
   { id: 'hazards', label: 'Natural risks', icon: 'Flame', weight: 15 },
   { id: 'environment', label: 'Environment', icon: 'Wind', weight: 15 },
   { id: 'services', label: 'Services', icon: 'HeartPulse', weight: 20 },
-  { id: 'infrastructure', label: 'Infrastructure', icon: 'Bus', weight: 10 },
   { id: 'economy', label: 'Economy', icon: 'Wallet', weight: 15 },
 ]
 
@@ -32,8 +31,6 @@ export const INDICATORS = [
   { id: 'pga475', label: 'Seismic hazard (PGA, 10 % in 50 years)', unit: 'g', category: 'hazards', better: 'low', domain: [0, 0.5], digits: 2 },
   { id: 'pga475Max', label: 'Seismic hazard, highest in the region (GEM)', unit: 'g', category: 'hazards', better: null, digits: 2, ramp: 'red' },
   { id: 'quakes', label: 'Earthquakes M5+ ≤200 km', unit: '', category: 'hazards', better: null, digits: 0, live: true },
-  { id: 'fireRisk', label: 'Wildfire exposure', unit: '/5', category: 'hazards', better: 'low', domain: [1, 5], digits: 0 },
-  { id: 'floodRisk', label: 'Flood exposure', unit: '/5', category: 'hazards', better: 'low', domain: [1, 5], digits: 0 },
   // Environment
   { id: 'aqi', label: 'Air quality (EAQI, yearly mean)', unit: '', category: 'environment', better: 'low', domain: [10, 70], digits: 0, live: true },
   // Descriptive: the measures the US EPA and WHO air-quality standards score (src/data/standards.js).
@@ -62,10 +59,7 @@ export const INDICATORS = [
   { id: 'doctors', label: 'Physicians', unit: '/1k', category: 'services', better: 'high', domain: [1.5, 6], digits: 1 },
   { id: 'water', label: 'Running water', unit: '%', category: 'services', better: 'high', domain: [70, 100], digits: 0 },
   { id: 'sewer', label: 'Sewer network', unit: '%', category: 'services', better: 'high', domain: [20, 100], digits: 0 },
-  { id: 'internet', label: 'Fixed internet', unit: '/100 hh', category: 'services', better: 'high', domain: [25, 100], digits: 0 },
-  // Infrastructure & transport
-  { id: 'roadPaved', label: 'Paved road network', unit: '%', category: 'infrastructure', better: 'high', domain: [30, 100], digits: 0 },
-  { id: 'transit', label: 'Public transport', unit: '/100', category: 'infrastructure', better: 'high', domain: [20, 100], digits: 0 },
+  { id: 'internet', label: 'Internet at home', unit: '% hh', category: 'services', better: 'high', domain: [40, 100], digits: 0 },
   // Economy & wellbeing
   { id: 'poverty', label: 'Poverty', unit: '%', category: 'economy', better: 'low', domain: [15, 60], digits: 0 },
   { id: 'unemployment', label: 'Unemployment', unit: '%', category: 'economy', better: 'low', domain: [2, 10], digits: 1 },
@@ -140,14 +134,11 @@ export const MAP_METRICS = [
   { id: 'pga475', group: 'Terrain & risks', icon: 'Activity' },
   { id: 'quakes', group: 'Terrain & risks', icon: 'Activity' },
   { id: 'seismicZone', group: 'Terrain & risks', icon: 'Activity' },
-  { id: 'fireRisk', group: 'Terrain & risks', icon: 'Flame' },
-  { id: 'floodRisk', group: 'Terrain & risks', icon: 'Droplets' },
   { id: 'floodWatch', group: 'Terrain & risks', icon: 'Waves' },
   { id: 'floodPeakPast', group: 'Terrain & risks', icon: 'Waves' },
   { id: 'doctors', group: 'Services', icon: 'HeartPulse' },
   { id: 'internet', group: 'Services', icon: 'Globe' },
   { id: 'sewer', group: 'Services', icon: 'Droplets' },
-  { id: 'transit', group: 'Services', icon: 'Bus' },
   { id: 'poverty', group: 'Economy', icon: 'Wallet' },
   { id: 'unemployment', group: 'Economy', icon: 'Wallet' },
   { id: 'pop', group: 'Economy', icon: 'Building2' },

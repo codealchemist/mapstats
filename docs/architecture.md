@@ -87,7 +87,8 @@ countries/
     providers/
       snic/             provider.js · dataset.mjs · parse.mjs · prefill.mjs · fixtures/ · provider.test.mjs
                         raw/ (downloaded bases, gitignored; manifest.json committed)
-      provincial-stats/ provider.js (12 hand-entered references)
+      provincial-stats/ provider.js · parse.mjs · prefill.mjs · provider.test.mjs · hand-entered.json
+                        raw/ (INDEC tables, gitignored; manifest.json committed)
     data/               datasets (committed): snic.json · provincial-stats.json
     geo/                Natural Earth boundaries and cities: regions.json · cities.json
   BOL/ … URY/           country.config.js + geo/ (live global data only)
@@ -157,7 +158,7 @@ Global live providers (Open-Meteo, USGS, Natural Earth, basemaps, news) serve ev
 
 ### 3.3 Provider
 
-A provider is one data source. **Global** providers live in `src/providers/<id>/`; **country** providers in `countries/<ISO3>/providers/<id>/`. One `provider.js` may export several related providers (Open-Meteo's APIs, Argentina's 12 hand-entered references).
+A provider is one data source. **Global** providers live in `src/providers/<id>/`; **country** providers in `countries/<ISO3>/providers/<id>/`. One `provider.js` may export several related providers (Open-Meteo's APIs, Argentina's provincial statistics: INDEC's publications and three hand-entered references).
 
 ```js
 // countries/ARG/providers/snic/provider.js (abridged)
@@ -194,10 +195,10 @@ defineProvider({
 |---|---|---|---|
 | `register` | 1.0 | Official count of recorded cases | SNIC |
 | `measurement` | 1.0 | Instrument or reanalysis | Open-Meteo, USGS |
-| `official-survey` | 0.8 | Statistics office survey with published methodology | the template's example |
+| `official-survey` | 0.8 | Statistics office survey with published methodology | Argentina's provincial statistics (INDEC), the template's example |
 | `crowd-survey` | 0.5 | Perception survey, self-selected respondents | none (Numbeo is links only, section 9) |
 | `estimate` | 0.3 | Modelled or derived | |
-| `manual` | 0.3 | Hand-entered from a publication | Argentina's provincial statistics |
+| `manual` | 0.3 | Hand-entered from a publication | Argentina's INPRES zones, physicians and HDI |
 
 **Generic factors**, applied by the core to every family: a family that only publishes region-wide figures counts ×0.5 for a city; any other family's value borrowed from the region counts ×0.5. Provider-specific factors (SNIC: department ×0.9, recency) come from `weightFactors`.
 
@@ -310,7 +311,7 @@ Node only, used by prefills and tests.
 | Module | Provides |
 |---|---|
 | `http` | `rawStore(iso3, id)`: `fetchOnce(url)` downloads each file once into the provider's `raw/` folder, honours robots.txt, identifies MapStats, spaces requests (5 s), stops at the first 403/429, and records URL, date and SHA-256 in `manifest.json`. `add(name, { note })` registers a file downloaded by hand. `read`, `list`. |
-| `parse` | `parseCsv` (quoted fields, delimiter detection, BOM), `readXlsx` (streamed, for 100 MB+ workbooks), `loadHtml` (cheerio), `num` (decimal commas, blanks and dashes → `null`) |
+| `parse` | `parseCsv` (quoted fields, delimiter detection, BOM), `readXlsx` (streamed, for 100 MB+ workbooks; `.xls` too), `readWorkbook` (every sheet as rows of cells, for statistics tables; SheetJS), `loadHtml` (cheerio), `num` (decimal commas, blanks and dashes → `null`) |
 | `places` | `fold`, `matcher(entries, { strip })` that reports unmatched names instead of guessing, `featureAt(lat, lon, featureCollection)` |
 | `stats` | `round`, `per100k`, `share`, `meanOfLast` |
 | `dataset` | `checkDataset` (schema, ids, providers, domains, coverage), `writeDataset` |
@@ -374,8 +375,8 @@ write    → countries/<ISO3>/data/<id>.json                              commit
 
 ## 9. Open decisions
 
-1. **Standards for the other live indicators.** Air quality (EEA, US EPA, WHO), heat and cold stress (US NWS, Environment Canada) and UV exposure (WHO UV Index) score with standards. Seismic hazard scores from the GEM Global Seismic Hazard Map v2023.1 (PGA, 10 % in 50 years, on rock; CC BY-NC-SA 4.0), sampled for all 16 countries by a global prefill (`npm run prefill -- <ISO3> --provider gem`, `src/providers/gem/`). It is a complete dataset, so it scores on data anchors (pooled regions' PGA: 0 to 0.61 g over 575 regions); the M5+ earthquake count and Argentina's hand-entered INPRES zones are shown, not scored. GEM v2026.1 (2026, oceans included) is a 935 MB vector archive: a possible upgrade with a vector sampler. UTCI joined heat and cold stress as a third option, prefilled from Copernicus ERA5-HEAT (not the default, so scores only change for users who select it; Argentina has the data, other countries add it through their own prefill). The other changes move scores in every country.
-2. **Numbeo.** MapStats shows no Numbeo data: its terms (as reported in October 2026, not verified against the live pages) forbid automated collection without written permission and republishing on public sites without consent, and allow storing API data only while subscribed (€49–299 a month). Showing Numbeo values again needs Numbeo's written consent for a free public site (contact@numbeo.com); the academic licence form is marked temporarily unavailable.
+1. **Standards for the other live indicators.** Air quality (EEA, US EPA, WHO), heat and cold stress (US NWS, Environment Canada) and UV exposure (WHO UV Index) score with standards. Seismic hazard scores from the GEM Global Seismic Hazard Map v2023.1 (PGA, 10 % in 50 years, on rock; CC BY-NC-SA 4.0), sampled for all 16 countries by a global prefill (`npm run prefill -- <ISO3> --provider gem`, `src/providers/gem/`). It is a complete dataset, so it scores on data anchors (pooled regions' PGA: 0 to 0.61 g over 575 regions); the M5+ earthquake count and Argentina's hand-entered INPRES zones are shown, not scored. GEM v2026.1 (2026, oceans included) was deferred (October 2026): it is a 935 MB vector archive that needs a vector sampler, so seismic hazard stays on v2023.1. UTCI joined heat and cold stress as a third option, prefilled from Copernicus ERA5-HEAT (not the default, so scores only change for users who select it; Argentina has the data, other countries add it through their own prefill). The other changes move scores in every country.
+2. **Numbeo: closed (October 2026).** MapStats won't use Numbeo data. Its terms forbid automated collection and republishing without written consent, and storing API data only while subscribed; MapStats will not seek that consent. Reports keep linking to each city's Numbeo pages (links only), which its terms allow.
 3. **JSDoc or TypeScript.** JSDoc with `// @ts-check` is in place; revisit TypeScript once the contracts settle.
 4. **Global harmonised sources**, to give every country a baseline before it has local maintainers. Candidates, each to be evaluated against the [source checklist](country-guide.md#3-choosing-sources): Global Data Lab (subnational HDI, education, health), World Bank / UNODC (national homicide), Eurostat NUTS-2 for the European countries, Ookla Open Data (broadband), WorldPop (population).
 5. **Ownership.** A `CODEOWNERS` file: `/countries/<ISO3>/` to each country's maintainers, `src/` and `tools/` to the core team.

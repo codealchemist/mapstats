@@ -39,7 +39,11 @@ export default function App() {
   const [overlays, setOverlays] = useState(DEFAULT_OVERLAYS)
   // Bumped by the logo (home view) to remount stateful panels: search text, side-panel tab.
   const [homeKey, setHomeKey] = useState(0)
-  const [weights, setWeights] = useState(() => ({ ...DEFAULT_WEIGHTS, ...store.get('weights', {}) }))
+  // Only current categories: a remembered weight for a removed one would still count in the totals.
+  const [weights, setWeights] = useState(() => {
+    const saved = store.get('weights', {})
+    return Object.fromEntries(Object.entries(DEFAULT_WEIGHTS).map(([id, w]) => [id, saved[id] ?? w]))
+  })
   // The standard chosen per indicator (air quality: EEA, US EPA or WHO); unknown remembered choices are dropped.
   const [standards, setStandards] = useState(() => {
     const saved = store.get('standards', {})

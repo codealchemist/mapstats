@@ -106,7 +106,7 @@ export const familyBase = (familyId) => families[familyId]?.base || null
 /** Providers of a family, e.g. to apply their weight factors. */
 export const familyProviders = (familyId) => families[familyId]?.providers || []
 
-/** True when a family only publishes region-wide figures (e.g. hand-entered provincial statistics). */
+/** True when a family only publishes region-wide figures (e.g. Argentina's provincial statistics). */
 export const isRegionOnly = (familyId) => !!families[familyId]?.regionOnly
 
 // ---------- Lookups for UI ----------

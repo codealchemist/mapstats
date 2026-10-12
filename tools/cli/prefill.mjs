@@ -18,16 +18,17 @@ export const prefillIds = (country) => {
 
 export async function runPrefill(country, id, args = {}) {
   // A folder named after a global provider prepares that provider's data for this country.
+  // A folder with no provider of its own id compiles several (its dataset's `providers` cites one per indicator).
   const provider = providerById(`${country.iso3}/${id}`) || providerById(id)
-  if (!provider) throw new Error(`providers/${id}: no provider "${country.iso3}/${id}" or "${id}" (country.config.js)`)
   // The country's own prefill, or a global provider's (src/providers/<id>/prefill.mjs, e.g. gem) run for it.
   const own = path.join(countryDir(country.iso3), 'providers', id, 'prefill.mjs')
+  if (!provider && !fs.existsSync(own)) throw new Error(`providers/${id}: no provider "${country.iso3}/${id}" or "${id}" (country.config.js)`)
   const global = path.join(ROOT, 'src', 'providers', id, 'prefill.mjs')
   const mod = await import(pathToFileURL(fs.existsSync(own) ? own : global))
   const parts = await mod.prefill({ country, args, log: (...a) => console.log(`  ${a.join(' ')}`) })
   const { regionIds, places } = await loadCountry(country)
   const file = path.resolve(args.out || path.join(countryDir(country.iso3), 'data', `${id}.json`))
-  const { dataset, warnings } = writeDataset(parts, { country, provider: provider.id, regionIds, places, out: file })
+  const { dataset, warnings } = writeDataset(parts, { country, provider: provider?.id, regionIds, places, out: file })
   for (const w of warnings) console.log(`  ⚠ ${w}`)
   const counts = Object.entries(dataset.values).map(([l, v]) => `${Object.keys(v).length} ${l}`).join(' · ')
   console.log(`✓ ${path.relative(ROOT, file)}: ${counts} (${(fs.statSync(file).size / 1024).toFixed(0)} KB)`)

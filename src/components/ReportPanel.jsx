@@ -487,7 +487,7 @@ function IndicatorGroup({ category, entity, national, ranges, standards }) {
   )
 }
 
-const HAZARD_KEYS = ['seismicZone', 'fireRisk', 'floodRisk']
+const HAZARD_KEYS = ['seismicZone']
 const SAFETY_KEYS = ['homicide', 'propertyCrime', 'roadDeaths']
 
 // Notice for indicators with no city-level data, with links to where they could be found.

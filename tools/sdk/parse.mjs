@@ -1,4 +1,5 @@
 // Parsers for the files statistics offices publish: CSV, Excel, HTML.
+import fs from 'node:fs'
 import ExcelJS from 'exceljs'
 
 const detectDelimiter = (line) => [';', '\t', ','].map((d) => [d, line.split(d).length]).sort((a, b) => b[1] - a[1])[0][0]
@@ -34,10 +35,28 @@ export function parseCsv(text, { delimiter, lowercase = false } = {}) {
 }
 
 /**
- * Rows of one worksheet of an .xlsx, streamed (fine for files of hundreds of MB): yields { header: value }.
- * Formula cells give their result. @param opts.sheet  0-based worksheet index
+ * Every worksheet of an Excel workbook (.xlsx or the older .xls) as rows of cell values: [{ name, rows: any[][] }].
+ * For statistics tables, whose titles and multi-row headers rule out a single header row. Blank cells are ''.
+ * Read whole into memory: for very large single-table files use readXlsx.
+ */
+export async function readWorkbook(file) {
+  // SheetJS (dev dependency, from cdn.sheetjs.com) reads both formats; exceljs only reads .xlsx.
+  const XLSX = await import('xlsx')
+  const wb = XLSX.read(fs.readFileSync(file))
+  return wb.SheetNames.map((name) => ({ name, rows: XLSX.utils.sheet_to_json(wb.Sheets[name], { header: 1, defval: '', raw: true }) }))
+}
+
+/**
+ * Rows of one worksheet, as { header: value } from its first row. An .xlsx is streamed (fine for files of hundreds
+ * of MB); an .xls is read whole (readWorkbook). Formula cells give their result. @param opts.sheet  0-based index
  */
 export async function* readXlsx(file, { sheet = 0, lowercase = true } = {}) {
+  const head = (h) => (lowercase ? String(h ?? '').trim().toLowerCase() : String(h ?? '').trim())
+  if (/\.xls$/i.test(file)) {
+    const [header = [], ...rows] = (await readWorkbook(file))[sheet]?.rows || []
+    for (const r of rows) yield Object.fromEntries(header.map((h, i) => [head(h), r[i] === '' ? null : r[i] ?? null]))
+    return
+  }
   const reader = new ExcelJS.stream.xlsx.WorkbookReader(file, { sharedStrings: 'cache', worksheets: 'emit' })
   let index = 0
   for await (const ws of reader) {
@@ -45,7 +64,7 @@ export async function* readXlsx(file, { sheet = 0, lowercase = true } = {}) {
     let header = null
     for await (const row of ws) {
       const v = row.values.slice(1).map((x) => (x && typeof x === 'object' && 'result' in x ? x.result : x))
-      if (!header) { header = v.map((h) => (lowercase ? String(h ?? '').trim().toLowerCase() : String(h ?? '').trim())); continue }
+      if (!header) { header = v.map(head); continue }
       yield Object.fromEntries(header.map((h, i) => [h, v[i] ?? null]))
     }
     return

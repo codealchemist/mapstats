@@ -23,7 +23,7 @@ How to add a country to MapStats, or improve one, by working only in `countries/
 | Region boundaries and major cities | Natural Earth (`npm run geo`) |
 | Crime news per place | Google News, once `news.js` has the language and edition |
 
-So a country with only a config already gets a working map with **Natural risks** and **Environment** scores. Your job is to add the categories that need local data (**Safety, Services, Infrastructure, Economy**) from the best sources available.
+So a country with only a config already gets a working map with **Natural risks** and **Environment** scores. Your job is to add the categories that need local data (**Safety, Services, Economy**) from the best sources available.
 
 ## 2. Tiers
 
@@ -231,7 +231,7 @@ Fill in `countries/CHL/README.md`: tier, sources table, coverage, known gaps, ne
 
 **Region-level CSV from a statistics office.** Use the [template provider](../countries/_template/providers/example-stats/) as it is. Map the office's region codes with `REGION_CODES`. Names are less stable than codes.
 
-**Excel workbooks.** `readXlsx(path, { sheet })` streams the rows of one worksheet as objects (first row = header), so 100 MB files are fine (Argentina's SNIC departmental base is one). If the header is not the first row or spans merged cells, map the columns yourself in `parse.mjs`. Put a real excerpt in `fixtures/` as CSV and test the parsing with `parseCsv`.
+**Excel workbooks.** `readXlsx(path, { sheet })` streams the rows of one worksheet as objects (first row = header), so 100 MB files are fine (Argentina's SNIC departmental base is one). Old-format `.xls` files are read too. Statistics tables with titles, notes and multi-row headers read better with `readWorkbook(path)`: every sheet as `{ name, rows }`, each row an array of cells. Find the columns by their header text in `parse.mjs` (Argentina's `provincial-stats` does this for INDEC's tables). Test the parsing on a few real rows, either as a CSV excerpt in `fixtures/` read with `parseCsv`, or as inline arrays.
 
 **Counts instead of rates.** Convert with `stats.per100k(count, population)`, using the population the publisher used in the same release. If the publisher doesn't give one, say which population you used in the README. Prefer published rates when they exist. That is SNIC's rule: rates are used exactly as published.
 

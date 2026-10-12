@@ -27,7 +27,6 @@
 | Natural risks | ✓ live (USGS, GloFAS) |
 | Environment | ✓ live (CAMS, ERA5) |
 | Services | ◐ internet, water: region level |
-| Infrastructure | ✗ |
 | Economy | ◐ poverty, unemployment: region level |
 
 ## Known gaps and next steps

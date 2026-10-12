@@ -1,0 +1,154 @@
+// INDEC tables (sheets as rows of cells, from readWorkbook) → values per province (ISO 3166-2). Pure: no I/O, so
+// the offline test runs the same rules on a few rows. Every reader finds its columns by header text, not position,
+// and fails when a province is missing rather than leaving a gap.
+import { fold } from '#sdk'
+
+const clean = (s) => fold(String(s ?? '').replace(/\(\d+\)/g, ''))
+
+/** Province name → ISO 3166-2, from geo/regions.json names plus INDEC's spellings. */
+export function provinceMatcher(regions) {
+  const index = new Map()
+  const strip = (s) => clean(s).replace(/^provincia (de |del )?/, '')
+  for (const { id, name } of regions) index.set(strip(name), id)
+  index.set(strip('Ciudad Autónoma de Buenos Aires'), 'AR-C')
+  index.set(strip('Tierra del Fuego, Antártida e Islas del Atlántico Sur'), 'AR-V')
+  return (name) => index.get(strip(name)) ?? null
+}
+
+/** Index of the first row whose first cell starts with `label`, and the column of each header matched by `cols`. */
+function locate(rows, label, cols) {
+  const at = rows.findIndex((r) => clean(r[0]).startsWith(clean(label)))
+  if (at < 0) throw new Error(`no "${label}" header row`)
+  const out = { row: at }
+  for (const [key, test] of Object.entries(cols)) {
+    const col = rows[at].findIndex((h, i) => i > 0 && test(clean(h)))
+    if (col < 0) throw new Error(`no column for ${key}`)
+    out[key] = col
+  }
+  return out
+}
+
+/** Rows below `from` whose first cell is a province, until the first blank first cell: { iso: row }. */
+function provinceRows(rows, from, province) {
+  const out = {}
+  for (const r of rows.slice(from)) {
+    if (clean(r[0]) === '') break
+    const iso = province(r[0])
+    if (iso) out[iso] = r
+  }
+  return out
+}
+
+function complete(values, regionIds, what) {
+  const missing = regionIds.filter((id) => !(id in values))
+  if (missing.length) throw new Error(`${what}: no value for ${missing.join(', ')}`)
+  return values
+}
+
+const pick = (byIso, cols) => Object.fromEntries(Object.entries(byIso).map(([iso, r]) => [iso, Object.fromEntries(Object.entries(cols).map(([k, c]) => [k, r[c]]))]))
+
+/**
+ * Census 2022, housing conditions ("Cuadro 1. Total del país"): % of occupied private dwellings with drinking water
+ * from the public network, a toilet draining to the public sewer, and internet.
+ */
+export function censusHousing(rows, { province, regionIds }) {
+  const c = locate(rows, 'Jurisdicción', {
+    water: (h) => h.startsWith('agua para beber y cocinar por red publica'),
+    sewer: (h) => h.startsWith('desague del inodoro') && h.includes('red publica'),
+    internet: (h) => h === 'internet',
+  })
+  return complete(pick(provinceRows(rows, c.row + 1, province), { water: c.water, sewer: c.sewer, internet: c.internet }), regionIds, 'census')
+}
+
+/** EPH total urbano ("Cuadro 2.1"): unemployment rate (%) per province. */
+export function unemployment(rows, { province, regionIds }) {
+  const header = rows.findIndex((r) => r.some((h) => clean(h) === 'desocupacion'))
+  if (header < 0) throw new Error('EPH: no "Desocupación" column')
+  const col = rows[header].findIndex((h) => clean(h) === 'desocupacion')
+  const byIso = provinceRows(rows, rows.findIndex((r, i) => i > header && clean(r[0]).startsWith('total 31')) + 2, province)
+  return complete(Object.fromEntries(Object.entries(byIso).map(([iso, r]) => [iso, r[col]])), regionIds, 'unemployment')
+}
+
+// The 31 EPH urban areas (aglomerados) by province, as INDEC assigns them. Areas spanning two provinces belong to
+// their main city's: San Nicolás – Villa Constitución to Buenos Aires, Viedma – Carmen de Patagones to Río Negro.
+export const AREAS = {
+  'AR-C': ['Ciudad Autónoma de Buenos Aires'],
+  'AR-B': ['Partidos del GBA', 'Bahía Blanca - Cerri', 'Gran La Plata', 'Mar del Plata', 'San Nicolás - Villa Constitución'],
+  'AR-K': ['Gran Catamarca'],
+  'AR-H': ['Gran Resistencia'],
+  'AR-U': ['Comodoro Rivadavia - Rada Tilly', 'Rawson - Trelew'],
+  'AR-X': ['Gran Córdoba', 'Río Cuarto'],
+  'AR-W': ['Corrientes'],
+  'AR-E': ['Concordia', 'Gran Paraná'],
+  'AR-P': ['Formosa'],
+  'AR-Y': ['Jujuy - Palpalá'],
+  'AR-L': ['Santa Rosa - Toay'],
+  'AR-F': ['La Rioja'],
+  'AR-M': ['Gran Mendoza'],
+  'AR-N': ['Posadas'],
+  'AR-Q': ['Neuquén - Plottier'],
+  'AR-R': ['Viedma - Carmen de Patagones'],
+  'AR-A': ['Salta'],
+  'AR-J': ['Gran San Juan'],
+  'AR-D': ['Gran San Luis'],
+  'AR-Z': ['Río Gallegos'],
+  'AR-S': ['Gran Rosario', 'Gran Santa Fe'],
+  'AR-G': ['Santiago del Estero - La Banda'],
+  'AR-V': ['Ushuaia - Río Grande'],
+  'AR-T': ['Gran Tucumán - Tafí Viejo'],
+}
+
+/**
+ * EPH poverty: % of persons below the poverty line per province, the population-weighted mean of its urban areas.
+ * @param incidence  "Cuadro 4.1": per area, households then persons (total in thousands, incidence %, CV)
+ * @param population "Poblaciones": per area, total households and persons (thousands)
+ * @returns { iso: % }
+ */
+export function poverty(incidence, population) {
+  // Area name → its row (region subtotals and totals are rows too; only the areas are read).
+  const byArea = (rows) => new Map(rows.filter((r) => typeof r[1] === 'number').map((r) => [clean(r[0]), r]))
+  const inc = byArea(incidence), pop = byArea(population)
+  const personsCol = incidence.find((r) => r.some((h) => clean(h) === 'personas')).findIndex((h) => clean(h) === 'personas')
+  const rateCol = incidence.slice(0, 8).find((r) => r.some((h) => clean(h) === 'incidencia')).findIndex((h, i) => i >= personsCol && clean(h) === 'incidencia')
+  const totalCol = population.find((r) => r.some((h) => clean(h) === 'personas')).findIndex((h) => clean(h) === 'personas')
+  const values = {}
+  for (const [iso, names] of Object.entries(AREAS)) {
+    const areas = names.map((name) => {
+      const i = inc.get(clean(name)), p = pop.get(clean(name))
+      if (!i || !p) throw new Error(`poverty: no row for ${name}`)
+      return { name, persons: p[totalCol] * 1000, poverty: i[rateCol] }
+    })
+    const n = areas.reduce((s, a) => s + a.persons, 0)
+    values[iso] = Math.round((areas.reduce((s, a) => s + a.poverty * a.persons, 0) / n) * 10) / 10
+  }
+  return values
+}
+
+// Births per girl in Argentina's vital statistics (about 105 boys per 100 girls): weights the men's and women's life
+// expectancy into one for both sexes, which INDEC's projections don't publish.
+const BOYS_PER_GIRL = 1.05
+
+/** INDEC projections, "Cuadro 3": life expectancy at birth per province in `year`, both sexes. */
+export function lifeExpectancy(rows, { province, regionIds, year }) {
+  const sexRow = rows.findIndex((r) => r.some((h) => clean(h) === 'varones'))
+  const men = rows[sexRow].findIndex((h) => clean(h) === 'varones'), women = rows[sexRow].findIndex((h) => clean(h) === 'mujeres')
+  const years = rows[sexRow + 1]
+  const col = (from, to) => years.findIndex((y, i) => i >= from && (to < 0 || i < to) && y === year)
+  const m = col(men, women), w = col(women, -1)
+  if (m < 0 || w < 0) throw new Error(`life expectancy: no ${year} column`)
+  const byIso = provinceRows(rows, sexRow + 2, province)
+  return complete(Object.fromEntries(Object.entries(byIso).map(([iso, r]) => [iso, Math.round(((BOYS_PER_GIRL * r[m] + r[w]) / (1 + BOYS_PER_GIRL)) * 10) / 10])), regionIds, 'life expectancy')
+}
+
+/** INDEC projections, one sheet per province named "<INDEC code>-<NAME>": population at 1 July of `year`. */
+export function population(sheets, { codes, regionIds, year }) {
+  const values = {}
+  for (const { name, rows } of sheets) {
+    const iso = codes[name.split('-')[0]]
+    if (!iso) continue
+    const row = rows.find((r) => r[0] === year)
+    if (!row) throw new Error(`population: no ${year} row in sheet ${name}`)
+    values[iso] = row[1]
+  }
+  return complete(values, regionIds, 'population')
+}

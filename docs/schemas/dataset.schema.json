@@ -23,7 +23,7 @@
       "pattern": "^([A-Z]{3}/)?[a-z0-9][a-z0-9-]*$"
     },
     "providers": {
-      "description": "Indicator id → provider id, for datasets compiled from several publications (e.g. hand-entered provincial statistics).",
+      "description": "Indicator id → provider id, for datasets compiled from several publications (e.g. Argentina's provincial statistics).",
       "type": "object",
       "additionalProperties": {
         "type": "string",
