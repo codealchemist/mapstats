@@ -1,0 +1,162 @@
+{
+ "schema": 1,
+ "provider": "gem",
+ "country": "CHL",
+ "generatedAt": "2026-10-11T17:00:51.500Z",
+ "period": {
+  "latest": 2023,
+  "aggregation": "regions: mean of the raster cells inside them; cities: the cell at their point"
+ },
+ "origin": {
+  "files": [
+   {
+    "name": "v2023_1_pga_475_rock_3min.tif",
+    "sha256": "c6928e0edea4d2a03e6a0d6b4aa9699159834f015c20ffb2d8ee8492ff67a5af",
+    "retrievedAt": "2023-09-19"
+   }
+  ],
+  "notes": "GEM Global Seismic Hazard Map v2023.1.0, PGA 475-year return period on rock, 3-arc-minute raster (zenodo.org/records/8409647, doi:10.5281/zenodo.8409647), downloaded 2026-10-11; CC BY-NC-SA 4.0. Licence: as published by GEM (check before redistributing)."
+ },
+ "values": {
+  "region": {
+   "CL-AP": {
+    "pga475": 0.618,
+    "pga475Max": 0.747
+   },
+   "CL-TA": {
+    "pga475": 0.612,
+    "pga475Max": 0.747
+   },
+   "CL-AN": {
+    "pga475": 0.588,
+    "pga475Max": 1.234
+   },
+   "CL-AT": {
+    "pga475": 0.754,
+    "pga475Max": 1.351
+   },
+   "CL-CO": {
+    "pga475": 0.779,
+    "pga475Max": 1.23
+   },
+   "CL-RM": {
+    "pga475": 0.428,
+    "pga475Max": 0.516
+   },
+   "CL-VS": {
+    "pga475": 0.564,
+    "pga475Max": 0.839
+   },
+   "CL-ML": {
+    "pga475": 0.443,
+    "pga475Max": 0.649
+   },
+   "CL-LI": {
+    "pga475": 0.452,
+    "pga475Max": 0.591
+   },
+   "CL-NB": {
+    "pga475": 0.489,
+    "pga475Max": 0.654
+   },
+   "CL-AR": {
+    "pga475": 0.486,
+    "pga475Max": 0.673
+   },
+   "CL-BI": {
+    "pga475": 0.528,
+    "pga475Max": 0.758
+   },
+   "CL-LR": {
+    "pga475": 0.537,
+    "pga475Max": 0.649
+   },
+   "CL-LL": {
+    "pga475": 0.466,
+    "pga475Max": 0.657
+   },
+   "CL-AI": {
+    "pga475": 0.195,
+    "pga475Max": 0.581
+   },
+   "CL-MA": {
+    "pga475": 0.123,
+    "pga475Max": 0.755
+   }
+  },
+  "city": {
+   "CHL-santiago": {
+    "pga475": 0.421
+   },
+   "CHL-concepcion": {
+    "pga475": 0.656
+   },
+   "CHL-valparaiso": {
+    "pga475": 0.566
+   },
+   "CHL-vina-del-mar": {
+    "pga475": 0.573
+   },
+   "CHL-antofagasta": {
+    "pga475": 1
+   },
+   "CHL-talcahuano": {
+    "pga475": 0.671
+   },
+   "CHL-temuco": {
+    "pga475": 0.521
+   },
+   "CHL-san-bernardo": {
+    "pga475": 0.42
+   },
+   "CHL-rancagua": {
+    "pga475": 0.407
+   },
+   "CHL-iquique": {
+    "pga475": 0.678
+   },
+   "CHL-talca": {
+    "pga475": 0.461
+   },
+   "CHL-arica": {
+    "pga475": 0.738
+   },
+   "CHL-puerto-montt": {
+    "pga475": 0.471
+   },
+   "CHL-coquimbo": {
+    "pga475": 1.019
+   },
+   "CHL-valdivia": {
+    "pga475": 0.574
+   },
+   "CHL-la-serena": {
+    "pga475": 0.986
+   },
+   "CHL-osorno": {
+    "pga475": 0.55
+   },
+   "CHL-chillan": {
+    "pga475": 0.503
+   },
+   "CHL-los-angeles": {
+    "pga475": 0.5
+   },
+   "CHL-calama": {
+    "pga475": 0.477
+   },
+   "CHL-copiapo": {
+    "pga475": 0.901
+   },
+   "CHL-punta-arenas": {
+    "pga475": 0.061
+   },
+   "CHL-curico": {
+    "pga475": 0.419
+   },
+   "CHL-san-antonio": {
+    "pga475": 0.482
+   }
+  }
+ }
+}

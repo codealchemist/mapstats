@@ -1,0 +1,13 @@
+provincia_id;provincia_nombre;anio;codigo_delito_snic_id;cantidad_hechos;cantidad_victimas;tasa_hechos;tasa_victimas
+02;Ciudad Autónoma de Buenos Aires;2023;1;80;90;2,67;3
+02;Ciudad Autónoma de Buenos Aires;2024;1;110;120;3,67;4
+02;Ciudad Autónoma de Buenos Aires;2025;1;140;150;4,67;5
+06;Buenos Aires;2023;1;1000;1050;5,71;6
+06;Buenos Aires;2024;1;1000;1050;5,71;6
+06;Buenos Aires;2025;1;1000;1050;5,71;6
+06;Buenos Aires;2025;15;17500;;100;
+06;Buenos Aires;2025;15_1;999999;;999;
+06;Buenos Aires;2025;17;8750;;50;
+06;Buenos Aires;2025;19;35000;;200;
+06;Buenos Aires;2024;15;17500;;100;
+06;Buenos Aires;2024;17;8750;;50;

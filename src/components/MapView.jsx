@@ -94,6 +94,7 @@ export const MapView = forwardRef(function MapView(
           `<div class="pp-row"><span>${escapeHtml(L.metricLabel)}</span><b>${value}</b></div>` +
           (L.metricId !== 'score' ? `<div class="pp-row"><span>MapStats score</span><b>${fmtScore(p.score)}</b></div>` : '') +
           (p.rank ? `<div class="pp-row"><span>Rank</span><b>#${p.rank}</b></div>` : '') +
+          (p.warnings ? `<div class="pp-sep"></div>${String(p.warnings).split('\n').map((w) => `<div class="pp-warn">⚠ ${escapeHtml(w)}</div>`).join('')}` : '') +
           floodRows(fl),
         )
         .addTo(m)

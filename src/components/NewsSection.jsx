@@ -11,7 +11,7 @@ const fmtDate = (iso) => {
 
 export function NewsSection({ entity, country, model }) {
   const news = useNews(entity, country, model)
-  const more = news.query && googleNewsUrl(news.query, country.iso2)
+  const more = news.query && googleNewsUrl(news.query, country.news.edition)
   const loading = news.status === 'loading'
 
   return (

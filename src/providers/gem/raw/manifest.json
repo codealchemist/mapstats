@@ -1,0 +1,10 @@
+{
+  "files": {
+    "v2023_1_pga_475_rock_3min.tif": {
+      "note": "GEM Global Seismic Hazard Map v2023.1.0, PGA 475-year return period on rock, 3-arc-minute raster (zenodo.org/records/8409647, doi:10.5281/zenodo.8409647), downloaded 2026-10-11; CC BY-NC-SA 4.0",
+      "retrievedAt": "2023-09-19",
+      "sha256": "c6928e0edea4d2a03e6a0d6b4aa9699159834f015c20ffb2d8ee8492ff67a5af",
+      "bytes": 172818403
+    }
+  }
+}

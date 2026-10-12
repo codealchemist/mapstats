@@ -1,0 +1,590 @@
+{
+ "schema": 1,
+ "provider": "gem",
+ "country": "USA",
+ "generatedAt": "2026-10-11T17:01:19.900Z",
+ "period": {
+  "latest": 2023,
+  "aggregation": "regions: mean of the raster cells inside them; cities: the cell at their point"
+ },
+ "origin": {
+  "files": [
+   {
+    "name": "v2023_1_pga_475_rock_3min.tif",
+    "sha256": "c6928e0edea4d2a03e6a0d6b4aa9699159834f015c20ffb2d8ee8492ff67a5af",
+    "retrievedAt": "2023-09-19"
+   }
+  ],
+  "notes": "GEM Global Seismic Hazard Map v2023.1.0, PGA 475-year return period on rock, 3-arc-minute raster (zenodo.org/records/8409647, doi:10.5281/zenodo.8409647), downloaded 2026-10-11; CC BY-NC-SA 4.0. Licence: as published by GEM (check before redistributing)."
+ },
+ "values": {
+  "region": {
+   "US-WA": {
+    "pga475": 0.135,
+    "pga475Max": 0.401
+   },
+   "US-ID": {
+    "pga475": 0.079,
+    "pga475Max": 0.318
+   },
+   "US-MT": {
+    "pga475": 0.045,
+    "pga475Max": 0.324
+   },
+   "US-ND": {
+    "pga475": 0.007,
+    "pga475Max": 0.024
+   },
+   "US-MN": {
+    "pga475": 0.005,
+    "pga475Max": 0.012
+   },
+   "US-MI": {
+    "pga475": 0.009,
+    "pga475Max": 0.024
+   },
+   "US-OH": {
+    "pga475": 0.026,
+    "pga475Max": 0.043
+   },
+   "US-PA": {
+    "pga475": 0.019,
+    "pga475Max": 0.032
+   },
+   "US-NY": {
+    "pga475": 0.038,
+    "pga475Max": 0.117
+   },
+   "US-VT": {
+    "pga475": 0.049,
+    "pga475Max": 0.095
+   },
+   "US-NH": {
+    "pga475": 0.052,
+    "pga475Max": 0.066
+   },
+   "US-ME": {
+    "pga475": 0.053,
+    "pga475Max": 0.133
+   },
+   "US-AZ": {
+    "pga475": 0.042,
+    "pga475Max": 0.317
+   },
+   "US-CA": {
+    "pga475": 0.269,
+    "pga475Max": 1.355
+   },
+   "US-NM": {
+    "pga475": 0.032,
+    "pga475Max": 0.075
+   },
+   "US-TX": {
+    "pga475": 0.016,
+    "pga475Max": 0.06
+   },
+   "US-AK": {
+    "pga475": 0.179,
+    "pga475Max": 0.861
+   },
+   "US-LA": {
+    "pga475": 0.021,
+    "pga475Max": 0.042
+   },
+   "US-MS": {
+    "pga475": 0.053,
+    "pga475Max": 0.219
+   },
+   "US-AL": {
+    "pga475": 0.045,
+    "pga475Max": 0.092
+   },
+   "US-FL": {
+    "pga475": 0.011,
+    "pga475Max": 0.022
+   },
+   "US-GA": {
+    "pga475": 0.041,
+    "pga475Max": 0.114
+   },
+   "US-SC": {
+    "pga475": 0.085,
+    "pga475Max": 0.46
+   },
+   "US-NC": {
+    "pga475": 0.036,
+    "pga475Max": 0.146
+   },
+   "US-VA": {
+    "pga475": 0.033,
+    "pga475Max": 0.087
+   },
+   "US-DC": {
+    "pga475": 0.023,
+    "pga475Max": 0.023
+   },
+   "US-MD": {
+    "pga475": 0.021,
+    "pga475Max": 0.03
+   },
+   "US-DE": {
+    "pga475": 0.021,
+    "pga475Max": 0.031
+   },
+   "US-NJ": {
+    "pga475": 0.031,
+    "pga475Max": 0.042
+   },
+   "US-CT": {
+    "pga475": 0.032,
+    "pga475Max": 0.04
+   },
+   "US-RI": {
+    "pga475": 0.031,
+    "pga475Max": 0.034
+   },
+   "US-MA": {
+    "pga475": 0.036,
+    "pga475Max": 0.058
+   },
+   "US-OR": {
+    "pga475": 0.101,
+    "pga475Max": 0.616
+   },
+   "US-HI": {
+    "pga475": 0.485,
+    "pga475Max": 1.412
+   },
+   "US-UT": {
+    "pga475": 0.074,
+    "pga475Max": 0.293
+   },
+   "US-WY": {
+    "pga475": 0.065,
+    "pga475Max": 0.361
+   },
+   "US-NV": {
+    "pga475": 0.115,
+    "pga475Max": 0.553
+   },
+   "US-CO": {
+    "pga475": 0.034,
+    "pga475Max": 0.056
+   },
+   "US-SD": {
+    "pga475": 0.016,
+    "pga475Max": 0.031
+   },
+   "US-NE": {
+    "pga475": 0.016,
+    "pga475Max": 0.031
+   },
+   "US-KS": {
+    "pga475": 0.017,
+    "pga475Max": 0.03
+   },
+   "US-OK": {
+    "pga475": 0.033,
+    "pga475Max": 0.07
+   },
+   "US-IA": {
+    "pga475": 0.013,
+    "pga475Max": 0.027
+   },
+   "US-MO": {
+    "pga475": 0.082,
+    "pga475Max": 0.866
+   },
+   "US-WI": {
+    "pga475": 0.008,
+    "pga475Max": 0.019
+   },
+   "US-IL": {
+    "pga475": 0.067,
+    "pga475Max": 0.596
+   },
+   "US-KY": {
+    "pga475": 0.08,
+    "pga475Max": 0.678
+   },
+   "US-AR": {
+    "pga475": 0.102,
+    "pga475Max": 0.647
+   },
+   "US-TN": {
+    "pga475": 0.129,
+    "pga475Max": 0.883
+   },
+   "US-WV": {
+    "pga475": 0.029,
+    "pga475Max": 0.05
+   },
+   "US-IN": {
+    "pga475": 0.046,
+    "pga475Max": 0.16
+   }
+  },
+  "city": {
+   "USA-new-york": {
+    "pga475": 0.041
+   },
+   "USA-los-angeles": {
+    "pga475": 0.362
+   },
+   "USA-chicago": {
+    "pga475": 0.024
+   },
+   "USA-miami": {
+    "pga475": 0
+   },
+   "USA-philadelphia": {
+    "pga475": 0.031
+   },
+   "USA-dallas": {
+    "pga475": 0.019
+   },
+   "USA-atlanta": {
+    "pga475": 0.047
+   },
+   "USA-boston": {
+    "pga475": 0.041
+   },
+   "USA-houston": {
+    "pga475": 0.011
+   },
+   "USA-washington-d-c-": {
+    "pga475": 0.023
+   },
+   "USA-detroit": {
+    "pga475": 0.018
+   },
+   "USA-phoenix": {
+    "pga475": 0.026
+   },
+   "USA-san-francisco": {
+    "pga475": 0.414
+   },
+   "USA-seattle": {
+    "pga475": 0.323
+   },
+   "USA-irvine": {
+    "pga475": 0.275
+   },
+   "USA-san-diego": {
+    "pga475": 0.195
+   },
+   "USA-minneapolis": {
+    "pga475": 0.007
+   },
+   "USA-tampa": {
+    "pga475": 0.008
+   },
+   "USA-denver": {
+    "pga475": 0.031
+   },
+   "USA-baltimore": {
+    "pga475": 0.023
+   },
+   "USA-st-louis": {
+    "pga475": 0.118
+   },
+   "USA-fort-lauderdale": {
+    "pga475": 0
+   },
+   "USA-long-beach": {
+    "pga475": 0.335
+   },
+   "USA-cleveland": {
+    "pga475": 0.019
+   },
+   "USA-portland": {
+    "pga475": 0.159
+   },
+   "USA-pittsburgh": {
+    "pga475": 0.016
+   },
+   "USA-las-vegas": {
+    "pga475": 0.08
+   },
+   "USA-san-bernardino": {
+    "pga475": 0.594
+   },
+   "USA-san-jose": {
+    "pga475": 0.558
+   },
+   "USA-cincinnati": {
+    "pga475": 0.037
+   },
+   "USA-sacramento": {
+    "pga475": 0.123
+   },
+   "USA-oakland": {
+    "pga475": 0.531
+   },
+   "USA-virginia-beach": {
+    "pga475": 0.014
+   },
+   "USA-san-antonio": {
+    "pga475": 0.006
+   },
+   "USA-kansas-city-us-mo": {
+    "pga475": 0.021
+   },
+   "USA-ft-worth": {
+    "pga475": 0.017
+   },
+   "USA-indianapolis": {
+    "pga475": 0.041
+   },
+   "USA-milwaukee": {
+    "pga475": 0.014
+   },
+   "USA-orlando": {
+    "pga475": 0.01
+   },
+   "USA-providence": {
+    "pga475": 0.032
+   },
+   "USA-columbus": {
+    "pga475": 0.027
+   },
+   "USA-west-palm-beach": {
+    "pga475": 0.006
+   },
+   "USA-raleigh": {
+    "pga475": 0.024
+   },
+   "USA-austin": {
+    "pga475": 0.008
+   },
+   "USA-birmingham": {
+    "pga475": 0.059
+   },
+   "USA-mesa": {
+    "pga475": 0.029
+   },
+   "USA-memphis": {
+    "pga475": 0.248
+   },
+   "USA-norfolk": {
+    "pga475": 0.016
+   },
+   "USA-bridgeport": {
+    "pga475": 0.034
+   },
+   "USA-buffalo": {
+    "pga475": 0.036
+   },
+   "USA-charlotte": {
+    "pga475": 0.045
+   },
+   "USA-jacksonville": {
+    "pga475": 0.018
+   },
+   "USA-salt-lake-city": {
+    "pga475": 0.26
+   },
+   "USA-louisville": {
+    "pga475": 0.05
+   },
+   "USA-tulsa": {
+    "pga475": 0.029
+   },
+   "USA-hartford": {
+    "pga475": 0.032
+   },
+   "USA-richmond": {
+    "pga475": 0.036
+   },
+   "USA-albuquerque": {
+    "pga475": 0.055
+   },
+   "USA-omaha": {
+    "pga475": 0.013
+   },
+   "USA-nashville": {
+    "pga475": 0.07
+   },
+   "USA-albany": {
+    "pga475": 0.034
+   },
+   "USA-new-haven": {
+    "pga475": 0.032
+   },
+   "USA-tucson": {
+    "pga475": 0.038
+   },
+   "USA-st-petersburg": {
+    "pga475": 0.007
+   },
+   "USA-oklahoma-city": {
+    "pga475": 0.059
+   },
+   "USA-honolulu": {
+    "pga475": 0.156
+   },
+   "USA-new-orleans": {
+    "pga475": 0.017
+   },
+   "USA-dayton": {
+    "pga475": 0.034
+   },
+   "USA-rochester": {
+    "pga475": 0.025
+   },
+   "USA-el-paso": {
+    "pga475": 0.041
+   },
+   "USA-stamford": {
+    "pga475": 0.039
+   },
+   "USA-st-paul": {
+    "pga475": 0.007
+   },
+   "USA-arlington": {
+    "pga475": 0.018
+   },
+   "USA-lowell": {
+    "pga475": 0.053
+   },
+   "USA-tacoma": {
+    "pga475": 0.318
+   },
+   "USA-akron": {
+    "pga475": 0.019
+   },
+   "USA-stockton": {
+    "pga475": 0.156
+   },
+   "USA-syracuse": {
+    "pga475": 0.025
+   },
+   "USA-knoxville": {
+    "pga475": 0.121
+   },
+   "USA-pasadena": {
+    "pga475": 0.011
+   },
+   "USA-san-mateo": {
+    "pga475": 0.511
+   },
+   "USA-fresno": {
+    "pga475": 0.129
+   },
+   "USA-oceanside": {
+    "pga475": 0.206
+   },
+   "USA-gary": {
+    "pga475": 0.024
+   },
+   "USA-sarasota": {
+    "pga475": 0.006
+   },
+   "USA-aurora": {
+    "pga475": 0.029
+   },
+   "USA-covington": {
+    "pga475": 0.038
+   },
+   "USA-joliet": {
+    "pga475": 0.027
+   },
+   "USA-grand-rapids": {
+    "pga475": 0.015
+   },
+   "USA-harrisburg": {
+    "pga475": 0.021
+   },
+   "USA-vancouver": {
+    "pga475": 0.157
+   },
+   "USA-kansas-city-us-ks": {
+    "pga475": 0.021
+   },
+   "USA-glendale": {
+    "pga475": 0.027
+   },
+   "USA-allentown": {
+    "pga475": 0.028
+   },
+   "USA-berkeley": {
+    "pga475": 0.576
+   },
+   "USA-colorado-springs": {
+    "pga475": 0.028
+   },
+   "USA-everett": {
+    "pga475": 0.262
+   },
+   "USA-toledo": {
+    "pga475": 0.022
+   },
+   "USA-bakersfield": {
+    "pga475": 0.213
+   },
+   "USA-laredo": {
+    "pga475": 0.012
+   },
+   "USA-baton-rouge": {
+    "pga475": 0.018
+   },
+   "USA-springfield": {
+    "pga475": 0.031
+   },
+   "USA-charleston": {
+    "pga475": 0.271
+   },
+   "USA-miami-beach": {
+    "pga475": 0
+   },
+   "USA-wichita": {
+    "pga475": 0.019
+   },
+   "USA-columbia-us-mo": {
+    "pga475": 0.039
+   },
+   "USA-columbia-us-sc": {
+    "pga475": 0.072
+   },
+   "USA-metairie": {
+    "pga475": 0.017
+   },
+   "USA-palm-springs": {
+    "pga475": 0.404
+   },
+   "USA-elgin": {
+    "pga475": 0.024
+   },
+   "USA-greensboro": {
+    "pga475": 0.031
+   },
+   "USA-des-moines": {
+    "pga475": 0.013
+   },
+   "USA-ogden": {
+    "pga475": 0.182
+   },
+   "USA-hampton": {
+    "pga475": 0.017
+   },
+   "USA-trenton": {
+    "pga475": 0.033
+   },
+   "USA-mcallen": {
+    "pga475": 0.022
+   },
+   "USA-st-charles": {
+    "pga475": 0.09
+   },
+   "USA-provo": {
+    "pga475": 0.162
+   },
+   "USA-greenville": {
+    "pga475": 0.067
+   },
+   "USA-evanston": {
+    "pga475": 0.022
+   }
+  }
+ }
+}

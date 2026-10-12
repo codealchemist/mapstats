@@ -1,0 +1,124 @@
+{
+ "schema": 1,
+ "provider": "gem",
+ "country": "PRT",
+ "generatedAt": "2026-10-11T17:00:57.426Z",
+ "period": {
+  "latest": 2023,
+  "aggregation": "regions: mean of the raster cells inside them; cities: the cell at their point"
+ },
+ "origin": {
+  "files": [
+   {
+    "name": "v2023_1_pga_475_rock_3min.tif",
+    "sha256": "c6928e0edea4d2a03e6a0d6b4aa9699159834f015c20ffb2d8ee8492ff67a5af",
+    "retrievedAt": "2023-09-19"
+   }
+  ],
+  "notes": "GEM Global Seismic Hazard Map v2023.1.0, PGA 475-year return period on rock, 3-arc-minute raster (zenodo.org/records/8409647, doi:10.5281/zenodo.8409647), downloaded 2026-10-11; CC BY-NC-SA 4.0. Licence: as published by GEM (check before redistributing)."
+ },
+ "values": {
+  "region": {
+   "PT-07": {
+    "pga475": 0.091,
+    "pga475Max": 0.154
+   },
+   "PT-12": {
+    "pga475": 0.075,
+    "pga475Max": 0.122
+   },
+   "PT-16": {
+    "pga475": 0.054,
+    "pga475Max": 0.055
+   },
+   "PT-05": {
+    "pga475": 0.063,
+    "pga475Max": 0.086
+   },
+   "PT-09": {
+    "pga475": 0.053,
+    "pga475Max": 0.065
+   },
+   "PT-04": {
+    "pga475": 0.045,
+    "pga475Max": 0.052
+   },
+   "PT-17": {
+    "pga475": 0.051,
+    "pga475Max": 0.055
+   },
+   "PT-03": {
+    "pga475": 0.055,
+    "pga475Max": 0.057
+   },
+   "PT-08": {
+    "pga475": 0.169,
+    "pga475Max": 0.21
+   },
+   "PT-02": {
+    "pga475": 0.104,
+    "pga475Max": 0.157
+   },
+   "PT-15": {
+    "pga475": 0.131,
+    "pga475Max": 0.165
+   },
+   "PT-11": {
+    "pga475": 0.152,
+    "pga475Max": 0.173
+   },
+   "PT-14": {
+    "pga475": 0.127,
+    "pga475Max": 0.174
+   },
+   "PT-10": {
+    "pga475": 0.093,
+    "pga475Max": 0.145
+   },
+   "PT-06": {
+    "pga475": 0.074,
+    "pga475Max": 0.085
+   },
+   "PT-01": {
+    "pga475": 0.068,
+    "pga475Max": 0.074
+   },
+   "PT-13": {
+    "pga475": 0.058,
+    "pga475Max": 0.063
+   },
+   "PT-30": {
+    "pga475": 0.029,
+    "pga475Max": 0.029
+   },
+   "PT-20": {
+    "pga475": 0.261,
+    "pga475Max": 0.291
+   },
+   "PT-18": {
+    "pga475": 0.06,
+    "pga475Max": 0.073
+   }
+  },
+  "city": {
+   "PRT-lisbon": {
+    "pga475": 0.156
+   },
+   "PRT-porto": {
+    "pga475": 0.061
+   },
+   "PRT-braga": {
+    "pga475": 0.055
+   },
+   "PRT-funchal": {
+    "pga475": 0.028
+   },
+   "PRT-setubal": {
+    "pga475": 0.156
+   },
+   "PRT-coimbra": {
+    "pga475": 0.08
+   }
+  }
+ }
+}

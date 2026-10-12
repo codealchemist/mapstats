@@ -1,0 +1,237 @@
+{
+ "schema": 1,
+ "provider": "gem",
+ "country": "DEU",
+ "generatedAt": "2026-10-11T17:00:54.108Z",
+ "period": {
+  "latest": 2023,
+  "aggregation": "regions: mean of the raster cells inside them; cities: the cell at their point"
+ },
+ "origin": {
+  "files": [
+   {
+    "name": "v2023_1_pga_475_rock_3min.tif",
+    "sha256": "c6928e0edea4d2a03e6a0d6b4aa9699159834f015c20ffb2d8ee8492ff67a5af",
+    "retrievedAt": "2023-09-19"
+   }
+  ],
+  "notes": "GEM Global Seismic Hazard Map v2023.1.0, PGA 475-year return period on rock, 3-arc-minute raster (zenodo.org/records/8409647, doi:10.5281/zenodo.8409647), downloaded 2026-10-11; CC BY-NC-SA 4.0. Licence: as published by GEM (check before redistributing)."
+ },
+ "values": {
+  "region": {
+   "DE-SN": {
+    "pga475": 0.022,
+    "pga475Max": 0.118
+   },
+   "DE-BY": {
+    "pga475": 0.023,
+    "pga475Max": 0.106
+   },
+   "DE-RP": {
+    "pga475": 0.063,
+    "pga475Max": 0.139
+   },
+   "DE-SL": {
+    "pga475": 0.029,
+    "pga475Max": 0.039
+   },
+   "DE-SH": {
+    "pga475": 0,
+    "pga475Max": 0
+   },
+   "DE-NI": {
+    "pga475": 0.001,
+    "pga475Max": 0.011
+   },
+   "DE-NW": {
+    "pga475": 0.036,
+    "pga475Max": 0.121
+   },
+   "DE-BW": {
+    "pga475": 0.068,
+    "pga475Max": 0.228
+   },
+   "DE-BB": {
+    "pga475": 0.001,
+    "pga475Max": 0.01
+   },
+   "DE-MV": {
+    "pga475": 0,
+    "pga475Max": 0
+   },
+   "DE-HB": {
+    "pga475": 0,
+    "pga475Max": 0
+   },
+   "DE-HH": {
+    "pga475": 0,
+    "pga475Max": 0
+   },
+   "DE-HE": {
+    "pga475": 0.032,
+    "pga475Max": 0.082
+   },
+   "DE-TH": {
+    "pga475": 0.018,
+    "pga475Max": 0.075
+   },
+   "DE-ST": {
+    "pga475": 0.005,
+    "pga475Max": 0.048
+   },
+   "DE-BE": {
+    "pga475": 0,
+    "pga475Max": 0
+   }
+  },
+  "city": {
+   "DEU-berlin": {
+    "pga475": 0
+   },
+   "DEU-stuttgart": {
+    "pga475": 0.06
+   },
+   "DEU-frankfurt": {
+    "pga475": 0.063
+   },
+   "DEU-mannheim": {
+    "pga475": 0.074
+   },
+   "DEU-hamburg": {
+    "pga475": 0
+   },
+   "DEU-essen": {
+    "pga475": 0.034
+   },
+   "DEU-duisburg": {
+    "pga475": 0.041
+   },
+   "DEU-munich": {
+    "pga475": 0.02
+   },
+   "DEU-dusseldorf": {
+    "pga475": 0.053
+   },
+   "DEU-cologne": {
+    "pga475": 0.071
+   },
+   "DEU-wuppertal": {
+    "pga475": 0.04
+   },
+   "DEU-saarbrucken": {
+    "pga475": 0.027
+   },
+   "DEU-nurnberg": {
+    "pga475": 0.014
+   },
+   "DEU-bremen": {
+    "pga475": 0
+   },
+   "DEU-hannover": {
+    "pga475": 0
+   },
+   "DEU-bonn": {
+    "pga475": 0.092
+   },
+   "DEU-dresden": {
+    "pga475": 0.011
+   },
+   "DEU-wiesbaden": {
+    "pga475": 0.073
+   },
+   "DEU-dortmund": {
+    "pga475": 0.025
+   },
+   "DEU-leipzig": {
+    "pga475": 0.02
+   },
+   "DEU-heidelberg": {
+    "pga475": 0.069
+   },
+   "DEU-karlsruhe": {
+    "pga475": 0.088
+   },
+   "DEU-augsburg": {
+    "pga475": 0.021
+   },
+   "DEU-bielefeld": {
+    "pga475": 0.008
+   },
+   "DEU-koblenz": {
+    "pga475": 0.129
+   },
+   "DEU-chemnitz": {
+    "pga475": 0.028
+   },
+   "DEU-kassel": {
+    "pga475": 0.01
+   },
+   "DEU-munster": {
+    "pga475": 0.013
+   },
+   "DEU-kiel": {
+    "pga475": 0
+   },
+   "DEU-freiburg": {
+    "pga475": 0.099
+   },
+   "DEU-braunschweig": {
+    "pga475": 0
+   },
+   "DEU-furth": {
+    "pga475": 0.014
+   },
+   "DEU-lubeck": {
+    "pga475": 0
+   },
+   "DEU-osnabruck": {
+    "pga475": 0.008
+   },
+   "DEU-magdeburg": {
+    "pga475": 0
+   },
+   "DEU-potsdam": {
+    "pga475": 0
+   },
+   "DEU-erfurt": {
+    "pga475": 0.013
+   },
+   "DEU-rostock": {
+    "pga475": 0
+   },
+   "DEU-mainz": {
+    "pga475": 0.071
+   },
+   "DEU-ulm": {
+    "pga475": 0.044
+   },
+   "DEU-wurzburg": {
+    "pga475": 0.017
+   },
+   "DEU-oldenburg": {
+    "pga475": 0
+   },
+   "DEU-regensburg": {
+    "pga475": 0.013
+   },
+   "DEU-ingolstadt": {
+    "pga475": 0.035
+   },
+   "DEU-gottingen": {
+    "pga475": 0.008
+   },
+   "DEU-bremerhaven": {
+    "pga475": 0
+   },
+   "DEU-cottbus": {
+    "pga475": 0
+   },
+   "DEU-jena": {
+    "pga475": 0.019
+   },
+   "DEU-gera": {
+    "pga475": 0.051
+   }
+  }
+ }
+}

@@ -1,0 +1,4 @@
+region_code,region_name,year,households,hh_internet,hh_water,poverty_pct,unemployment_pct
+01,North,2025,8000,5000,7600,21.4,6.2
+02,South,2025,4000,2000,3400,34.9,
+99,Not specified,2025,120,40,90,,

@@ -7,9 +7,11 @@ import { downloadBlob, rankingCsv, rankingPdf } from '../lib/export.js'
 import { slug } from '../lib/format.js'
 import { useToast } from './Toast.jsx'
 import { SourceButtons } from './SourceButtons.jsx'
-import { sourcesForIndicators, SOURCE_FAMILIES, familyOf, familyById, isMultiSource } from '../data/sources.js'
+import { sourcesForIndicators, scoringFamiliesFor, familyOf, familyById, isMultiSource } from '../core/providers.js'
 import { INDICATORS } from '../data/metrics.js'
 import { SURFACE_VARS } from '../lib/surface.js'
+import { isCurated } from '../core/countries.js'
+import { STANDARDS, standardFor } from '../data/standards.js'
 
 const TABS = [
   { id: 'layers', label: 'Layers', icon: Layers },
@@ -21,7 +23,7 @@ export function SidePanel(props) {
   const [tab, setTab] = useState('layers')
   return (
     <aside className="side-panel glass" hidden={props.hidden}>
-      <SourcePicker mode={props.sourceMode} onChange={props.onSourceMode} onClose={props.onClose} />
+      <SourcePicker mode={props.sourceMode} onChange={props.onSourceMode} onClose={props.onClose} country={props.country} standards={props.standards} />
       <nav className="tabs" role="tablist">
         {TABS.map((t) => (
           <button key={t.id} role="tab" aria-selected={tab === t.id} className={tab === t.id ? 'active' : ''} onClick={() => setTab(t.id)}>
@@ -52,18 +54,18 @@ const OVERLAYS = [
   { id: 'surface', label: 'Climate surface', hint: 'Interpolated map of a climate variable', status: 'climate' },
 ]
 
-function LayersTab({ model, live, metricId, onMetric, overlays, onOverlays, onInfo, sourceMode }) {
+function LayersTab({ model, live, metricId, onMetric, overlays, onOverlays, onInfo, sourceMode, standards }) {
   // In a single-source view, only that source's indicators (and the categories it covers) are listed.
   const inSource = (m) => {
     if (isMultiSource(sourceMode) || m.id === 'score') return true
-    if (m.kind === 'score') return INDICATORS.some((i) => i.better && i.category === m.id.slice(4) && familyOf(i.id) === sourceMode)
-    return familyOf(m.id) === sourceMode
+    if (m.kind === 'score') return INDICATORS.some((i) => i.better && i.category === m.id.slice(4) && familyOf(i.id, standards) === sourceMode)
+    return familyOf(m.id, standards) === sourceMode
   }
   const groups = useMemo(() => {
     const g = {}
     for (const m of MAP_METRICS.filter(inSource)) (g[m.group] ||= []).push(m)
     return Object.entries(g)
-  }, [sourceMode]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [sourceMode, standards]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // Indicator ids that at least one place has a value for (one pass instead of one per metric).
   const withData = useMemo(() => {
@@ -74,7 +76,8 @@ function LayersTab({ model, live, metricId, onMetric, overlays, onOverlays, onIn
   const available = (m) => !model || m.kind === 'score' || withData.has(m.id)
   const pending = (m) => {
     if (m.kind === 'score') return false
-    const ind = indicatorById[m.id]
+    // An indicator scored by a standard waits for that standard's measure (UTCI comes prefilled, not live).
+    const ind = indicatorById[standardFor(m.id, standards)?.input ?? m.id]
     if (!ind?.live) return false
     const src = m.id === 'aqi' ? 'aqi' : m.id === 'quakes' ? 'quakes' : 'climate'
     return live.status[src] === 'loading'
@@ -102,7 +105,7 @@ function LayersTab({ model, live, metricId, onMetric, overlays, onOverlays, onIn
             </select>
           </div>
         )}
-        <SourceButtons keys={['Natural Earth', 'USGS (live)', 'Terrain', 'Open-Meteo GloFAS (live)', 'Open-Meteo ERA5 (live)', 'Open-Meteo UV history (live)']} />
+        <SourceButtons keys={['natural-earth', 'usgs', 'terrain', 'open-meteo-glofas', 'open-meteo-era5', 'open-meteo-uv-history']} />
       </section>
       {groups.map(([group, metrics]) => (
         <section className="section" key={group}>
@@ -133,7 +136,7 @@ function LayersTab({ model, live, metricId, onMetric, overlays, onOverlays, onIn
               <button className="src-btn" onClick={onInfo}>All sources & methodology <Info size={11} /></button>
             </div>
           ) : (
-            <SourceButtons keys={sourcesForIndicators(metrics.filter((m) => m.kind === 'indicator' && available(m)).map((m) => m.id))} />
+            <SourceButtons keys={sourcesForIndicators(metrics.filter((m) => m.kind === 'indicator' && available(m)).map((m) => m.id), standards)} />
           )}
         </section>
       ))}
@@ -205,13 +208,13 @@ function RankingTab({ model, country, selected, onSelect, mapRef, sourceMode }) 
 
 // ---------------- Weights ----------------
 
-function WeightsTab({ weights, onWeights, onInfo, country }) {
+function WeightsTab({ weights, onWeights, onInfo, country, standards, onStandards, model }) {
   const total = Object.values(weights).reduce((s, x) => s + x, 0) || 1
   return (
     <>
       <p className="hint">
         Tune how much each category counts in the MapStats score. Weights are relative — they're normalised to 100%.
-        {!country.curated && <> {country.name} has no curated socio-economic baseline yet, so only environmental and risk data is scored.</>}
+        {!isCurated(country) && <> {country.name} has no curated socio-economic baseline yet, so only environmental and risk data is scored.</>}
       </p>
       <div className="weights">
         {CATEGORIES.map((c) => {
@@ -232,6 +235,7 @@ function WeightsTab({ weights, onWeights, onInfo, country }) {
           )
         })}
       </div>
+      <StandardsPicker standards={standards} onStandards={onStandards} country={country} model={model} />
       <div className="row-between">
         <button className="btn ghost" onClick={() => onWeights(DEFAULT_WEIGHTS)}><RotateCcw size={14} /> Reset</button>
         <button className="btn ghost" onClick={onInfo}><Info size={14} /> How the score works</button>
@@ -240,7 +244,39 @@ function WeightsTab({ weights, onWeights, onInfo, country }) {
   )
 }
 
-function SourcePicker({ mode, onChange, onClose }) {
+// One standard per indicator, applied to every place (map, ranking, reports and compare alike). A standard read from a
+// prefilled dataset (UTCI: not live) says so when no place of the country has its values.
+function StandardsPicker({ standards, onStandards, country, model }) {
+  return (
+    <div className="standards">
+      <span className="eyebrow">Standards</span>
+      <p className="hint">Which health standard says how good or bad a value is. One applies to every place.</p>
+      {Object.entries(STANDARDS).map(([id, s]) => {
+        const current = standardFor(id, standards)
+        const has = (e) => e.values[current.input] != null
+        const missing = !indicatorById[current.input].live && model && !model.provinces.some(has) && !model.cities.some(has)
+        const note = current.note || s.note
+        return (
+          <div key={id} className="standard-row">
+            <label htmlFor={`std-${id}`}>{indicatorById[id].label.replace(/\s*\(.*\)$/, '')}</label>
+            <div className="select-wrap">
+              <select id={`std-${id}`} value={current.id} onChange={(e) => onStandards((x) => ({ ...x, [id]: e.target.value }))}>
+                {s.options.map((o) => <option key={o.id} value={o.id}>{o.name}</option>)}
+              </select>
+            </div>
+            <p className="hint small">
+              Scores the {current.unit}: {current.bands.map(([max, label]) => (max === Infinity ? label : `${label} ≤ ${max}`)).join(' · ')}.{note ? ` ${note}` : ''}{' '}
+              <a href={current.url} target="_blank" rel="noreferrer">Source</a>
+            </p>
+            {missing && <p className="note warn small">No {current.short} data for {country.name} yet: places show no value for this indicator.</p>}
+          </div>
+        )
+      })}
+    </div>
+  )
+}
+
+function SourcePicker({ mode, onChange, onClose, country, standards }) {
   return (
     <div className="source-picker">
       <div className="row-between">
@@ -249,7 +285,7 @@ function SourcePicker({ mode, onChange, onClose }) {
       </div>
       <div className="select-wrap">
         <select id="source-mode" value={mode} onChange={(e) => onChange(e.target.value)}>
-          {SOURCE_FAMILIES.map((f) => <option key={f.id} value={f.id}>{f.label}</option>)}
+          {scoringFamiliesFor(country, standards).map((f) => <option key={f.id} value={f.id}>{f.label}</option>)}
         </select>
       </div>
       <p className="hint">

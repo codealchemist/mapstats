@@ -1,0 +1,538 @@
+{
+  "files": {
+    "proyecciones_jurisdicciones_2022_2040_c1.xlsx": {
+      "url": "https://www.indec.gob.ar/ftp/cuadros/poblacion/proyecciones_jurisdicciones_2022_2040_c1.xlsx",
+      "retrievedAt": "2026-10-12",
+      "sha256": "7dd84165fe90415793f6788338ed3273ed1d2fe9ea25cbe355110805e1cc89f3",
+      "bytes": 84288
+    },
+    "proyecciones_jurisdicciones_2022_2040_c3_c4.xlsx": {
+      "url": "https://www.indec.gob.ar/ftp/cuadros/poblacion/proyecciones_jurisdicciones_2022_2040_c3_c4.xlsx",
+      "retrievedAt": "2026-10-12",
+      "sha256": "a5b7e0ac0eb667a0274d61b7b347a060b21c9e069d3a69462369ad048a00a6bd",
+      "bytes": 17313
+    },
+    "cuadros_informe_pobreza_09_26.xls": {
+      "url": "https://www.indec.gob.ar/ftp/cuadros/sociedad/cuadros_informe_pobreza_09_26.xls",
+      "retrievedAt": "2026-10-12",
+      "sha256": "d6fe78610628a8c3c4397d9fb2ce35da98b458dff4af2c78ec9e70208bdaea59",
+      "bytes": 399360
+    },
+    "indicadores_eph_total_urbano_3t_2025.xls": {
+      "url": "https://www.indec.gob.ar/ftp/cuadros/sociedad/indicadores_eph_total_urbano_3t_2025.xls",
+      "retrievedAt": "2026-10-12",
+      "sha256": "480662be3bf10586c6ff8a3bca7a8e69b01d3ab121b9abfba3aed1c99f159789",
+      "bytes": 159232
+    },
+    "c2022_caba_hogares_c2_1.xlsx": {
+      "url": "https://censo.gob.ar/wp-content/uploads/2023/11/c2022_caba_hogares_c2_1.xlsx",
+      "note": "downloaded by hand: censo.gob.ar omits its intermediate certificate",
+      "retrievedAt": "2026-10-12",
+      "sha256": "d2327e6a135e78ea05dcd4c2f4811e7776f031665286e6835111b1035b11b4a3",
+      "bytes": 40813
+    },
+    "c2022_caba_hogares_c3_1.xlsx": {
+      "url": "https://censo.gob.ar/wp-content/uploads/2023/11/c2022_caba_hogares_c3_1.xlsx",
+      "note": "downloaded by hand: censo.gob.ar omits its intermediate certificate",
+      "retrievedAt": "2026-10-12",
+      "sha256": "aaeacfd28044b91a7f88814da9b3c00afbd79c34cd2e05fac62bf2911468b14f",
+      "bytes": 53942
+    },
+    "c2022_caba_hogares_c7_1.xlsx": {
+      "url": "https://censo.gob.ar/wp-content/uploads/2023/11/c2022_caba_hogares_c7_1.xlsx",
+      "note": "downloaded by hand: censo.gob.ar omits its intermediate certificate",
+      "retrievedAt": "2026-10-12",
+      "sha256": "b43e6810c0e08af2b0f7cba343e0488b18dd976fca7b61ad472126eb0ec31850",
+      "bytes": 39568
+    },
+    "c2022_bsas_hogares_c2_2.xlsx": {
+      "url": "https://censo.gob.ar/wp-content/uploads/2023/11/c2022_bsas_hogares_c2_2.xlsx",
+      "note": "downloaded by hand: censo.gob.ar omits its intermediate certificate",
+      "retrievedAt": "2026-10-12",
+      "sha256": "f809b7f05475727881c36cda075f333e1f8431c92ad787a5c0173216f9814237",
+      "bytes": 264821
+    },
+    "c2022_bsas_hogares_c3_2.xlsx": {
+      "url": "https://censo.gob.ar/wp-content/uploads/2023/11/c2022_bsas_hogares_c3_2.xlsx",
+      "note": "downloaded by hand: censo.gob.ar omits its intermediate certificate",
+      "retrievedAt": "2026-10-12",
+      "sha256": "9f873728bfaf9ae7c9bd5a9d13932ad32caf4e5cc4d820c4daa62336829f1a59",
+      "bytes": 388060
+    },
+    "c2022_bsas_hogares_c7_2.xlsx": {
+      "url": "https://censo.gob.ar/wp-content/uploads/2023/11/c2022_bsas_hogares_c7_2.xlsx",
+      "note": "downloaded by hand: censo.gob.ar omits its intermediate certificate",
+      "retrievedAt": "2026-10-12",
+      "sha256": "991f97295c51ed5cebf51d03291eb191cf8b33eaea23965054c2c309f4cff5aa",
+      "bytes": 265239
+    },
+    "c2022_catamarca_hogares_c2_3.xlsx": {
+      "url": "https://censo.gob.ar/wp-content/uploads/2023/11/c2022_catamarca_hogares_c2_3.xlsx",
+      "note": "downloaded by hand: censo.gob.ar omits its intermediate certificate",
+      "retrievedAt": "2026-10-12",
+      "sha256": "8145c3da0af8c849addb2f07968aa37d0058fea8a058921122c29f6ffd4d25e1",
+      "bytes": 43566
+    },
+    "c2022_catamarca_hogares_c3_3.xlsx": {
+      "url": "https://censo.gob.ar/wp-content/uploads/2023/11/c2022_catamarca_hogares_c3_3.xlsx",
+      "note": "downloaded by hand: censo.gob.ar omits its intermediate certificate",
+      "retrievedAt": "2026-10-12",
+      "sha256": "0eb7371f6fdda710cba1a71bd41da49c69da3cabdd7ea79b9d269818284394c3",
+      "bytes": 59154
+    },
+    "c2022_catamarca_hogares_c7_3.xlsx": {
+      "url": "https://censo.gob.ar/wp-content/uploads/2023/11/c2022_catamarca_hogares_c7_3.xlsx",
+      "note": "downloaded by hand: censo.gob.ar omits its intermediate certificate",
+      "retrievedAt": "2026-10-12",
+      "sha256": "99880a355515e60d00e618df69ba800d2ad725f3fcb31c40d1d567028d290f8c",
+      "bytes": 43046
+    },
+    "c2022_chaco_hogares_c2_4.xlsx": {
+      "url": "https://censo.gob.ar/wp-content/uploads/2023/11/c2022_chaco_hogares_c2_4.xlsx",
+      "note": "downloaded by hand: censo.gob.ar omits its intermediate certificate",
+      "retrievedAt": "2026-10-12",
+      "sha256": "9729266d73aa05274611cebeb22949f35ba3ef91fe78f272be42d9a5f8f45969",
+      "bytes": 60680
+    },
+    "c2022_chaco_hogares_c3_4.xlsx": {
+      "url": "https://censo.gob.ar/wp-content/uploads/2023/11/c2022_chaco_hogares_c3_4.xlsx",
+      "note": "downloaded by hand: censo.gob.ar omits its intermediate certificate",
+      "retrievedAt": "2026-10-12",
+      "sha256": "ffac8280e950b388b4ccad889f883e9d3fe232bca77292998e389117efe94df9",
+      "bytes": 84906
+    },
+    "c2022_chaco_hogares_c7_4.xlsx": {
+      "url": "https://censo.gob.ar/wp-content/uploads/2023/11/c2022_chaco_hogares_c7_4.xlsx",
+      "note": "downloaded by hand: censo.gob.ar omits its intermediate certificate",
+      "retrievedAt": "2026-10-12",
+      "sha256": "03c500da99588f8b8dbd9c2b4fd42a510274d159b02b45587de5a7326487819d",
+      "bytes": 59770
+    },
+    "c2022_chubut_hogares_c2_5.xlsx": {
+      "url": "https://censo.gob.ar/wp-content/uploads/2023/11/c2022_chubut_hogares_c2_5.xlsx",
+      "note": "downloaded by hand: censo.gob.ar omits its intermediate certificate",
+      "retrievedAt": "2026-10-12",
+      "sha256": "39ab97bbbf12587cc75b17c57d8e4e39e27950701aef52271c9abfd76663b1b6",
+      "bytes": 42468
+    },
+    "c2022_chubut_hogares_c3_5.xlsx": {
+      "url": "https://censo.gob.ar/wp-content/uploads/2023/11/c2022_chubut_hogares_c3_5.xlsx",
+      "note": "downloaded by hand: censo.gob.ar omits its intermediate certificate",
+      "retrievedAt": "2026-10-12",
+      "sha256": "4f5012bc1bea8e88d3f4deb415e90ccd962b75145abda8c67adf1c2453375485",
+      "bytes": 56145
+    },
+    "c2022_chubut_hogares_c7_5.xlsx": {
+      "url": "https://censo.gob.ar/wp-content/uploads/2023/11/c2022_chubut_hogares_c7_5.xlsx",
+      "note": "downloaded by hand: censo.gob.ar omits its intermediate certificate",
+      "retrievedAt": "2026-10-12",
+      "sha256": "92b583bbae5823b0dc630da9a36f6ee6c7b9b42c2a65f75c49c86db925804079",
+      "bytes": 41326
+    },
+    "c2022_cordoba_hogares_c2_6.xlsx": {
+      "url": "https://censo.gob.ar/wp-content/uploads/2023/11/c2022_cordoba_hogares_c2_6.xlsx",
+      "note": "downloaded by hand: censo.gob.ar omits its intermediate certificate",
+      "retrievedAt": "2026-10-12",
+      "sha256": "6e0a91ad5f71a2fa02de6ef51d1e8962d28a9326b5e68ec26e71a0293fa88a8b",
+      "bytes": 62623
+    },
+    "c2022_cordoba_hogares_c3_6.xlsx": {
+      "url": "https://censo.gob.ar/wp-content/uploads/2023/11/c2022_cordoba_hogares_c3_6.xlsx",
+      "note": "downloaded by hand: censo.gob.ar omits its intermediate certificate",
+      "retrievedAt": "2026-10-12",
+      "sha256": "0a6318cf1c1d9c24e358dee591a806620bcecc8c89eac93aea45c4c19e607c34",
+      "bytes": 86923
+    },
+    "c2022_cordoba_hogares_c7_6.xlsx": {
+      "url": "https://censo.gob.ar/wp-content/uploads/2023/11/c2022_cordoba_hogares_c7_6.xlsx",
+      "note": "downloaded by hand: censo.gob.ar omits its intermediate certificate",
+      "retrievedAt": "2026-10-12",
+      "sha256": "8f78244ab728080e80ab379a41a4dae5562a8b24ac7ca3ce26c810e4a9ff523f",
+      "bytes": 61689
+    },
+    "c2022_corrientes_hogares_c2_7.xlsx": {
+      "url": "https://censo.gob.ar/wp-content/uploads/2023/11/c2022_corrientes_hogares_c2_7.xlsx",
+      "note": "downloaded by hand: censo.gob.ar omits its intermediate certificate",
+      "retrievedAt": "2026-10-12",
+      "sha256": "07b31b263a10c7122448d0cd99e9896527715f4e6739acd2f8738a417a11f38a",
+      "bytes": 60346
+    },
+    "c2022_corrientes_hogares_c3_7.xlsx": {
+      "url": "https://censo.gob.ar/wp-content/uploads/2023/11/c2022_corrientes_hogares_c3_7.xlsx",
+      "note": "downloaded by hand: censo.gob.ar omits its intermediate certificate",
+      "retrievedAt": "2026-10-12",
+      "sha256": "081df746bce385feba29e4acb9cc2b748d273849cc65a9a5a0d474882a24e24b",
+      "bytes": 84653
+    },
+    "c2022_corrientes_hogares_c7_7.xlsx": {
+      "url": "https://censo.gob.ar/wp-content/uploads/2023/11/c2022_corrientes_hogares_c7_7.xlsx",
+      "note": "downloaded by hand: censo.gob.ar omits its intermediate certificate",
+      "retrievedAt": "2026-10-12",
+      "sha256": "a9ed60f844a4292ceb8a0e5ca5baad9d9ef9b76ef6efbf58a867ba7156f29531",
+      "bytes": 59427
+    },
+    "c2022_entrerios_hogares_c2_8.xlsx": {
+      "url": "https://censo.gob.ar/wp-content/uploads/2023/11/c2022_entrerios_hogares_c2_8.xlsx",
+      "note": "downloaded by hand: censo.gob.ar omits its intermediate certificate",
+      "retrievedAt": "2026-10-12",
+      "sha256": "ca7bdc2d8d7a13f2caf7f9af23cd381d26a2d44ac6eebcd5c52bfc40789bd9a4",
+      "bytes": 45729
+    },
+    "c2022_entrerios_hogares_c3_8.xlsx": {
+      "url": "https://censo.gob.ar/wp-content/uploads/2023/11/c2022_entrerios_hogares_c3_8.xlsx",
+      "note": "downloaded by hand: censo.gob.ar omits its intermediate certificate",
+      "retrievedAt": "2026-10-12",
+      "sha256": "3cbf8830c452cfd35c07b104d1ea3c1ea9287b0241d83ce3846f5d5980a30f6f",
+      "bytes": 62455
+    },
+    "c2022_entrerios_hogares_c7_8.xlsx": {
+      "url": "https://censo.gob.ar/wp-content/uploads/2023/11/c2022_entrerios_hogares_c7_8.xlsx",
+      "note": "downloaded by hand: censo.gob.ar omits its intermediate certificate",
+      "retrievedAt": "2026-10-12",
+      "sha256": "a6480a9b8c8bc7e491aaf3de4664d57088473ffc80ac0c0965dc2a4a04733252",
+      "bytes": 45207
+    },
+    "c2022_formosa_hogares_c2_9.xlsx": {
+      "url": "https://censo.gob.ar/wp-content/uploads/2023/11/c2022_formosa_hogares_c2_9.xlsx",
+      "note": "downloaded by hand: censo.gob.ar omits its intermediate certificate",
+      "retrievedAt": "2026-10-12",
+      "sha256": "5ad7fbc6a68c5d9bab3c27a77cbd562988da74db124a2cf6116ff7aaa76de393",
+      "bytes": 30794
+    },
+    "c2022_formosa_hogares_c3_9.xlsx": {
+      "url": "https://censo.gob.ar/wp-content/uploads/2023/11/c2022_formosa_hogares_c3_9.xlsx",
+      "note": "downloaded by hand: censo.gob.ar omits its intermediate certificate",
+      "retrievedAt": "2026-10-12",
+      "sha256": "49ae343398d29afc918982fa4c7c063530b18a9bdbb15d20c6d5e95e4d1e0829",
+      "bytes": 40095
+    },
+    "c2022_formosa_hogares_c7_9.xlsx": {
+      "url": "https://censo.gob.ar/wp-content/uploads/2023/11/c2022_formosa_hogares_c7_9.xlsx",
+      "note": "downloaded by hand: censo.gob.ar omits its intermediate certificate",
+      "retrievedAt": "2026-10-12",
+      "sha256": "bf57c12d8e21483264d4791b83208023394b56deb0914307ccd6eb983a54232d",
+      "bytes": 30189
+    },
+    "c2022_jujuy_hogares_c2_10.xlsx": {
+      "url": "https://censo.gob.ar/wp-content/uploads/2023/11/c2022_jujuy_hogares_c2_10.xlsx",
+      "note": "downloaded by hand: censo.gob.ar omits its intermediate certificate",
+      "retrievedAt": "2026-10-12",
+      "sha256": "c633d524d2fb668973d75f75e5a3a5e315999a5a81018c6eca048e7d111ad226",
+      "bytes": 43882
+    },
+    "c2022_jujuy_hogares_c3_10.xlsx": {
+      "url": "https://censo.gob.ar/wp-content/uploads/2023/11/c2022_jujuy_hogares_c3_10.xlsx",
+      "note": "downloaded by hand: censo.gob.ar omits its intermediate certificate",
+      "retrievedAt": "2026-10-12",
+      "sha256": "9b6ce1c6c7bfefc1a08b5a0b75d60d66d2044fb6e3a71864bac9f1122d44ea6d",
+      "bytes": 59266
+    },
+    "c2022_jujuy_hogares_c7_10.xlsx": {
+      "url": "https://censo.gob.ar/wp-content/uploads/2023/11/c2022_jujuy_hogares_c7_10.xlsx",
+      "note": "downloaded by hand: censo.gob.ar omits its intermediate certificate",
+      "retrievedAt": "2026-10-12",
+      "sha256": "f8801a3b6fbf2f52d2b49a3492b786dede44afb55dfd24ed44d65b2857b2491a",
+      "bytes": 45764
+    },
+    "c2022_lapampa_hogares_c2_11.xlsx": {
+      "url": "https://censo.gob.ar/wp-content/uploads/2023/11/c2022_lapampa_hogares_c2_11.xlsx",
+      "note": "downloaded by hand: censo.gob.ar omits its intermediate certificate",
+      "retrievedAt": "2026-10-12",
+      "sha256": "87284370be141ad429205a9e2c4d3f042b04c1c0f57f067fe15be2c555b9dae8",
+      "bytes": 55712
+    },
+    "c2022_lapampa_hogares_c3_11-1.xlsx": {
+      "url": "https://censo.gob.ar/wp-content/uploads/2023/11/c2022_lapampa_hogares_c3_11-1.xlsx",
+      "note": "downloaded by hand: censo.gob.ar omits its intermediate certificate",
+      "retrievedAt": "2026-10-12",
+      "sha256": "34e5ff56a6a5cf9a4e2fe7748667a9413a4a3bdc526fede5d3c69ab9c3b987bd",
+      "bytes": 82739
+    },
+    "c2022_lapampa_hogares_c7_11.xlsx": {
+      "url": "https://censo.gob.ar/wp-content/uploads/2023/11/c2022_lapampa_hogares_c7_11.xlsx",
+      "note": "downloaded by hand: censo.gob.ar omits its intermediate certificate",
+      "retrievedAt": "2026-10-12",
+      "sha256": "7eaa2ed38d73cd32d1a5c9731110c5af4a21987ccae9c4f471e6b5e000383ea1",
+      "bytes": 54134
+    },
+    "c2022_larioja_hogares_c2_12.xlsx": {
+      "url": "https://censo.gob.ar/wp-content/uploads/2023/11/c2022_larioja_hogares_c2_12.xlsx",
+      "note": "downloaded by hand: censo.gob.ar omits its intermediate certificate",
+      "retrievedAt": "2026-10-12",
+      "sha256": "5db289fa76e95d54e7119e3c9712a8b838b9e1f26a244a56c41db6a60d3976f9",
+      "bytes": 48154
+    },
+    "c2022_larioja_hogares_c3_12-1.xlsx": {
+      "url": "https://censo.gob.ar/wp-content/uploads/2023/11/c2022_larioja_hogares_c3_12-1.xlsx",
+      "note": "downloaded by hand: censo.gob.ar omits its intermediate certificate",
+      "retrievedAt": "2026-10-12",
+      "sha256": "bb3f47fc8ff4457cc0da9f6fe56397dcbf02e58550df425a53eda7637c49d9c5",
+      "bytes": 68917
+    },
+    "c2022_larioja_hogares_c7_12.xlsx": {
+      "url": "https://censo.gob.ar/wp-content/uploads/2023/11/c2022_larioja_hogares_c7_12.xlsx",
+      "note": "downloaded by hand: censo.gob.ar omits its intermediate certificate",
+      "retrievedAt": "2026-10-12",
+      "sha256": "0f7e2949137c13c40e496938c4cd5bc4526f856f5379b1722ca1c770eecb08e8",
+      "bytes": 46928
+    },
+    "c2022_mendoza_hogares_c2_13.xlsx": {
+      "url": "https://censo.gob.ar/wp-content/uploads/2023/11/c2022_mendoza_hogares_c2_13.xlsx",
+      "note": "downloaded by hand: censo.gob.ar omits its intermediate certificate",
+      "retrievedAt": "2026-10-12",
+      "sha256": "df941af5a51433de10ddc8e39bb9fcbadeac1ced557679b4da2418fb75629955",
+      "bytes": 48393
+    },
+    "c2022_mendoza_hogares_c3_13.xlsx": {
+      "url": "https://censo.gob.ar/wp-content/uploads/2023/11/c2022_mendoza_hogares_c3_13.xlsx",
+      "note": "downloaded by hand: censo.gob.ar omits its intermediate certificate",
+      "retrievedAt": "2026-10-12",
+      "sha256": "5fc2057a706d257ec8058cde85993edfb1088ae326c6a15e7426ba4dde4af32a",
+      "bytes": 65391
+    },
+    "c2022_mendoza_hogares_c7_13.xlsx": {
+      "url": "https://censo.gob.ar/wp-content/uploads/2023/11/c2022_mendoza_hogares_c7_13.xlsx",
+      "note": "downloaded by hand: censo.gob.ar omits its intermediate certificate",
+      "retrievedAt": "2026-10-12",
+      "sha256": "c51f2d3bc14a6b3d809d7c6ba9f48a3a665649921d5bf5523c373a26955ca2b8",
+      "bytes": 46995
+    },
+    "c2022_misiones_hogares_c2_14.xlsx": {
+      "url": "https://censo.gob.ar/wp-content/uploads/2023/11/c2022_misiones_hogares_c2_14.xlsx",
+      "note": "downloaded by hand: censo.gob.ar omits its intermediate certificate",
+      "retrievedAt": "2026-10-12",
+      "sha256": "3c5f55a1c9b446d93318b6446771c393adf46850053c377357b2331aca3f886a",
+      "bytes": 45881
+    },
+    "c2022_misiones_hogares_c3_14.xlsx": {
+      "url": "https://censo.gob.ar/wp-content/uploads/2023/11/c2022_misiones_hogares_c3_14.xlsx",
+      "note": "downloaded by hand: censo.gob.ar omits its intermediate certificate",
+      "retrievedAt": "2026-10-12",
+      "sha256": "4275e3e38286faccbe2e4fa36ab71b15b087a6f51e54802ba2a605d5d0dfe9aa",
+      "bytes": 62307
+    },
+    "c2022_misiones_hogares_c7_14.xlsx": {
+      "url": "https://censo.gob.ar/wp-content/uploads/2023/11/c2022_misiones_hogares_c7_14.xlsx",
+      "note": "downloaded by hand: censo.gob.ar omits its intermediate certificate",
+      "retrievedAt": "2026-10-12",
+      "sha256": "324e33a5791107ccc4f8ca01f6da16100c677afb1b5d36802229332d0ff2452a",
+      "bytes": 45261
+    },
+    "c2022_neuquen_hogares_c2_15.xlsx": {
+      "url": "https://censo.gob.ar/wp-content/uploads/2023/11/c2022_neuquen_hogares_c2_15.xlsx",
+      "note": "downloaded by hand: censo.gob.ar omits its intermediate certificate",
+      "retrievedAt": "2026-10-12",
+      "sha256": "d7ecae3c327a09cf745131f1314950cb05c42cc2795bacfa961f81ebb5bd12f2",
+      "bytes": 44460
+    },
+    "c2022_neuquen_hogares_c3_15.xlsx": {
+      "url": "https://censo.gob.ar/wp-content/uploads/2023/11/c2022_neuquen_hogares_c3_15.xlsx",
+      "note": "downloaded by hand: censo.gob.ar omits its intermediate certificate",
+      "retrievedAt": "2026-10-12",
+      "sha256": "6026f265e5b130331c04ec350a9161ae69704765b24b7caa06980d8e70ba4bad",
+      "bytes": 58884
+    },
+    "c2022_neuquen_hogares_c7_15.xlsx": {
+      "url": "https://censo.gob.ar/wp-content/uploads/2023/11/c2022_neuquen_hogares_c7_15.xlsx",
+      "note": "downloaded by hand: censo.gob.ar omits its intermediate certificate",
+      "retrievedAt": "2026-10-12",
+      "sha256": "0e044aa06d1317b04ac2497f0b66384613886449a8e75d93b1dfbb09a1868c6f",
+      "bytes": 43227
+    },
+    "c2022_rionegro_hogares_c2_16.xlsx": {
+      "url": "https://censo.gob.ar/wp-content/uploads/2023/11/c2022_rionegro_hogares_c2_16.xlsx",
+      "note": "downloaded by hand: censo.gob.ar omits its intermediate certificate",
+      "retrievedAt": "2026-10-12",
+      "sha256": "4ad66123140c4d1cc791f1e807bf42ff9a7a6420cac997b81623dba69181a03e",
+      "bytes": 38825
+    },
+    "c2022_rionegro_hogares_c3_16.xlsx": {
+      "url": "https://censo.gob.ar/wp-content/uploads/2023/11/c2022_rionegro_hogares_c3_16.xlsx",
+      "note": "downloaded by hand: censo.gob.ar omits its intermediate certificate",
+      "retrievedAt": "2026-10-12",
+      "sha256": "5f11ac56b03970dab5314134c8c8da18a87cd62c74632e087ad87dd8ce386ad5",
+      "bytes": 50795
+    },
+    "c2022_rionegro_hogares_c7_16.xlsx": {
+      "url": "https://censo.gob.ar/wp-content/uploads/2023/11/c2022_rionegro_hogares_c7_16.xlsx",
+      "note": "downloaded by hand: censo.gob.ar omits its intermediate certificate",
+      "retrievedAt": "2026-10-12",
+      "sha256": "438dce4cbb531bb4927011adcca75010468b5cebfb170037a0b66d8219fd3fdb",
+      "bytes": 37810
+    },
+    "c2022_salta_hogares_c2_17.xlsx": {
+      "url": "https://censo.gob.ar/wp-content/uploads/2023/11/c2022_salta_hogares_c2_17.xlsx",
+      "note": "downloaded by hand: censo.gob.ar omits its intermediate certificate",
+      "retrievedAt": "2026-10-12",
+      "sha256": "51a2b921a13f01c34f0560188b15567af520408df1293a6f67e3d1f2508ec190",
+      "bytes": 56396
+    },
+    "c2022_salta_hogares_c3_17.xlsx": {
+      "url": "https://censo.gob.ar/wp-content/uploads/2023/11/c2022_salta_hogares_c3_17.xlsx",
+      "note": "downloaded by hand: censo.gob.ar omits its intermediate certificate",
+      "retrievedAt": "2026-10-12",
+      "sha256": "69654763d15f01bfbc8205a6ad3acce886711bf44571fc3dcb2b9bd8f1e9672e",
+      "bytes": 78981
+    },
+    "c2022_salta_hogares_c7_17.xlsx": {
+      "url": "https://censo.gob.ar/wp-content/uploads/2023/11/c2022_salta_hogares_c7_17.xlsx",
+      "note": "downloaded by hand: censo.gob.ar omits its intermediate certificate",
+      "retrievedAt": "2026-10-12",
+      "sha256": "dbfb52347c4f67496b6942c158d50d32f83c73eb58970968a480e085b08294d9",
+      "bytes": 55516
+    },
+    "c2022_sanjuan_hogares_c2_18.xlsx": {
+      "url": "https://censo.gob.ar/wp-content/uploads/2023/11/c2022_sanjuan_hogares_c2_18.xlsx",
+      "note": "downloaded by hand: censo.gob.ar omits its intermediate certificate",
+      "retrievedAt": "2026-10-12",
+      "sha256": "411ecc9073631fc1ad7383aabfbf61bc1b51988d934e8069d4f24170274ffe61",
+      "bytes": 49992
+    },
+    "c2022_sanjuan_hogares_c3_18.xlsx": {
+      "url": "https://censo.gob.ar/wp-content/uploads/2023/11/c2022_sanjuan_hogares_c3_18.xlsx",
+      "note": "downloaded by hand: censo.gob.ar omits its intermediate certificate",
+      "retrievedAt": "2026-10-12",
+      "sha256": "70ef10527be212196e75d32917f48e6bd70682405ef9de163e5f791a38af42f0",
+      "bytes": 69836
+    },
+    "c2022_sanjuan_hogares_c7_18.xlsx": {
+      "url": "https://censo.gob.ar/wp-content/uploads/2023/11/c2022_sanjuan_hogares_c7_18.xlsx",
+      "note": "downloaded by hand: censo.gob.ar omits its intermediate certificate",
+      "retrievedAt": "2026-10-12",
+      "sha256": "77f626142df945cca288411182add578c58f832743e2d7a3e0bd2037c92c3cee",
+      "bytes": 50534
+    },
+    "c2022_sanluis_hogares_c2_19.xlsx": {
+      "url": "https://censo.gob.ar/wp-content/uploads/2023/11/c2022_sanluis_hogares_c2_19.xlsx",
+      "note": "downloaded by hand: censo.gob.ar omits its intermediate certificate",
+      "retrievedAt": "2026-10-12",
+      "sha256": "b06fc1fce91791689cb67cc22ab1979745bcf844003b0b5c4b7ae49e1682ecde",
+      "bytes": 31497
+    },
+    "c2022_sanluis_hogares_c3_19.xlsx": {
+      "url": "https://censo.gob.ar/wp-content/uploads/2023/11/c2022_sanluis_hogares_c3_19.xlsx",
+      "note": "downloaded by hand: censo.gob.ar omits its intermediate certificate",
+      "retrievedAt": "2026-10-12",
+      "sha256": "f4d8af9f094317e4dba6fcea18382f6cd89fd0847a537431be97d48c38ef556e",
+      "bytes": 41600
+    },
+    "c2022_sanluis_hogares_c7_19.xlsx": {
+      "url": "https://censo.gob.ar/wp-content/uploads/2023/11/c2022_sanluis_hogares_c7_19.xlsx",
+      "note": "downloaded by hand: censo.gob.ar omits its intermediate certificate",
+      "retrievedAt": "2026-10-12",
+      "sha256": "2c38aaa1273316c478aa57e23e63952fe8e732b040e93c1f56ac57808e180405",
+      "bytes": 30705
+    },
+    "c2022_santacruz_hogares_c2_20.xlsx": {
+      "url": "https://censo.gob.ar/wp-content/uploads/2023/11/c2022_santacruz_hogares_c2_20.xlsx",
+      "note": "downloaded by hand: censo.gob.ar omits its intermediate certificate",
+      "retrievedAt": "2026-10-12",
+      "sha256": "a3877c173de20a6b61c57cd386946bd7091ef2bf6d817670833dee0aeb8d3cc6",
+      "bytes": 27670
+    },
+    "c2022_santacruz_hogares_c3_20.xlsx": {
+      "url": "https://censo.gob.ar/wp-content/uploads/2023/11/c2022_santacruz_hogares_c3_20.xlsx",
+      "note": "downloaded by hand: censo.gob.ar omits its intermediate certificate",
+      "retrievedAt": "2026-10-12",
+      "sha256": "2ed1c3a723ba0d079a92ae2bae588b3ec8cd81329b1fe3b7e84122e010f169b4",
+      "bytes": 34268
+    },
+    "c2022_santacruz_hogares_c7_20.xlsx": {
+      "url": "https://censo.gob.ar/wp-content/uploads/2023/11/c2022_santacruz_hogares_c7_20.xlsx",
+      "note": "downloaded by hand: censo.gob.ar omits its intermediate certificate",
+      "retrievedAt": "2026-10-12",
+      "sha256": "ce3fd164c696d89ce9aa39e7fbb6bad3fef1c97737b6bd336105f958f004c7d2",
+      "bytes": 26830
+    },
+    "c2022_santafe_hogares_c2_21.xlsx": {
+      "url": "https://censo.gob.ar/wp-content/uploads/2023/11/c2022_santafe_hogares_c2_21.xlsx",
+      "note": "downloaded by hand: censo.gob.ar omits its intermediate certificate",
+      "retrievedAt": "2026-10-12",
+      "sha256": "785ab8e8321e8fa06343dd0c6931ea05a85d881b3f5cb60d5019ca52cbf7cdf3",
+      "bytes": 49682
+    },
+    "c2022_santafe_hogares_c3_21.xlsx": {
+      "url": "https://censo.gob.ar/wp-content/uploads/2023/11/c2022_santafe_hogares_c3_21.xlsx",
+      "note": "downloaded by hand: censo.gob.ar omits its intermediate certificate",
+      "retrievedAt": "2026-10-12",
+      "sha256": "d0a706f74a8a82ee56ffe313cdb708268f4974f4b4250d99feb6d22bcca18841",
+      "bytes": 68435
+    },
+    "c2022_santafe_hogares_c7_21.xlsx": {
+      "url": "https://censo.gob.ar/wp-content/uploads/2023/11/c2022_santafe_hogares_c7_21.xlsx",
+      "note": "downloaded by hand: censo.gob.ar omits its intermediate certificate",
+      "retrievedAt": "2026-10-12",
+      "sha256": "e54e7daa5a161eacf9e309fe2a71e0c14dcfd39e5c10d619ba319fbb0e74da39",
+      "bytes": 49146
+    },
+    "c2022_santiago_hogares_c2_22.xlsx": {
+      "url": "https://censo.gob.ar/wp-content/uploads/2023/11/c2022_santiago_hogares_c2_22.xlsx",
+      "note": "downloaded by hand: censo.gob.ar omits its intermediate certificate",
+      "retrievedAt": "2026-10-12",
+      "sha256": "5a6a1bb28fa7d810ae035b834eed49596a7cb3318f2a5e6b0cd2ce113f09ac85",
+      "bytes": 64359
+    },
+    "c2022_santiago_hogares_c3_22.xlsx": {
+      "url": "https://censo.gob.ar/wp-content/uploads/2023/11/c2022_santiago_hogares_c3_22.xlsx",
+      "note": "downloaded by hand: censo.gob.ar omits its intermediate certificate",
+      "retrievedAt": "2026-10-12",
+      "sha256": "1af852c70dfaac9b0de39a662f8eba309bec12c86e9c5b649b0bfeea0a8f9c13",
+      "bytes": 90581
+    },
+    "c2022_santiago_hogares_c7_22.xlsx": {
+      "url": "https://censo.gob.ar/wp-content/uploads/2023/11/c2022_santiago_hogares_c7_22.xlsx",
+      "note": "downloaded by hand: censo.gob.ar omits its intermediate certificate",
+      "retrievedAt": "2026-10-12",
+      "sha256": "8f8f9f2a798aa50faa50ce812f6b4199f74dd88ee7b453291ba8eb1e874ac397",
+      "bytes": 63557
+    },
+    "c2022_tdf_hogares_c2_23.xlsx": {
+      "url": "https://censo.gob.ar/wp-content/uploads/2023/11/c2022_tdf_hogares_c2_23.xlsx",
+      "note": "downloaded by hand: censo.gob.ar omits its intermediate certificate",
+      "retrievedAt": "2026-10-12",
+      "sha256": "59cd590c0913046f8a35030e331291d772406de2d0c542198dbb6fddfc85d0e1",
+      "bytes": 21212
+    },
+    "c2022_tdf_hogares_c3_23.xlsx": {
+      "url": "https://censo.gob.ar/wp-content/uploads/2023/11/c2022_tdf_hogares_c3_23.xlsx",
+      "note": "downloaded by hand: censo.gob.ar omits its intermediate certificate",
+      "retrievedAt": "2026-10-12",
+      "sha256": "d76f201e15802b292c7063c54a40daf3d9734e4a2db05e78641581fa9b5620b7",
+      "bytes": 24615
+    },
+    "c2022_tdf_hogares_c7_23.xlsx": {
+      "url": "https://censo.gob.ar/wp-content/uploads/2023/11/c2022_tdf_hogares_c7_23.xlsx",
+      "note": "downloaded by hand: censo.gob.ar omits its intermediate certificate",
+      "retrievedAt": "2026-10-12",
+      "sha256": "b374266e3eacb30e23be9d12bda4a3117a0474ced007ebb8a2dc36157986c361",
+      "bytes": 21196
+    },
+    "c2022_tucuman_hogares_c2_24.xlsx": {
+      "url": "https://censo.gob.ar/wp-content/uploads/2023/11/c2022_tucuman_hogares_c2_24.xlsx",
+      "note": "downloaded by hand: censo.gob.ar omits its intermediate certificate",
+      "retrievedAt": "2026-10-12",
+      "sha256": "e39853159483693f76d58e6e1e4939e32059f8648485f17c8f2315a7e29bd178",
+      "bytes": 47112
+    },
+    "c2022_tucuman_hogares_c3_24.xlsx": {
+      "url": "https://censo.gob.ar/wp-content/uploads/2023/11/c2022_tucuman_hogares_c3_24.xlsx",
+      "note": "downloaded by hand: censo.gob.ar omits its intermediate certificate",
+      "retrievedAt": "2026-10-12",
+      "sha256": "da4d42eb4351db7ee2ac41d357a1e07f7c116cef1f487364fce7703d02d40692",
+      "bytes": 63615
+    },
+    "c2022_tucuman_hogares_c7_24.xlsx": {
+      "url": "https://censo.gob.ar/wp-content/uploads/2023/11/c2022_tucuman_hogares_c7_24.xlsx",
+      "note": "downloaded by hand: censo.gob.ar omits its intermediate certificate",
+      "retrievedAt": "2026-10-12",
+      "sha256": "8af7fb4f911f90c86cfaf310538e97def16b0cf608513e4f7998fa5cffdc1e4d",
+      "bytes": 46770
+    },
+    "indicadores_basicos_argentina_2025.pdf": {
+      "url": "https://iris.paho.org/server/api/core/bitstreams/51f85638-d3b2-4c43-8a74-452e44cb1d10/content",
+      "retrievedAt": "2026-10-12",
+      "sha256": "2e21cd17d8e77ad8c68443a97a4e7a378510b804352ffa73535d433704050c3e",
+      "bytes": 485796
+    }
+  }
+}

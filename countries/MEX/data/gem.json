@@ -1,0 +1,407 @@
+{
+ "schema": 1,
+ "provider": "gem",
+ "country": "MEX",
+ "generatedAt": "2026-10-11T17:01:35.038Z",
+ "period": {
+  "latest": 2023,
+  "aggregation": "regions: mean of the raster cells inside them; cities: the cell at their point"
+ },
+ "origin": {
+  "files": [
+   {
+    "name": "v2023_1_pga_475_rock_3min.tif",
+    "sha256": "c6928e0edea4d2a03e6a0d6b4aa9699159834f015c20ffb2d8ee8492ff67a5af",
+    "retrievedAt": "2023-09-19"
+   }
+  ],
+  "notes": "GEM Global Seismic Hazard Map v2023.1.0, PGA 475-year return period on rock, 3-arc-minute raster (zenodo.org/records/8409647, doi:10.5281/zenodo.8409647), downloaded 2026-10-11; CC BY-NC-SA 4.0. Licence: as published by GEM (check before redistributing)."
+ },
+ "values": {
+  "region": {
+   "MX-SON": {
+    "pga475": 0.096,
+    "pga475Max": 1.729
+   },
+   "MX-BCN": {
+    "pga475": 0.294,
+    "pga475Max": 1.893
+   },
+   "MX-CHH": {
+    "pga475": 0.039,
+    "pga475Max": 0.239
+   },
+   "MX-COA": {
+    "pga475": 0.046,
+    "pga475Max": 0.807
+   },
+   "MX-TAM": {
+    "pga475": 0.023,
+    "pga475Max": 0.098
+   },
+   "MX-NLE": {
+    "pga475": 0.06,
+    "pga475Max": 0.763
+   },
+   "MX-ROO": {
+    "pga475": 0.006,
+    "pga475Max": 0.047
+   },
+   "MX-CAM": {
+    "pga475": 0.032,
+    "pga475Max": 0.261
+   },
+   "MX-TAB": {
+    "pga475": 0.17,
+    "pga475Max": 0.305
+   },
+   "MX-CHP": {
+    "pga475": 0.405,
+    "pga475Max": 0.765
+   },
+   "MX-COL": {
+    "pga475": 0.564,
+    "pga475Max": 0.708
+   },
+   "MX-NAY": {
+    "pga475": 0.103,
+    "pga475Max": 0.345
+   },
+   "MX-BCS": {
+    "pga475": 0.164,
+    "pga475Max": 0.561
+   },
+   "MX-SIN": {
+    "pga475": 0.101,
+    "pga475Max": 0.535
+   },
+   "MX-YUC": {
+    "pga475": 0,
+    "pga475Max": 0
+   },
+   "MX-VER": {
+    "pga475": 0.183,
+    "pga475Max": 0.423
+   },
+   "MX-JAL": {
+    "pga475": 0.213,
+    "pga475Max": 0.729
+   },
+   "MX-MIC": {
+    "pga475": 0.399,
+    "pga475Max": 0.888
+   },
+   "MX-GRO": {
+    "pga475": 0.617,
+    "pga475Max": 0.793
+   },
+   "MX-OAX": {
+    "pga475": 0.551,
+    "pga475Max": 0.91
+   },
+   "MX-X01~": {
+    "pga475": null,
+    "pga475Max": null
+   },
+   "MX-MEX": {
+    "pga475": 0.267,
+    "pga475Max": 0.531
+   },
+   "MX-PUE": {
+    "pga475": 0.304,
+    "pga475Max": 0.559
+   },
+   "MX-MOR": {
+    "pga475": 0.412,
+    "pga475Max": 0.549
+   },
+   "MX-QUE": {
+    "pga475": 0.19,
+    "pga475Max": 0.769
+   },
+   "MX-HID": {
+    "pga475": 0.237,
+    "pga475Max": 0.859
+   },
+   "MX-GUA": {
+    "pga475": 0.089,
+    "pga475Max": 0.237
+   },
+   "MX-SLP": {
+    "pga475": 0.046,
+    "pga475Max": 0.782
+   },
+   "MX-ZAC": {
+    "pga475": 0.019,
+    "pga475Max": 0.081
+   },
+   "MX-AGU": {
+    "pga475": 0.03,
+    "pga475Max": 0.044
+   },
+   "MX-DUR": {
+    "pga475": 0.028,
+    "pga475Max": 0.186
+   },
+   "MX-TLA": {
+    "pga475": 0.205,
+    "pga475Max": 0.336
+   },
+   "MX-DIF": {
+    "pga475": 0.257,
+    "pga475Max": 0.31
+   }
+  },
+  "city": {
+   "MEX-mexico-city": {
+    "pga475": 0.222
+   },
+   "MEX-guadalajara": {
+    "pga475": 0.116
+   },
+   "MEX-monterrey": {
+    "pga475": 0.034
+   },
+   "MEX-puebla": {
+    "pga475": 0.273
+   },
+   "MEX-tijuana": {
+    "pga475": 0.156
+   },
+   "MEX-toluca": {
+    "pga475": 0.268
+   },
+   "MEX-leon": {
+    "pga475": 0.07
+   },
+   "MEX-ciudad-juarez": {
+    "pga475": 0.044
+   },
+   "MEX-torreon": {
+    "pga475": 0.015
+   },
+   "MEX-nezahualcoyotl": {
+    "pga475": 0.218
+   },
+   "MEX-san-luis-potosi": {
+    "pga475": 0.024
+   },
+   "MEX-merida": {
+    "pga475": 0
+   },
+   "MEX-queretaro": {
+    "pga475": 0.094
+   },
+   "MEX-mexicali": {
+    "pga475": 0.71
+   },
+   "MEX-aguascalientes": {
+    "pga475": 0.032
+   },
+   "MEX-tampico": {
+    "pga475": 0.026
+   },
+   "MEX-cuernavaca": {
+    "pga475": 0.369
+   },
+   "MEX-culiacan": {
+    "pga475": 0.101
+   },
+   "MEX-chihuahua": {
+    "pga475": 0.021
+   },
+   "MEX-saltillo": {
+    "pga475": 0.019
+   },
+   "MEX-acapulco": {
+    "pga475": 0.784
+   },
+   "MEX-morelia": {
+    "pga475": 0.224
+   },
+   "MEX-hermosillo": {
+    "pga475": 0.068
+   },
+   "MEX-veracruz": {
+    "pga475": 0.147
+   },
+   "MEX-cancun": {
+    "pga475": 0
+   },
+   "MEX-matamoros": {
+    "pga475": 0.016
+   },
+   "MEX-oaxaca": {
+    "pga475": 0.532
+   },
+   "MEX-tlaxcala": {
+    "pga475": 0.216
+   },
+   "MEX-mazatlan-mx-son": {
+    "pga475": 0.048
+   },
+   "MEX-reynosa": {
+    "pga475": 0.029
+   },
+   "MEX-tuxtla-gutierrez": {
+    "pga475": 0.53
+   },
+   "MEX-durango": {
+    "pga475": 0.015
+   },
+   "MEX-xalapa": {
+    "pga475": 0.131
+   },
+   "MEX-villahermosa": {
+    "pga475": 0.18
+   },
+   "MEX-gomez-palacio": {
+    "pga475": 0.014
+   },
+   "MEX-celaya": {
+    "pga475": 0.105
+   },
+   "MEX-mazatlan-mx-sin": {
+    "pga475": 0.066
+   },
+   "MEX-orizaba": {
+    "pga475": 0.247
+   },
+   "MEX-nuevo-laredo": {
+    "pga475": 0.012
+   },
+   "MEX-irapuato": {
+    "pga475": 0.1
+   },
+   "MEX-pachuca": {
+    "pga475": 0.119
+   },
+   "MEX-tepic": {
+    "pga475": 0.151
+   },
+   "MEX-ciudad-obregon": {
+    "pga475": 0.113
+   },
+   "MEX-coatzacoalcos": {
+    "pga475": 0.352
+   },
+   "MEX-ciudad-victoria": {
+    "pga475": 0.016
+   },
+   "MEX-uruapan": {
+    "pga475": 0.317
+   },
+   "MEX-ensenada": {
+    "pga475": 0.261
+   },
+   "MEX-poza-rica-de-hidalgo": {
+    "pga475": 0.054
+   },
+   "MEX-zumpango": {
+    "pga475": 0.149
+   },
+   "MEX-los-mochis": {
+    "pga475": 0.207
+   },
+   "MEX-tehuacan": {
+    "pga475": 0.348
+   },
+   "MEX-monclova": {
+    "pga475": 0.027
+   },
+   "MEX-zacatecas": {
+    "pga475": 0.02
+   },
+   "MEX-colima": {
+    "pga475": 0.477
+   },
+   "MEX-tapachula": {
+    "pga475": 0.583
+   },
+   "MEX-cordoba": {
+    "pga475": 0.248
+   },
+   "MEX-zamora": {
+    "pga475": 0.203
+   },
+   "MEX-campeche": {
+    "pga475": 0.006
+   },
+   "MEX-minatitlan": {
+    "pga475": 0.304
+   },
+   "MEX-salamanca": {
+    "pga475": 0.104
+   },
+   "MEX-ciudad-madero": {
+    "pga475": 0.024
+   },
+   "MEX-la-paz": {
+    "pga475": 0.195
+   },
+   "MEX-puerto-vallarta": {
+    "pga475": 0.314
+   },
+   "MEX-san-cristobal-de-las-casas": {
+    "pga475": 0.457
+   },
+   "MEX-chilpancingo": {
+    "pga475": 0.598
+   },
+   "MEX-nogales": {
+    "pga475": 0.025
+   },
+   "MEX-teziutlan": {
+    "pga475": 0.209
+   },
+   "MEX-lazaro-cardenas": {
+    "pga475": 0.801
+   },
+   "MEX-ciudad-del-carmen": {
+    "pga475": 0.049
+   },
+   "MEX-chetumal": {
+    "pga475": 0.031
+   },
+   "MEX-san-juan-del-rio": {
+    "pga475": 0.118
+   },
+   "MEX-piedras-negras": {
+    "pga475": 0.01
+   },
+   "MEX-navajoa": {
+    "pga475": 0.093
+   },
+   "MEX-ciudad-valles": {
+    "pga475": 0.064
+   },
+   "MEX-delicias": {
+    "pga475": 0.051
+   },
+   "MEX-guanajuato": {
+    "pga475": 0.073
+   },
+   "MEX-iguala": {
+    "pga475": 0.546
+   },
+   "MEX-manzanillo": {
+    "pga475": 0.662
+   },
+   "MEX-tuxpam": {
+    "pga475": 0.033
+   },
+   "MEX-escuintla": {
+    "pga475": 0.557
+   },
+   "MEX-fresnillo": {
+    "pga475": 0.015
+   },
+   "MEX-guaymas": {
+    "pga475": 0.272
+   },
+   "MEX-hidalgo-del-parral": {
+    "pga475": 0.105
+   }
+  }
+ }
+}

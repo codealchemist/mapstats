@@ -3,7 +3,7 @@
 // Results are cached in Netlify Blobs for 24 h; the first request for a place does the fetching.
 import { getStore } from '@netlify/blobs'
 import { getNews } from '../news/service.mjs'
-import { COUNTRIES } from '../../src/data/countries.js'
+import { COUNTRIES } from '../../src/core/countries.js'
 import { memoryStore } from '../news/cache.mjs'
 
 // Netlify Blobs exists on Netlify and under `netlify dev`; anywhere else fall back to a per-instance

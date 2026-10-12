@@ -1,0 +1,80 @@
+{
+  "note": "Hand-entered per province: no table to read. seismicZone: INPRES-CIRSOC 103 zone 0–4, highest zone in populated areas, copied from the official INPRES map.",
+  "providers": {
+    "seismicZone": "ARG/inpres"
+  },
+  "values": {
+    "AR-C": {
+      "seismicZone": 0
+    },
+    "AR-B": {
+      "seismicZone": 0
+    },
+    "AR-K": {
+      "seismicZone": 2
+    },
+    "AR-H": {
+      "seismicZone": 0
+    },
+    "AR-U": {
+      "seismicZone": 1
+    },
+    "AR-X": {
+      "seismicZone": 1
+    },
+    "AR-W": {
+      "seismicZone": 0
+    },
+    "AR-E": {
+      "seismicZone": 0
+    },
+    "AR-P": {
+      "seismicZone": 0
+    },
+    "AR-Y": {
+      "seismicZone": 3
+    },
+    "AR-L": {
+      "seismicZone": 0
+    },
+    "AR-F": {
+      "seismicZone": 3
+    },
+    "AR-M": {
+      "seismicZone": 4
+    },
+    "AR-N": {
+      "seismicZone": 0
+    },
+    "AR-Q": {
+      "seismicZone": 2
+    },
+    "AR-R": {
+      "seismicZone": 1
+    },
+    "AR-A": {
+      "seismicZone": 3
+    },
+    "AR-J": {
+      "seismicZone": 4
+    },
+    "AR-D": {
+      "seismicZone": 2
+    },
+    "AR-Z": {
+      "seismicZone": 1
+    },
+    "AR-S": {
+      "seismicZone": 0
+    },
+    "AR-G": {
+      "seismicZone": 1
+    },
+    "AR-V": {
+      "seismicZone": 2
+    },
+    "AR-T": {
+      "seismicZone": 2
+    }
+  }
+}

@@ -1,0 +1,862 @@
+{
+ "schema": 1,
+ "country": "ARG",
+ "providers": {
+  "pop": "ARG/census-population",
+  "water": "ARG/censo-2022",
+  "sewer": "ARG/censo-2022",
+  "internet": "ARG/censo-2022",
+  "poverty": "ARG/eph",
+  "unemployment": "ARG/eph",
+  "lifeExp": "ARG/indec",
+  "doctors": "ARG/refeps",
+  "hdi": "ARG/pnud",
+  "seismicZone": "ARG/inpres"
+ },
+ "generatedAt": "2026-10-12T04:55:59.063Z",
+ "period": {
+  "latest": 2026
+ },
+ "origin": {
+  "files": [
+   {
+    "name": "indicadores_eph_total_urbano_3t_2025.xls",
+    "url": "https://www.indec.gob.ar/ftp/cuadros/sociedad/indicadores_eph_total_urbano_3t_2025.xls",
+    "sha256": "480662be3bf10586c6ff8a3bca7a8e69b01d3ab121b9abfba3aed1c99f159789",
+    "retrievedAt": "2026-10-12",
+    "note": "unemployment: % of the labour force, all urban areas of each province (EPH total urbano, 3rd quarter 2025)"
+   },
+   {
+    "name": "cuadros_informe_pobreza_09_26.xls",
+    "url": "https://www.indec.gob.ar/ftp/cuadros/sociedad/cuadros_informe_pobreza_09_26.xls",
+    "sha256": "d6fe78610628a8c3c4397d9fb2ce35da98b458dff4af2c78ec9e70208bdaea59",
+    "retrievedAt": "2026-10-12",
+    "note": "poverty: % of persons below the poverty line (EPH, 1st half 2026), population-weighted mean of the province's surveyed urban areas"
+   },
+   {
+    "name": "proyecciones_jurisdicciones_2022_2040_c3_c4.xlsx",
+    "url": "https://www.indec.gob.ar/ftp/cuadros/poblacion/proyecciones_jurisdicciones_2022_2040_c3_c4.xlsx",
+    "sha256": "a5b7e0ac0eb667a0274d61b7b347a060b21c9e069d3a69462369ad048a00a6bd",
+    "retrievedAt": "2026-10-12",
+    "note": "lifeExp: years at birth, 2025 (INDEC projections 2022–2040), both sexes weighted 105 boys : 100 girls"
+   },
+   {
+    "name": "proyecciones_jurisdicciones_2022_2040_c1.xlsx",
+    "url": "https://www.indec.gob.ar/ftp/cuadros/poblacion/proyecciones_jurisdicciones_2022_2040_c1.xlsx",
+    "sha256": "7dd84165fe90415793f6788338ed3273ed1d2fe9ea25cbe355110805e1cc89f3",
+    "retrievedAt": "2026-10-12",
+    "note": "pop: persons at 1 July 2026 (INDEC projections 2022–2040, based on Censo 2022); also the 2024 population for physicians per 1,000"
+   },
+   {
+    "name": "indicadores_basicos_argentina_2025.pdf",
+    "url": "https://iris.paho.org/server/api/core/bitstreams/51f85638-d3b2-4c43-8a74-452e44cb1d10/content",
+    "sha256": "2e21cd17d8e77ad8c68443a97a4e7a378510b804352ffa73535d433704050c3e",
+    "retrievedAt": "2026-10-12",
+    "note": "doctors: registered physicians under 65 (OFETHUS, from REFEPS), 2024, per 1,000 inhabitants of INDEC's 2024 projection · hdi: provincial Human Development Index 2021 (PNUD, 2022) · both from Indicadores Básicos Argentina 2025, https://iris.paho.org/handle/10665.2/69845"
+   },
+   {
+    "name": "c2022_caba_hogares_c2_1.xlsx",
+    "url": "https://censo.gob.ar/wp-content/uploads/2023/11/c2022_caba_hogares_c2_1.xlsx",
+    "sha256": "d2327e6a135e78ea05dcd4c2f4811e7776f031665286e6835111b1035b11b4a3",
+    "retrievedAt": "2026-10-12",
+    "note": "water, sewer, internet: % of households with drinking water from the public network, a toilet draining to the public sewer, internet at home (Censo 2022, definitive results)"
+   },
+   {
+    "name": "c2022_caba_hogares_c3_1.xlsx",
+    "url": "https://censo.gob.ar/wp-content/uploads/2023/11/c2022_caba_hogares_c3_1.xlsx",
+    "sha256": "aaeacfd28044b91a7f88814da9b3c00afbd79c34cd2e05fac62bf2911468b14f",
+    "retrievedAt": "2026-10-12",
+    "note": "water, sewer, internet: % of households with drinking water from the public network, a toilet draining to the public sewer, internet at home (Censo 2022, definitive results)"
+   },
+   {
+    "name": "c2022_caba_hogares_c7_1.xlsx",
+    "url": "https://censo.gob.ar/wp-content/uploads/2023/11/c2022_caba_hogares_c7_1.xlsx",
+    "sha256": "b43e6810c0e08af2b0f7cba343e0488b18dd976fca7b61ad472126eb0ec31850",
+    "retrievedAt": "2026-10-12",
+    "note": "water, sewer, internet: % of households with drinking water from the public network, a toilet draining to the public sewer, internet at home (Censo 2022, definitive results)"
+   },
+   {
+    "name": "c2022_bsas_hogares_c2_2.xlsx",
+    "url": "https://censo.gob.ar/wp-content/uploads/2023/11/c2022_bsas_hogares_c2_2.xlsx",
+    "sha256": "f809b7f05475727881c36cda075f333e1f8431c92ad787a5c0173216f9814237",
+    "retrievedAt": "2026-10-12",
+    "note": "water, sewer, internet: % of households with drinking water from the public network, a toilet draining to the public sewer, internet at home (Censo 2022, definitive results)"
+   },
+   {
+    "name": "c2022_bsas_hogares_c3_2.xlsx",
+    "url": "https://censo.gob.ar/wp-content/uploads/2023/11/c2022_bsas_hogares_c3_2.xlsx",
+    "sha256": "9f873728bfaf9ae7c9bd5a9d13932ad32caf4e5cc4d820c4daa62336829f1a59",
+    "retrievedAt": "2026-10-12",
+    "note": "water, sewer, internet: % of households with drinking water from the public network, a toilet draining to the public sewer, internet at home (Censo 2022, definitive results)"
+   },
+   {
+    "name": "c2022_bsas_hogares_c7_2.xlsx",
+    "url": "https://censo.gob.ar/wp-content/uploads/2023/11/c2022_bsas_hogares_c7_2.xlsx",
+    "sha256": "991f97295c51ed5cebf51d03291eb191cf8b33eaea23965054c2c309f4cff5aa",
+    "retrievedAt": "2026-10-12",
+    "note": "water, sewer, internet: % of households with drinking water from the public network, a toilet draining to the public sewer, internet at home (Censo 2022, definitive results)"
+   },
+   {
+    "name": "c2022_catamarca_hogares_c2_3.xlsx",
+    "url": "https://censo.gob.ar/wp-content/uploads/2023/11/c2022_catamarca_hogares_c2_3.xlsx",
+    "sha256": "8145c3da0af8c849addb2f07968aa37d0058fea8a058921122c29f6ffd4d25e1",
+    "retrievedAt": "2026-10-12",
+    "note": "water, sewer, internet: % of households with drinking water from the public network, a toilet draining to the public sewer, internet at home (Censo 2022, definitive results)"
+   },
+   {
+    "name": "c2022_catamarca_hogares_c3_3.xlsx",
+    "url": "https://censo.gob.ar/wp-content/uploads/2023/11/c2022_catamarca_hogares_c3_3.xlsx",
+    "sha256": "0eb7371f6fdda710cba1a71bd41da49c69da3cabdd7ea79b9d269818284394c3",
+    "retrievedAt": "2026-10-12",
+    "note": "water, sewer, internet: % of households with drinking water from the public network, a toilet draining to the public sewer, internet at home (Censo 2022, definitive results)"
+   },
+   {
+    "name": "c2022_catamarca_hogares_c7_3.xlsx",
+    "url": "https://censo.gob.ar/wp-content/uploads/2023/11/c2022_catamarca_hogares_c7_3.xlsx",
+    "sha256": "99880a355515e60d00e618df69ba800d2ad725f3fcb31c40d1d567028d290f8c",
+    "retrievedAt": "2026-10-12",
+    "note": "water, sewer, internet: % of households with drinking water from the public network, a toilet draining to the public sewer, internet at home (Censo 2022, definitive results)"
+   },
+   {
+    "name": "c2022_chaco_hogares_c2_4.xlsx",
+    "url": "https://censo.gob.ar/wp-content/uploads/2023/11/c2022_chaco_hogares_c2_4.xlsx",
+    "sha256": "9729266d73aa05274611cebeb22949f35ba3ef91fe78f272be42d9a5f8f45969",
+    "retrievedAt": "2026-10-12",
+    "note": "water, sewer, internet: % of households with drinking water from the public network, a toilet draining to the public sewer, internet at home (Censo 2022, definitive results)"
+   },
+   {
+    "name": "c2022_chaco_hogares_c3_4.xlsx",
+    "url": "https://censo.gob.ar/wp-content/uploads/2023/11/c2022_chaco_hogares_c3_4.xlsx",
+    "sha256": "ffac8280e950b388b4ccad889f883e9d3fe232bca77292998e389117efe94df9",
+    "retrievedAt": "2026-10-12",
+    "note": "water, sewer, internet: % of households with drinking water from the public network, a toilet draining to the public sewer, internet at home (Censo 2022, definitive results)"
+   },
+   {
+    "name": "c2022_chaco_hogares_c7_4.xlsx",
+    "url": "https://censo.gob.ar/wp-content/uploads/2023/11/c2022_chaco_hogares_c7_4.xlsx",
+    "sha256": "03c500da99588f8b8dbd9c2b4fd42a510274d159b02b45587de5a7326487819d",
+    "retrievedAt": "2026-10-12",
+    "note": "water, sewer, internet: % of households with drinking water from the public network, a toilet draining to the public sewer, internet at home (Censo 2022, definitive results)"
+   },
+   {
+    "name": "c2022_chubut_hogares_c2_5.xlsx",
+    "url": "https://censo.gob.ar/wp-content/uploads/2023/11/c2022_chubut_hogares_c2_5.xlsx",
+    "sha256": "39ab97bbbf12587cc75b17c57d8e4e39e27950701aef52271c9abfd76663b1b6",
+    "retrievedAt": "2026-10-12",
+    "note": "water, sewer, internet: % of households with drinking water from the public network, a toilet draining to the public sewer, internet at home (Censo 2022, definitive results)"
+   },
+   {
+    "name": "c2022_chubut_hogares_c3_5.xlsx",
+    "url": "https://censo.gob.ar/wp-content/uploads/2023/11/c2022_chubut_hogares_c3_5.xlsx",
+    "sha256": "4f5012bc1bea8e88d3f4deb415e90ccd962b75145abda8c67adf1c2453375485",
+    "retrievedAt": "2026-10-12",
+    "note": "water, sewer, internet: % of households with drinking water from the public network, a toilet draining to the public sewer, internet at home (Censo 2022, definitive results)"
+   },
+   {
+    "name": "c2022_chubut_hogares_c7_5.xlsx",
+    "url": "https://censo.gob.ar/wp-content/uploads/2023/11/c2022_chubut_hogares_c7_5.xlsx",
+    "sha256": "92b583bbae5823b0dc630da9a36f6ee6c7b9b42c2a65f75c49c86db925804079",
+    "retrievedAt": "2026-10-12",
+    "note": "water, sewer, internet: % of households with drinking water from the public network, a toilet draining to the public sewer, internet at home (Censo 2022, definitive results)"
+   },
+   {
+    "name": "c2022_cordoba_hogares_c2_6.xlsx",
+    "url": "https://censo.gob.ar/wp-content/uploads/2023/11/c2022_cordoba_hogares_c2_6.xlsx",
+    "sha256": "6e0a91ad5f71a2fa02de6ef51d1e8962d28a9326b5e68ec26e71a0293fa88a8b",
+    "retrievedAt": "2026-10-12",
+    "note": "water, sewer, internet: % of households with drinking water from the public network, a toilet draining to the public sewer, internet at home (Censo 2022, definitive results)"
+   },
+   {
+    "name": "c2022_cordoba_hogares_c3_6.xlsx",
+    "url": "https://censo.gob.ar/wp-content/uploads/2023/11/c2022_cordoba_hogares_c3_6.xlsx",
+    "sha256": "0a6318cf1c1d9c24e358dee591a806620bcecc8c89eac93aea45c4c19e607c34",
+    "retrievedAt": "2026-10-12",
+    "note": "water, sewer, internet: % of households with drinking water from the public network, a toilet draining to the public sewer, internet at home (Censo 2022, definitive results)"
+   },
+   {
+    "name": "c2022_cordoba_hogares_c7_6.xlsx",
+    "url": "https://censo.gob.ar/wp-content/uploads/2023/11/c2022_cordoba_hogares_c7_6.xlsx",
+    "sha256": "8f78244ab728080e80ab379a41a4dae5562a8b24ac7ca3ce26c810e4a9ff523f",
+    "retrievedAt": "2026-10-12",
+    "note": "water, sewer, internet: % of households with drinking water from the public network, a toilet draining to the public sewer, internet at home (Censo 2022, definitive results)"
+   },
+   {
+    "name": "c2022_corrientes_hogares_c2_7.xlsx",
+    "url": "https://censo.gob.ar/wp-content/uploads/2023/11/c2022_corrientes_hogares_c2_7.xlsx",
+    "sha256": "07b31b263a10c7122448d0cd99e9896527715f4e6739acd2f8738a417a11f38a",
+    "retrievedAt": "2026-10-12",
+    "note": "water, sewer, internet: % of households with drinking water from the public network, a toilet draining to the public sewer, internet at home (Censo 2022, definitive results)"
+   },
+   {
+    "name": "c2022_corrientes_hogares_c3_7.xlsx",
+    "url": "https://censo.gob.ar/wp-content/uploads/2023/11/c2022_corrientes_hogares_c3_7.xlsx",
+    "sha256": "081df746bce385feba29e4acb9cc2b748d273849cc65a9a5a0d474882a24e24b",
+    "retrievedAt": "2026-10-12",
+    "note": "water, sewer, internet: % of households with drinking water from the public network, a toilet draining to the public sewer, internet at home (Censo 2022, definitive results)"
+   },
+   {
+    "name": "c2022_corrientes_hogares_c7_7.xlsx",
+    "url": "https://censo.gob.ar/wp-content/uploads/2023/11/c2022_corrientes_hogares_c7_7.xlsx",
+    "sha256": "a9ed60f844a4292ceb8a0e5ca5baad9d9ef9b76ef6efbf58a867ba7156f29531",
+    "retrievedAt": "2026-10-12",
+    "note": "water, sewer, internet: % of households with drinking water from the public network, a toilet draining to the public sewer, internet at home (Censo 2022, definitive results)"
+   },
+   {
+    "name": "c2022_entrerios_hogares_c2_8.xlsx",
+    "url": "https://censo.gob.ar/wp-content/uploads/2023/11/c2022_entrerios_hogares_c2_8.xlsx",
+    "sha256": "ca7bdc2d8d7a13f2caf7f9af23cd381d26a2d44ac6eebcd5c52bfc40789bd9a4",
+    "retrievedAt": "2026-10-12",
+    "note": "water, sewer, internet: % of households with drinking water from the public network, a toilet draining to the public sewer, internet at home (Censo 2022, definitive results)"
+   },
+   {
+    "name": "c2022_entrerios_hogares_c3_8.xlsx",
+    "url": "https://censo.gob.ar/wp-content/uploads/2023/11/c2022_entrerios_hogares_c3_8.xlsx",
+    "sha256": "3cbf8830c452cfd35c07b104d1ea3c1ea9287b0241d83ce3846f5d5980a30f6f",
+    "retrievedAt": "2026-10-12",
+    "note": "water, sewer, internet: % of households with drinking water from the public network, a toilet draining to the public sewer, internet at home (Censo 2022, definitive results)"
+   },
+   {
+    "name": "c2022_entrerios_hogares_c7_8.xlsx",
+    "url": "https://censo.gob.ar/wp-content/uploads/2023/11/c2022_entrerios_hogares_c7_8.xlsx",
+    "sha256": "a6480a9b8c8bc7e491aaf3de4664d57088473ffc80ac0c0965dc2a4a04733252",
+    "retrievedAt": "2026-10-12",
+    "note": "water, sewer, internet: % of households with drinking water from the public network, a toilet draining to the public sewer, internet at home (Censo 2022, definitive results)"
+   },
+   {
+    "name": "c2022_formosa_hogares_c2_9.xlsx",
+    "url": "https://censo.gob.ar/wp-content/uploads/2023/11/c2022_formosa_hogares_c2_9.xlsx",
+    "sha256": "5ad7fbc6a68c5d9bab3c27a77cbd562988da74db124a2cf6116ff7aaa76de393",
+    "retrievedAt": "2026-10-12",
+    "note": "water, sewer, internet: % of households with drinking water from the public network, a toilet draining to the public sewer, internet at home (Censo 2022, definitive results)"
+   },
+   {
+    "name": "c2022_formosa_hogares_c3_9.xlsx",
+    "url": "https://censo.gob.ar/wp-content/uploads/2023/11/c2022_formosa_hogares_c3_9.xlsx",
+    "sha256": "49ae343398d29afc918982fa4c7c063530b18a9bdbb15d20c6d5e95e4d1e0829",
+    "retrievedAt": "2026-10-12",
+    "note": "water, sewer, internet: % of households with drinking water from the public network, a toilet draining to the public sewer, internet at home (Censo 2022, definitive results)"
+   },
+   {
+    "name": "c2022_formosa_hogares_c7_9.xlsx",
+    "url": "https://censo.gob.ar/wp-content/uploads/2023/11/c2022_formosa_hogares_c7_9.xlsx",
+    "sha256": "bf57c12d8e21483264d4791b83208023394b56deb0914307ccd6eb983a54232d",
+    "retrievedAt": "2026-10-12",
+    "note": "water, sewer, internet: % of households with drinking water from the public network, a toilet draining to the public sewer, internet at home (Censo 2022, definitive results)"
+   },
+   {
+    "name": "c2022_jujuy_hogares_c2_10.xlsx",
+    "url": "https://censo.gob.ar/wp-content/uploads/2023/11/c2022_jujuy_hogares_c2_10.xlsx",
+    "sha256": "c633d524d2fb668973d75f75e5a3a5e315999a5a81018c6eca048e7d111ad226",
+    "retrievedAt": "2026-10-12",
+    "note": "water, sewer, internet: % of households with drinking water from the public network, a toilet draining to the public sewer, internet at home (Censo 2022, definitive results)"
+   },
+   {
+    "name": "c2022_jujuy_hogares_c3_10.xlsx",
+    "url": "https://censo.gob.ar/wp-content/uploads/2023/11/c2022_jujuy_hogares_c3_10.xlsx",
+    "sha256": "9b6ce1c6c7bfefc1a08b5a0b75d60d66d2044fb6e3a71864bac9f1122d44ea6d",
+    "retrievedAt": "2026-10-12",
+    "note": "water, sewer, internet: % of households with drinking water from the public network, a toilet draining to the public sewer, internet at home (Censo 2022, definitive results)"
+   },
+   {
+    "name": "c2022_jujuy_hogares_c7_10.xlsx",
+    "url": "https://censo.gob.ar/wp-content/uploads/2023/11/c2022_jujuy_hogares_c7_10.xlsx",
+    "sha256": "f8801a3b6fbf2f52d2b49a3492b786dede44afb55dfd24ed44d65b2857b2491a",
+    "retrievedAt": "2026-10-12",
+    "note": "water, sewer, internet: % of households with drinking water from the public network, a toilet draining to the public sewer, internet at home (Censo 2022, definitive results)"
+   },
+   {
+    "name": "c2022_lapampa_hogares_c2_11.xlsx",
+    "url": "https://censo.gob.ar/wp-content/uploads/2023/11/c2022_lapampa_hogares_c2_11.xlsx",
+    "sha256": "87284370be141ad429205a9e2c4d3f042b04c1c0f57f067fe15be2c555b9dae8",
+    "retrievedAt": "2026-10-12",
+    "note": "water, sewer, internet: % of households with drinking water from the public network, a toilet draining to the public sewer, internet at home (Censo 2022, definitive results)"
+   },
+   {
+    "name": "c2022_lapampa_hogares_c3_11-1.xlsx",
+    "url": "https://censo.gob.ar/wp-content/uploads/2023/11/c2022_lapampa_hogares_c3_11-1.xlsx",
+    "sha256": "34e5ff56a6a5cf9a4e2fe7748667a9413a4a3bdc526fede5d3c69ab9c3b987bd",
+    "retrievedAt": "2026-10-12",
+    "note": "water, sewer, internet: % of households with drinking water from the public network, a toilet draining to the public sewer, internet at home (Censo 2022, definitive results)"
+   },
+   {
+    "name": "c2022_lapampa_hogares_c7_11.xlsx",
+    "url": "https://censo.gob.ar/wp-content/uploads/2023/11/c2022_lapampa_hogares_c7_11.xlsx",
+    "sha256": "7eaa2ed38d73cd32d1a5c9731110c5af4a21987ccae9c4f471e6b5e000383ea1",
+    "retrievedAt": "2026-10-12",
+    "note": "water, sewer, internet: % of households with drinking water from the public network, a toilet draining to the public sewer, internet at home (Censo 2022, definitive results)"
+   },
+   {
+    "name": "c2022_larioja_hogares_c2_12.xlsx",
+    "url": "https://censo.gob.ar/wp-content/uploads/2023/11/c2022_larioja_hogares_c2_12.xlsx",
+    "sha256": "5db289fa76e95d54e7119e3c9712a8b838b9e1f26a244a56c41db6a60d3976f9",
+    "retrievedAt": "2026-10-12",
+    "note": "water, sewer, internet: % of households with drinking water from the public network, a toilet draining to the public sewer, internet at home (Censo 2022, definitive results)"
+   },
+   {
+    "name": "c2022_larioja_hogares_c3_12-1.xlsx",
+    "url": "https://censo.gob.ar/wp-content/uploads/2023/11/c2022_larioja_hogares_c3_12-1.xlsx",
+    "sha256": "bb3f47fc8ff4457cc0da9f6fe56397dcbf02e58550df425a53eda7637c49d9c5",
+    "retrievedAt": "2026-10-12",
+    "note": "water, sewer, internet: % of households with drinking water from the public network, a toilet draining to the public sewer, internet at home (Censo 2022, definitive results)"
+   },
+   {
+    "name": "c2022_larioja_hogares_c7_12.xlsx",
+    "url": "https://censo.gob.ar/wp-content/uploads/2023/11/c2022_larioja_hogares_c7_12.xlsx",
+    "sha256": "0f7e2949137c13c40e496938c4cd5bc4526f856f5379b1722ca1c770eecb08e8",
+    "retrievedAt": "2026-10-12",
+    "note": "water, sewer, internet: % of households with drinking water from the public network, a toilet draining to the public sewer, internet at home (Censo 2022, definitive results)"
+   },
+   {
+    "name": "c2022_mendoza_hogares_c2_13.xlsx",
+    "url": "https://censo.gob.ar/wp-content/uploads/2023/11/c2022_mendoza_hogares_c2_13.xlsx",
+    "sha256": "df941af5a51433de10ddc8e39bb9fcbadeac1ced557679b4da2418fb75629955",
+    "retrievedAt": "2026-10-12",
+    "note": "water, sewer, internet: % of households with drinking water from the public network, a toilet draining to the public sewer, internet at home (Censo 2022, definitive results)"
+   },
+   {
+    "name": "c2022_mendoza_hogares_c3_13.xlsx",
+    "url": "https://censo.gob.ar/wp-content/uploads/2023/11/c2022_mendoza_hogares_c3_13.xlsx",
+    "sha256": "5fc2057a706d257ec8058cde85993edfb1088ae326c6a15e7426ba4dde4af32a",
+    "retrievedAt": "2026-10-12",
+    "note": "water, sewer, internet: % of households with drinking water from the public network, a toilet draining to the public sewer, internet at home (Censo 2022, definitive results)"
+   },
+   {
+    "name": "c2022_mendoza_hogares_c7_13.xlsx",
+    "url": "https://censo.gob.ar/wp-content/uploads/2023/11/c2022_mendoza_hogares_c7_13.xlsx",
+    "sha256": "c51f2d3bc14a6b3d809d7c6ba9f48a3a665649921d5bf5523c373a26955ca2b8",
+    "retrievedAt": "2026-10-12",
+    "note": "water, sewer, internet: % of households with drinking water from the public network, a toilet draining to the public sewer, internet at home (Censo 2022, definitive results)"
+   },
+   {
+    "name": "c2022_misiones_hogares_c2_14.xlsx",
+    "url": "https://censo.gob.ar/wp-content/uploads/2023/11/c2022_misiones_hogares_c2_14.xlsx",
+    "sha256": "3c5f55a1c9b446d93318b6446771c393adf46850053c377357b2331aca3f886a",
+    "retrievedAt": "2026-10-12",
+    "note": "water, sewer, internet: % of households with drinking water from the public network, a toilet draining to the public sewer, internet at home (Censo 2022, definitive results)"
+   },
+   {
+    "name": "c2022_misiones_hogares_c3_14.xlsx",
+    "url": "https://censo.gob.ar/wp-content/uploads/2023/11/c2022_misiones_hogares_c3_14.xlsx",
+    "sha256": "4275e3e38286faccbe2e4fa36ab71b15b087a6f51e54802ba2a605d5d0dfe9aa",
+    "retrievedAt": "2026-10-12",
+    "note": "water, sewer, internet: % of households with drinking water from the public network, a toilet draining to the public sewer, internet at home (Censo 2022, definitive results)"
+   },
+   {
+    "name": "c2022_misiones_hogares_c7_14.xlsx",
+    "url": "https://censo.gob.ar/wp-content/uploads/2023/11/c2022_misiones_hogares_c7_14.xlsx",
+    "sha256": "324e33a5791107ccc4f8ca01f6da16100c677afb1b5d36802229332d0ff2452a",
+    "retrievedAt": "2026-10-12",
+    "note": "water, sewer, internet: % of households with drinking water from the public network, a toilet draining to the public sewer, internet at home (Censo 2022, definitive results)"
+   },
+   {
+    "name": "c2022_neuquen_hogares_c2_15.xlsx",
+    "url": "https://censo.gob.ar/wp-content/uploads/2023/11/c2022_neuquen_hogares_c2_15.xlsx",
+    "sha256": "d7ecae3c327a09cf745131f1314950cb05c42cc2795bacfa961f81ebb5bd12f2",
+    "retrievedAt": "2026-10-12",
+    "note": "water, sewer, internet: % of households with drinking water from the public network, a toilet draining to the public sewer, internet at home (Censo 2022, definitive results)"
+   },
+   {
+    "name": "c2022_neuquen_hogares_c3_15.xlsx",
+    "url": "https://censo.gob.ar/wp-content/uploads/2023/11/c2022_neuquen_hogares_c3_15.xlsx",
+    "sha256": "6026f265e5b130331c04ec350a9161ae69704765b24b7caa06980d8e70ba4bad",
+    "retrievedAt": "2026-10-12",
+    "note": "water, sewer, internet: % of households with drinking water from the public network, a toilet draining to the public sewer, internet at home (Censo 2022, definitive results)"
+   },
+   {
+    "name": "c2022_neuquen_hogares_c7_15.xlsx",
+    "url": "https://censo.gob.ar/wp-content/uploads/2023/11/c2022_neuquen_hogares_c7_15.xlsx",
+    "sha256": "0e044aa06d1317b04ac2497f0b66384613886449a8e75d93b1dfbb09a1868c6f",
+    "retrievedAt": "2026-10-12",
+    "note": "water, sewer, internet: % of households with drinking water from the public network, a toilet draining to the public sewer, internet at home (Censo 2022, definitive results)"
+   },
+   {
+    "name": "c2022_rionegro_hogares_c2_16.xlsx",
+    "url": "https://censo.gob.ar/wp-content/uploads/2023/11/c2022_rionegro_hogares_c2_16.xlsx",
+    "sha256": "4ad66123140c4d1cc791f1e807bf42ff9a7a6420cac997b81623dba69181a03e",
+    "retrievedAt": "2026-10-12",
+    "note": "water, sewer, internet: % of households with drinking water from the public network, a toilet draining to the public sewer, internet at home (Censo 2022, definitive results)"
+   },
+   {
+    "name": "c2022_rionegro_hogares_c3_16.xlsx",
+    "url": "https://censo.gob.ar/wp-content/uploads/2023/11/c2022_rionegro_hogares_c3_16.xlsx",
+    "sha256": "5f11ac56b03970dab5314134c8c8da18a87cd62c74632e087ad87dd8ce386ad5",
+    "retrievedAt": "2026-10-12",
+    "note": "water, sewer, internet: % of households with drinking water from the public network, a toilet draining to the public sewer, internet at home (Censo 2022, definitive results)"
+   },
+   {
+    "name": "c2022_rionegro_hogares_c7_16.xlsx",
+    "url": "https://censo.gob.ar/wp-content/uploads/2023/11/c2022_rionegro_hogares_c7_16.xlsx",
+    "sha256": "438dce4cbb531bb4927011adcca75010468b5cebfb170037a0b66d8219fd3fdb",
+    "retrievedAt": "2026-10-12",
+    "note": "water, sewer, internet: % of households with drinking water from the public network, a toilet draining to the public sewer, internet at home (Censo 2022, definitive results)"
+   },
+   {
+    "name": "c2022_salta_hogares_c2_17.xlsx",
+    "url": "https://censo.gob.ar/wp-content/uploads/2023/11/c2022_salta_hogares_c2_17.xlsx",
+    "sha256": "51a2b921a13f01c34f0560188b15567af520408df1293a6f67e3d1f2508ec190",
+    "retrievedAt": "2026-10-12",
+    "note": "water, sewer, internet: % of households with drinking water from the public network, a toilet draining to the public sewer, internet at home (Censo 2022, definitive results)"
+   },
+   {
+    "name": "c2022_salta_hogares_c3_17.xlsx",
+    "url": "https://censo.gob.ar/wp-content/uploads/2023/11/c2022_salta_hogares_c3_17.xlsx",
+    "sha256": "69654763d15f01bfbc8205a6ad3acce886711bf44571fc3dcb2b9bd8f1e9672e",
+    "retrievedAt": "2026-10-12",
+    "note": "water, sewer, internet: % of households with drinking water from the public network, a toilet draining to the public sewer, internet at home (Censo 2022, definitive results)"
+   },
+   {
+    "name": "c2022_salta_hogares_c7_17.xlsx",
+    "url": "https://censo.gob.ar/wp-content/uploads/2023/11/c2022_salta_hogares_c7_17.xlsx",
+    "sha256": "dbfb52347c4f67496b6942c158d50d32f83c73eb58970968a480e085b08294d9",
+    "retrievedAt": "2026-10-12",
+    "note": "water, sewer, internet: % of households with drinking water from the public network, a toilet draining to the public sewer, internet at home (Censo 2022, definitive results)"
+   },
+   {
+    "name": "c2022_sanjuan_hogares_c2_18.xlsx",
+    "url": "https://censo.gob.ar/wp-content/uploads/2023/11/c2022_sanjuan_hogares_c2_18.xlsx",
+    "sha256": "411ecc9073631fc1ad7383aabfbf61bc1b51988d934e8069d4f24170274ffe61",
+    "retrievedAt": "2026-10-12",
+    "note": "water, sewer, internet: % of households with drinking water from the public network, a toilet draining to the public sewer, internet at home (Censo 2022, definitive results)"
+   },
+   {
+    "name": "c2022_sanjuan_hogares_c3_18.xlsx",
+    "url": "https://censo.gob.ar/wp-content/uploads/2023/11/c2022_sanjuan_hogares_c3_18.xlsx",
+    "sha256": "70ef10527be212196e75d32917f48e6bd70682405ef9de163e5f791a38af42f0",
+    "retrievedAt": "2026-10-12",
+    "note": "water, sewer, internet: % of households with drinking water from the public network, a toilet draining to the public sewer, internet at home (Censo 2022, definitive results)"
+   },
+   {
+    "name": "c2022_sanjuan_hogares_c7_18.xlsx",
+    "url": "https://censo.gob.ar/wp-content/uploads/2023/11/c2022_sanjuan_hogares_c7_18.xlsx",
+    "sha256": "77f626142df945cca288411182add578c58f832743e2d7a3e0bd2037c92c3cee",
+    "retrievedAt": "2026-10-12",
+    "note": "water, sewer, internet: % of households with drinking water from the public network, a toilet draining to the public sewer, internet at home (Censo 2022, definitive results)"
+   },
+   {
+    "name": "c2022_sanluis_hogares_c2_19.xlsx",
+    "url": "https://censo.gob.ar/wp-content/uploads/2023/11/c2022_sanluis_hogares_c2_19.xlsx",
+    "sha256": "b06fc1fce91791689cb67cc22ab1979745bcf844003b0b5c4b7ae49e1682ecde",
+    "retrievedAt": "2026-10-12",
+    "note": "water, sewer, internet: % of households with drinking water from the public network, a toilet draining to the public sewer, internet at home (Censo 2022, definitive results)"
+   },
+   {
+    "name": "c2022_sanluis_hogares_c3_19.xlsx",
+    "url": "https://censo.gob.ar/wp-content/uploads/2023/11/c2022_sanluis_hogares_c3_19.xlsx",
+    "sha256": "f4d8af9f094317e4dba6fcea18382f6cd89fd0847a537431be97d48c38ef556e",
+    "retrievedAt": "2026-10-12",
+    "note": "water, sewer, internet: % of households with drinking water from the public network, a toilet draining to the public sewer, internet at home (Censo 2022, definitive results)"
+   },
+   {
+    "name": "c2022_sanluis_hogares_c7_19.xlsx",
+    "url": "https://censo.gob.ar/wp-content/uploads/2023/11/c2022_sanluis_hogares_c7_19.xlsx",
+    "sha256": "2c38aaa1273316c478aa57e23e63952fe8e732b040e93c1f56ac57808e180405",
+    "retrievedAt": "2026-10-12",
+    "note": "water, sewer, internet: % of households with drinking water from the public network, a toilet draining to the public sewer, internet at home (Censo 2022, definitive results)"
+   },
+   {
+    "name": "c2022_santacruz_hogares_c2_20.xlsx",
+    "url": "https://censo.gob.ar/wp-content/uploads/2023/11/c2022_santacruz_hogares_c2_20.xlsx",
+    "sha256": "a3877c173de20a6b61c57cd386946bd7091ef2bf6d817670833dee0aeb8d3cc6",
+    "retrievedAt": "2026-10-12",
+    "note": "water, sewer, internet: % of households with drinking water from the public network, a toilet draining to the public sewer, internet at home (Censo 2022, definitive results)"
+   },
+   {
+    "name": "c2022_santacruz_hogares_c3_20.xlsx",
+    "url": "https://censo.gob.ar/wp-content/uploads/2023/11/c2022_santacruz_hogares_c3_20.xlsx",
+    "sha256": "2ed1c3a723ba0d079a92ae2bae588b3ec8cd81329b1fe3b7e84122e010f169b4",
+    "retrievedAt": "2026-10-12",
+    "note": "water, sewer, internet: % of households with drinking water from the public network, a toilet draining to the public sewer, internet at home (Censo 2022, definitive results)"
+   },
+   {
+    "name": "c2022_santacruz_hogares_c7_20.xlsx",
+    "url": "https://censo.gob.ar/wp-content/uploads/2023/11/c2022_santacruz_hogares_c7_20.xlsx",
+    "sha256": "ce3fd164c696d89ce9aa39e7fbb6bad3fef1c97737b6bd336105f958f004c7d2",
+    "retrievedAt": "2026-10-12",
+    "note": "water, sewer, internet: % of households with drinking water from the public network, a toilet draining to the public sewer, internet at home (Censo 2022, definitive results)"
+   },
+   {
+    "name": "c2022_santafe_hogares_c2_21.xlsx",
+    "url": "https://censo.gob.ar/wp-content/uploads/2023/11/c2022_santafe_hogares_c2_21.xlsx",
+    "sha256": "785ab8e8321e8fa06343dd0c6931ea05a85d881b3f5cb60d5019ca52cbf7cdf3",
+    "retrievedAt": "2026-10-12",
+    "note": "water, sewer, internet: % of households with drinking water from the public network, a toilet draining to the public sewer, internet at home (Censo 2022, definitive results)"
+   },
+   {
+    "name": "c2022_santafe_hogares_c3_21.xlsx",
+    "url": "https://censo.gob.ar/wp-content/uploads/2023/11/c2022_santafe_hogares_c3_21.xlsx",
+    "sha256": "d0a706f74a8a82ee56ffe313cdb708268f4974f4b4250d99feb6d22bcca18841",
+    "retrievedAt": "2026-10-12",
+    "note": "water, sewer, internet: % of households with drinking water from the public network, a toilet draining to the public sewer, internet at home (Censo 2022, definitive results)"
+   },
+   {
+    "name": "c2022_santafe_hogares_c7_21.xlsx",
+    "url": "https://censo.gob.ar/wp-content/uploads/2023/11/c2022_santafe_hogares_c7_21.xlsx",
+    "sha256": "e54e7daa5a161eacf9e309fe2a71e0c14dcfd39e5c10d619ba319fbb0e74da39",
+    "retrievedAt": "2026-10-12",
+    "note": "water, sewer, internet: % of households with drinking water from the public network, a toilet draining to the public sewer, internet at home (Censo 2022, definitive results)"
+   },
+   {
+    "name": "c2022_santiago_hogares_c2_22.xlsx",
+    "url": "https://censo.gob.ar/wp-content/uploads/2023/11/c2022_santiago_hogares_c2_22.xlsx",
+    "sha256": "5a6a1bb28fa7d810ae035b834eed49596a7cb3318f2a5e6b0cd2ce113f09ac85",
+    "retrievedAt": "2026-10-12",
+    "note": "water, sewer, internet: % of households with drinking water from the public network, a toilet draining to the public sewer, internet at home (Censo 2022, definitive results)"
+   },
+   {
+    "name": "c2022_santiago_hogares_c3_22.xlsx",
+    "url": "https://censo.gob.ar/wp-content/uploads/2023/11/c2022_santiago_hogares_c3_22.xlsx",
+    "sha256": "1af852c70dfaac9b0de39a662f8eba309bec12c86e9c5b649b0bfeea0a8f9c13",
+    "retrievedAt": "2026-10-12",
+    "note": "water, sewer, internet: % of households with drinking water from the public network, a toilet draining to the public sewer, internet at home (Censo 2022, definitive results)"
+   },
+   {
+    "name": "c2022_santiago_hogares_c7_22.xlsx",
+    "url": "https://censo.gob.ar/wp-content/uploads/2023/11/c2022_santiago_hogares_c7_22.xlsx",
+    "sha256": "8f8f9f2a798aa50faa50ce812f6b4199f74dd88ee7b453291ba8eb1e874ac397",
+    "retrievedAt": "2026-10-12",
+    "note": "water, sewer, internet: % of households with drinking water from the public network, a toilet draining to the public sewer, internet at home (Censo 2022, definitive results)"
+   },
+   {
+    "name": "c2022_tdf_hogares_c2_23.xlsx",
+    "url": "https://censo.gob.ar/wp-content/uploads/2023/11/c2022_tdf_hogares_c2_23.xlsx",
+    "sha256": "59cd590c0913046f8a35030e331291d772406de2d0c542198dbb6fddfc85d0e1",
+    "retrievedAt": "2026-10-12",
+    "note": "water, sewer, internet: % of households with drinking water from the public network, a toilet draining to the public sewer, internet at home (Censo 2022, definitive results)"
+   },
+   {
+    "name": "c2022_tdf_hogares_c3_23.xlsx",
+    "url": "https://censo.gob.ar/wp-content/uploads/2023/11/c2022_tdf_hogares_c3_23.xlsx",
+    "sha256": "d76f201e15802b292c7063c54a40daf3d9734e4a2db05e78641581fa9b5620b7",
+    "retrievedAt": "2026-10-12",
+    "note": "water, sewer, internet: % of households with drinking water from the public network, a toilet draining to the public sewer, internet at home (Censo 2022, definitive results)"
+   },
+   {
+    "name": "c2022_tdf_hogares_c7_23.xlsx",
+    "url": "https://censo.gob.ar/wp-content/uploads/2023/11/c2022_tdf_hogares_c7_23.xlsx",
+    "sha256": "b374266e3eacb30e23be9d12bda4a3117a0474ced007ebb8a2dc36157986c361",
+    "retrievedAt": "2026-10-12",
+    "note": "water, sewer, internet: % of households with drinking water from the public network, a toilet draining to the public sewer, internet at home (Censo 2022, definitive results)"
+   },
+   {
+    "name": "c2022_tucuman_hogares_c2_24.xlsx",
+    "url": "https://censo.gob.ar/wp-content/uploads/2023/11/c2022_tucuman_hogares_c2_24.xlsx",
+    "sha256": "e39853159483693f76d58e6e1e4939e32059f8648485f17c8f2315a7e29bd178",
+    "retrievedAt": "2026-10-12",
+    "note": "water, sewer, internet: % of households with drinking water from the public network, a toilet draining to the public sewer, internet at home (Censo 2022, definitive results)"
+   },
+   {
+    "name": "c2022_tucuman_hogares_c3_24.xlsx",
+    "url": "https://censo.gob.ar/wp-content/uploads/2023/11/c2022_tucuman_hogares_c3_24.xlsx",
+    "sha256": "da4d42eb4351db7ee2ac41d357a1e07f7c116cef1f487364fce7703d02d40692",
+    "retrievedAt": "2026-10-12",
+    "note": "water, sewer, internet: % of households with drinking water from the public network, a toilet draining to the public sewer, internet at home (Censo 2022, definitive results)"
+   },
+   {
+    "name": "c2022_tucuman_hogares_c7_24.xlsx",
+    "url": "https://censo.gob.ar/wp-content/uploads/2023/11/c2022_tucuman_hogares_c7_24.xlsx",
+    "sha256": "8af7fb4f911f90c86cfaf310538e97def16b0cf608513e4f7998fa5cffdc1e4d",
+    "retrievedAt": "2026-10-12",
+    "note": "water, sewer, internet: % of households with drinking water from the public network, a toilet draining to the public sewer, internet at home (Censo 2022, definitive results)"
+   },
+   {
+    "name": "hand-entered.json",
+    "sha256": null,
+    "retrievedAt": null,
+    "note": "Hand-entered per province: no table to read. seismicZone: INPRES-CIRSOC 103 zone 0–4, highest zone in populated areas, copied from the official INPRES map."
+   }
+  ],
+  "notes": "INDEC tables, read by countries/ARG/providers/provincial-stats/prefill.mjs. Each value cites its provider (providers)."
+ },
+ "values": {
+  "region": {
+   "AR-E": {
+    "pop": 1462153,
+    "water": 91.1,
+    "sewer": 78.3,
+    "internet": 74,
+    "poverty": 42.3,
+    "unemployment": 4.1,
+    "lifeExp": 78.2,
+    "doctors": 3.41,
+    "hdi": 0.836,
+    "seismicZone": 0
+   },
+   "AR-A": {
+    "pop": 1492267,
+    "water": 91.2,
+    "sewer": 69.3,
+    "internet": 62.7,
+    "poverty": 29.7,
+    "unemployment": 5.4,
+    "lifeExp": 77.8,
+    "doctors": 2.28,
+    "hdi": 0.844,
+    "seismicZone": 3
+   },
+   "AR-Y": {
+    "pop": 802922,
+    "water": 95.7,
+    "sewer": 66.5,
+    "internet": 66.7,
+    "poverty": 27.6,
+    "unemployment": 3.9,
+    "lifeExp": 77.9,
+    "doctors": 2.34,
+    "hdi": 0.84,
+    "seismicZone": 3
+   },
+   "AR-P": {
+    "pop": 628876,
+    "water": 77.8,
+    "sewer": 41.4,
+    "internet": 56.4,
+    "poverty": 29.9,
+    "unemployment": 4.5,
+    "lifeExp": 76,
+    "doctors": 1.96,
+    "hdi": 0.822,
+    "seismicZone": 0
+   },
+   "AR-N": {
+    "pop": 1355029,
+    "water": 79.7,
+    "sewer": 25.4,
+    "internet": 61.4,
+    "poverty": 42.2,
+    "unemployment": 4.8,
+    "lifeExp": 76.7,
+    "doctors": 1.93,
+    "hdi": 0.842,
+    "seismicZone": 0
+   },
+   "AR-H": {
+    "pop": 1214280,
+    "water": 76.6,
+    "sewer": 32.4,
+    "internet": 62,
+    "poverty": 48.6,
+    "unemployment": 7.4,
+    "lifeExp": 75.1,
+    "doctors": 2.22,
+    "hdi": 0.808,
+    "seismicZone": 0
+   },
+   "AR-W": {
+    "pop": 1208334,
+    "water": 88.5,
+    "sewer": 60.6,
+    "internet": 56.8,
+    "poverty": 41,
+    "unemployment": 4.6,
+    "lifeExp": 76.9,
+    "doctors": 3.4,
+    "hdi": 0.839,
+    "seismicZone": 0
+   },
+   "AR-K": {
+    "pop": 440503,
+    "water": 93.8,
+    "sewer": 51.6,
+    "internet": 63.7,
+    "poverty": 37.3,
+    "unemployment": 4.6,
+    "lifeExp": 79.2,
+    "doctors": 2.53,
+    "hdi": 0.844,
+    "seismicZone": 2
+   },
+   "AR-F": {
+    "pop": 405241,
+    "water": 93.3,
+    "sewer": 59.1,
+    "internet": 75,
+    "poverty": 38.4,
+    "unemployment": 3.8,
+    "lifeExp": 78.3,
+    "doctors": 4.38,
+    "hdi": 0.84,
+    "seismicZone": 3
+   },
+   "AR-J": {
+    "pop": 852747,
+    "water": 94.5,
+    "sewer": 48,
+    "internet": 63.6,
+    "poverty": 36.8,
+    "unemployment": 3.2,
+    "lifeExp": 78.7,
+    "doctors": 3.17,
+    "hdi": 0.838,
+    "seismicZone": 4
+   },
+   "AR-M": {
+    "pop": 2051912,
+    "water": 92.6,
+    "sewer": 66.9,
+    "internet": 75,
+    "poverty": 36.9,
+    "unemployment": 5.4,
+    "lifeExp": 79.1,
+    "doctors": 3.56,
+    "hdi": 0.848,
+    "seismicZone": 4
+   },
+   "AR-Q": {
+    "pop": 707092,
+    "water": 92.9,
+    "sewer": 75.6,
+    "internet": 77.1,
+    "poverty": 19.6,
+    "unemployment": 4.3,
+    "lifeExp": 79.4,
+    "doctors": 4.39,
+    "hdi": 0.832,
+    "seismicZone": 2
+   },
+   "AR-U": {
+    "pop": 603930,
+    "water": 96.2,
+    "sewer": 81.2,
+    "internet": 78.6,
+    "poverty": 36.4,
+    "unemployment": 4.8,
+    "lifeExp": 79.4,
+    "doctors": 2.98,
+    "hdi": 0.858,
+    "seismicZone": 1
+   },
+   "AR-R": {
+    "pop": 792587,
+    "water": 92.3,
+    "sewer": 67.3,
+    "internet": 75.1,
+    "poverty": 33.2,
+    "unemployment": 3,
+    "lifeExp": 79.6,
+    "doctors": 3.92,
+    "hdi": 0.844,
+    "seismicZone": 1
+   },
+   "AR-Z": {
+    "pop": 335096,
+    "water": 89.7,
+    "sewer": 79.8,
+    "internet": 85.2,
+    "poverty": 25.6,
+    "unemployment": 10.7,
+    "lifeExp": 78.1,
+    "doctors": 3.09,
+    "hdi": 0.854,
+    "seismicZone": 1
+   },
+   "AR-V": {
+    "pop": 182744,
+    "water": 93.5,
+    "sewer": 90.3,
+    "internet": 82.6,
+    "poverty": 25.9,
+    "unemployment": 6.8,
+    "lifeExp": 80.8,
+    "doctors": 4.99,
+    "hdi": 0.856,
+    "seismicZone": 2
+   },
+   "AR-B": {
+    "pop": 17453039,
+    "water": 76.3,
+    "sewer": 59.4,
+    "internet": 81.4,
+    "poverty": 36,
+    "unemployment": 7.7,
+    "lifeExp": 78,
+    "doctors": 2.75,
+    "hdi": 0.842,
+    "seismicZone": 0
+   },
+   "AR-C": {
+    "pop": 3065991,
+    "water": 98,
+    "sewer": 98.8,
+    "internet": 90,
+    "poverty": 11.1,
+    "unemployment": 3.9,
+    "lifeExp": 80.5,
+    "doctors": 16.47,
+    "hdi": 0.882,
+    "seismicZone": 0
+   },
+   "AR-S": {
+    "pop": 3688683,
+    "water": 85.2,
+    "sewer": 59.5,
+    "internet": 76.8,
+    "poverty": 27.6,
+    "unemployment": 7.2,
+    "lifeExp": 78.3,
+    "doctors": 4.4,
+    "hdi": 0.841,
+    "seismicZone": 0
+   },
+   "AR-T": {
+    "pop": 1778484,
+    "water": 90.3,
+    "sewer": 52.7,
+    "internet": 64.2,
+    "poverty": 27.9,
+    "unemployment": 6.6,
+    "lifeExp": 77.5,
+    "doctors": 3.04,
+    "hdi": 0.841,
+    "seismicZone": 2
+   },
+   "AR-G": {
+    "pop": 1059927,
+    "water": 79.2,
+    "sewer": 26.9,
+    "internet": 46.7,
+    "poverty": 38.5,
+    "unemployment": 3.7,
+    "lifeExp": 76.9,
+    "doctors": 1.58,
+    "hdi": 0.833,
+    "seismicZone": 1
+   },
+   "AR-D": {
+    "pop": 538852,
+    "water": 93.2,
+    "sewer": 73.7,
+    "internet": 78.2,
+    "poverty": 35.7,
+    "unemployment": 2.5,
+    "lifeExp": 78.1,
+    "doctors": 3.4,
+    "hdi": 0.843,
+    "seismicZone": 2
+   },
+   "AR-L": {
+    "pop": 377663,
+    "water": 84.8,
+    "sewer": 67.4,
+    "internet": 85.6,
+    "poverty": 25.4,
+    "unemployment": 7.8,
+    "lifeExp": 80.6,
+    "doctors": 3.4,
+    "hdi": 0.861,
+    "seismicZone": 0
+   },
+   "AR-X": {
+    "pop": 3968336,
+    "water": 93.8,
+    "sewer": 45,
+    "internet": 77.8,
+    "poverty": 30.3,
+    "unemployment": 5,
+    "lifeExp": 78.9,
+    "doctors": 4.04,
+    "hdi": 0.841,
+    "seismicZone": 1
+   }
+  }
+ }
+}

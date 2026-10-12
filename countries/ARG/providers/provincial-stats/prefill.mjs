@@ -1,0 +1,106 @@
+// Prefill for Argentina's provincial statistics: INDEC's published tables and the Health Ministry and PAHO's
+// Indicadores Básicos → countries/ARG/data/provincial-stats.json.
+//
+//   npm run prefill -- ARG --provider provincial-stats
+//
+// Each file is downloaded once into raw/ (its URL, date and SHA-256 in raw/manifest.json); later runs read the stored
+// copies. When a new edition is published, update its URL (and year) in SOURCES. The INPRES seismic zones, which have
+// no table to read, come from hand-entered.json.
+//
+// censo.gob.ar doesn't send its intermediate certificate, so the raw store can't download the census files. Fetch them
+// with censo-download.mjs (or a browser) into raw/: the next run registers them with their URL. See README.md.
+import fs from 'node:fs'
+import { rawStore, readWorkbook, readPdf } from '#sdk'
+import { PROV_ISO } from '../snic/parse.mjs'
+import { CENSUS } from './census-files.mjs'
+import { provinceMatcher, provinceSheet, censusHouseholds, unemployment, poverty, lifeExpectancy, population, pdfTableColumn } from './parse.mjs'
+
+const INDEC = 'https://www.indec.gob.ar/ftp/cuadros/'
+const POP_YEAR = 2026 // projections' population at 1 July of this year
+const LIFE_YEAR = 2025 // the projections publish life expectancy for 2025, 2030, …
+const DOCTORS_YEAR = 2024 // physicians counted in Indicadores Básicos 2025
+
+// One entry per publication: its file, the sheet(s) read, and what it gives (origin notes).
+const SOURCES = {
+  unemployment: { url: `${INDEC}sociedad/indicadores_eph_total_urbano_3t_2025.xls`, sheet: 'Cuadro 2.1', year: 2025, note: 'unemployment: % of the labour force, all urban areas of each province (EPH total urbano, 3rd quarter 2025)' },
+  poverty: { url: `${INDEC}sociedad/cuadros_informe_pobreza_09_26.xls`, sheet: ['Cuadro 4.1', 'Poblaciones (Ex cuadro 4.2)'], year: 2026, note: 'poverty: % of persons below the poverty line (EPH, 1st half 2026), population-weighted mean of the province\'s surveyed urban areas' },
+  life: { url: `${INDEC}poblacion/proyecciones_jurisdicciones_2022_2040_c3_c4.xlsx`, sheet: 'Cuadro 3', year: LIFE_YEAR, note: `lifeExp: years at birth, ${LIFE_YEAR} (INDEC projections 2022–2040), both sexes weighted 105 boys : 100 girls` },
+  population: { url: `${INDEC}poblacion/proyecciones_jurisdicciones_2022_2040_c1.xlsx`, year: POP_YEAR, note: `pop: persons at 1 July ${POP_YEAR} (INDEC projections 2022–2040, based on Censo 2022); also the ${DOCTORS_YEAR} population for physicians per 1,000` },
+  // Indicadores Básicos Argentina 2025 (Ministerio de Salud and PAHO), a PDF in PAHO's repository (IRIS).
+  health: {
+    url: 'https://iris.paho.org/server/api/core/bitstreams/51f85638-d3b2-4c43-8a74-452e44cb1d10/content', name: 'indicadores_basicos_argentina_2025.pdf', year: DOCTORS_YEAR,
+    note: `doctors: registered physicians under 65 (OFETHUS, from REFEPS), ${DOCTORS_YEAR}, per 1,000 inhabitants of INDEC's ${DOCTORS_YEAR} projection · hdi: provincial Human Development Index 2021 (PNUD, 2022) · both from Indicadores Básicos Argentina 2025, https://iris.paho.org/handle/10665.2/69845`,
+  },
+}
+
+const CENSUS_NOTE = 'water, sewer, internet: % of households with drinking water from the public network, a toilet draining to the public sewer, internet at home (Censo 2022, definitive results)'
+
+const PROVIDERS = {
+  pop: 'ARG/census-population', water: 'ARG/censo-2022', sewer: 'ARG/censo-2022', internet: 'ARG/censo-2022',
+  poverty: 'ARG/eph', unemployment: 'ARG/eph', lifeExp: 'ARG/indec', doctors: 'ARG/refeps', hdi: 'ARG/pnud',
+}
+
+export async function prefill({ args, log }) {
+  const raw = rawStore('ARG', 'provincial-stats')
+  const regions = JSON.parse(fs.readFileSync(new URL('../../geo/regions.json', import.meta.url), 'utf8')).features.map((f) => f.properties)
+  const ctx = { province: provinceMatcher(regions), regionIds: regions.map((r) => r.id), codes: PROV_ISO }
+
+  const files = {}, books = {}
+  for (const [key, s] of Object.entries(SOURCES)) {
+    const f = await raw.fetchOnce(s.url, { refresh: !!args.refresh, ...(s.name && { name: s.name }) })
+    if (f.changed) throw new Error(`${f.ref.name} changed since it was downloaded: download it again with --refresh`)
+    files[key] = f.ref
+    books[key] = /\.pdf$/i.test(f.path) ? await readPdf(f.path) : await readWorkbook(f.path)
+  }
+  // Census files: one put in raw/ by hand is registered with its URL; otherwise downloaded (fails on censo.gob.ar's
+  // certificate, with what to do).
+  const census = {}, censusFiles = []
+  for (const { iso, measure, name, url } of CENSUS) {
+    if (!raw.manifest.files[name] && fs.existsSync(`${raw.dir}/${name}`)) raw.add(name, { url, note: 'downloaded by hand: censo.gob.ar omits its intermediate certificate' })
+    const f = await raw.fetchOnce(url).catch((e) => {
+      throw new Error(`${name}: ${e.cause?.code || e.message}. censo.gob.ar's certificate chain is incomplete: run\n  node countries/ARG/providers/provincial-stats/censo-download.mjs (npm run censo:download)\nor download ${url} into ${raw.dir} with a browser, and run again.`)
+    })
+    if (f.changed) throw new Error(`${name} changed since it was registered`)
+    ;(census[iso] ||= {})[measure] = provinceSheet(await readWorkbook(f.path))
+    censusFiles.push(f.ref)
+  }
+  for (const iso of Object.keys(census)) census[iso] = censusHouseholds(census[iso])
+
+  const sheet = (key, name) => {
+    const found = books[key].find((s) => s.name.trim() === name)
+    if (!found) throw new Error(`${files[key].name}: no sheet "${name}"`)
+    return found.rows
+  }
+
+  const unemp = unemployment(sheet('unemployment', SOURCES.unemployment.sheet), ctx)
+  const pov = poverty(...SOURCES.poverty.sheet.map((n) => sheet('poverty', n)))
+  const life = lifeExpectancy(sheet('life', SOURCES.life.sheet), { ...ctx, year: LIFE_YEAR })
+  const pop = population(books.population, { ...ctx, year: POP_YEAR })
+  const popDoctors = population(books.population, { ...ctx, year: DOCTORS_YEAR })
+  const physicians = pdfTableColumn(books.health, { ...ctx, title: 'Indicadores de recursos, acceso y cobertura', column: 9 })
+  const hdi = pdfTableColumn(books.health, { ...ctx, title: 'Indicadores demográficos', column: 11 })
+
+  const manual = JSON.parse(fs.readFileSync(new URL('./hand-entered.json', import.meta.url), 'utf8'))
+  const values = {}
+  for (const iso of ctx.regionIds) {
+    values[iso] = { pop: pop[iso], ...census[iso], poverty: pov[iso], unemployment: unemp[iso], lifeExp: life[iso], doctors: Math.round((physicians[iso] / popDoctors[iso]) * 100_000) / 100, hdi: hdi[iso], ...manual.values[iso] }
+  }
+  log(`${ctx.regionIds.length} provinces from ${Object.keys(files).length + censusFiles.length} files; hand-entered: ${Object.keys(manual.providers).join(', ')}`)
+
+  return {
+    schema: 1,
+    country: 'ARG',
+    providers: { ...PROVIDERS, ...manual.providers },
+    generatedAt: new Date().toISOString(),
+    period: { latest: Math.max(...Object.values(SOURCES).map((s) => s.year)) },
+    origin: {
+      files: [
+        ...Object.entries(files).map(([key, ref]) => ({ ...ref, note: SOURCES[key].note })),
+        ...censusFiles.map((ref) => ({ ...ref, note: CENSUS_NOTE })),
+        { name: 'hand-entered.json', sha256: null, retrievedAt: null, note: manual.note },
+      ],
+      notes: 'INDEC tables, read by countries/ARG/providers/provincial-stats/prefill.mjs. Each value cites its provider (providers).',
+    },
+    values: { region: values },
+  }
+}
