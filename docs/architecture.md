@@ -88,7 +88,8 @@ countries/
       snic/             provider.js · dataset.mjs · parse.mjs · prefill.mjs · fixtures/ · provider.test.mjs
                         raw/ (downloaded bases, gitignored; manifest.json committed)
       provincial-stats/ provider.js · parse.mjs · prefill.mjs · provider.test.mjs · hand-entered.json
-                        raw/ (INDEC tables, gitignored; manifest.json committed)
+                        census-files.mjs · censo-download.mjs (census tables, run outside the container) · README.md (yearly update)
+                        raw/ (INDEC, census and PAHO files, gitignored; manifest.json committed)
     data/               datasets (committed): snic.json · provincial-stats.json
     geo/                Natural Earth boundaries and cities: regions.json · cities.json
   BOL/ … URY/           country.config.js + geo/ (live global data only)

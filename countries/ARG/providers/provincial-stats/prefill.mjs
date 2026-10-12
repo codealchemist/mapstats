@@ -7,11 +7,12 @@
 // copies. When a new edition is published, update its URL (and year) in SOURCES. The INPRES seismic zones, which have
 // no table to read, come from hand-entered.json.
 //
-// censo.gob.ar doesn't send its intermediate certificate, so Node can't download the census files (browsers can).
-// Download them by hand into raw/ under the same names (CENSUS lists them): the next run registers them with their URL.
+// censo.gob.ar doesn't send its intermediate certificate, so the raw store can't download the census files. Fetch them
+// with censo-download.mjs (or a browser) into raw/: the next run registers them with their URL. See README.md.
 import fs from 'node:fs'
 import { rawStore, readWorkbook, readPdf } from '#sdk'
 import { PROV_ISO } from '../snic/parse.mjs'
+import { CENSUS } from './census-files.mjs'
 import { provinceMatcher, provinceSheet, censusHouseholds, unemployment, poverty, lifeExpectancy, population, pdfTableColumn } from './parse.mjs'
 
 const INDEC = 'https://www.indec.gob.ar/ftp/cuadros/'
@@ -32,21 +33,6 @@ const SOURCES = {
   },
 }
 
-// Censo 2022 definitive results: per province, three household tables (2: procedencia del agua, 3: desagüe del
-// inodoro, 7: internet en la vivienda). Files are c2022_<slug>_hogares_c<table>_<n>.xlsx, n being INDEC's 1–24 order.
-const CENSO = 'https://censo.gob.ar/wp-content/uploads/2023/11/'
-const CENSUS_PROVINCES = [
-  ['caba', 'AR-C'], ['bsas', 'AR-B'], ['catamarca', 'AR-K'], ['chaco', 'AR-H'], ['chubut', 'AR-U'], ['cordoba', 'AR-X'],
-  ['corrientes', 'AR-W'], ['entrerios', 'AR-E'], ['formosa', 'AR-P'], ['jujuy', 'AR-Y'], ['lapampa', 'AR-L'], ['larioja', 'AR-F'],
-  ['mendoza', 'AR-M'], ['misiones', 'AR-N'], ['neuquen', 'AR-Q'], ['rionegro', 'AR-R'], ['salta', 'AR-A'], ['sanjuan', 'AR-J'],
-  ['sanluis', 'AR-D'], ['santacruz', 'AR-Z'], ['santafe', 'AR-S'], ['santiago', 'AR-G'], ['tdf', 'AR-V'], ['tucuman', 'AR-T'],
-]
-const CENSUS_TABLES = { water: 2, sewer: 3, internet: 7 }
-const RENAMED = { 'c2022_lapampa_hogares_c3_11.xlsx': 'c2022_lapampa_hogares_c3_11-1.xlsx', 'c2022_larioja_hogares_c3_12.xlsx': 'c2022_larioja_hogares_c3_12-1.xlsx' }
-const CENSUS = CENSUS_PROVINCES.flatMap(([slug, iso], i) => Object.entries(CENSUS_TABLES).map(([measure, table]) => {
-  const name = `c2022_${slug}_hogares_c${table}_${i + 1}.xlsx`
-  return { iso, measure, url: CENSO + (RENAMED[name] || name) }
-}))
 const CENSUS_NOTE = 'water, sewer, internet: % of households with drinking water from the public network, a toilet draining to the public sewer, internet at home (Censo 2022, definitive results)'
 
 const PROVIDERS = {
@@ -69,11 +55,10 @@ export async function prefill({ args, log }) {
   // Census files: one put in raw/ by hand is registered with its URL; otherwise downloaded (fails on censo.gob.ar's
   // certificate, with what to do).
   const census = {}, censusFiles = []
-  for (const { iso, measure, url } of CENSUS) {
-    const name = decodeURIComponent(new URL(url).pathname.split('/').pop())
+  for (const { iso, measure, name, url } of CENSUS) {
     if (!raw.manifest.files[name] && fs.existsSync(`${raw.dir}/${name}`)) raw.add(name, { url, note: 'downloaded by hand: censo.gob.ar omits its intermediate certificate' })
     const f = await raw.fetchOnce(url).catch((e) => {
-      throw new Error(`${name}: ${e.cause?.code || e.message}. Download it in a browser from ${url} into ${raw.dir} and run again.`)
+      throw new Error(`${name}: ${e.cause?.code || e.message}. censo.gob.ar's certificate chain is incomplete: run\n  node countries/ARG/providers/provincial-stats/censo-download.mjs (npm run censo:download)\nor download ${url} into ${raw.dir} with a browser, and run again.`)
     })
     if (f.changed) throw new Error(`${name} changed since it was registered`)
     ;(census[iso] ||= {})[measure] = provinceSheet(await readWorkbook(f.path))

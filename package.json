@@ -28,7 +28,8 @@
     "country:check": "node tools/cli/country-check.mjs",
     "country:new": "node tools/cli/country-new.mjs",
     "prefill:due": "node tools/cli/prefill-due.mjs",
-    "anchors": "node tools/cli/anchors.mjs"
+    "anchors": "node tools/cli/anchors.mjs",
+    "censo:download": "node countries/ARG/providers/provincial-stats/censo-download.mjs"
   },
   "dependencies": {
     "@mozilla/readability": "^0.6.0",
