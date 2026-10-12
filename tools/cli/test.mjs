@@ -11,6 +11,7 @@ const suites = [
   'tests/golden.mjs',
   'tests/anchors.mjs',
   'tests/countries.mjs',
+  'tests/measures.mjs',
   ...providerTests().map((f) => path.relative(ROOT, f)),
 ]
 

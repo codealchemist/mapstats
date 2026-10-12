@@ -22,6 +22,7 @@ export const STANDARDS = {
         points: [[0, 100], [20, 80], [40, 60], [60, 40], [80, 20], [100, 0]],
         // EU air-quality law allows a daily limit (PM10) to be exceeded at most 35 times a year (Directive 2008/50/EC).
         daily: { indicator: 'aqiPoorDays', limit: 60, allowed: 35, text: 'with poor air or worse (EEA index above 60)', basis: 'EU daily limits may be exceeded at most 35 days a year' },
+        measures: ['aqiRecent'], // other measures in this standard's units, shown only while it is selected
       },
       {
         id: 'epa', short: 'US EPA', name: 'US Environmental Protection Agency · Air Quality Index',
@@ -132,6 +133,52 @@ export function standardFor(indicatorId, selection = DEFAULT_STANDARDS) {
   const s = STANDARDS[indicatorId]
   if (!s) return null
   return s.options.find((o) => o.id === selection?.[indicatorId]) || s.options.find((o) => o.id === s.default)
+}
+
+// Every measure a standard owns: its input, its warning counts and any other measure in its units.
+const measuresOf = (o) => [o.input, ...[].concat(o.daily || []).map((d) => d.indicator), ...(o.measures || [])]
+
+/**
+ * Indicators views leave out under a selection, so each thing is shown once, as the selected standard measures it:
+ * the other options' measures (a warning count the selected option uses too, such as frostbite days, stays), and the
+ * selected option's own input when the indicator already shows it (`valueFromInput`). For an indicator that scores the
+ * selected option's input directly (air quality under US EPA), the indicator itself gives way to that input.
+ */
+export function hiddenMeasures(selection = DEFAULT_STANDARDS) {
+  const hidden = new Set()
+  for (const [id, s] of Object.entries(STANDARDS)) {
+    const sel = standardFor(id, selection)
+    const kept = new Set(measuresOf(sel))
+    if (s.valueFromInput) kept.delete(sel.input)
+    else if (sel.input !== id) hidden.add(id)
+    for (const o of s.options) for (const m of measuresOf(o)) if (!kept.has(m)) hidden.add(m)
+  }
+  return hidden
+}
+
+/** The selected standard behind a measure (the indicator it scores, or one of its measures), or null. */
+export function standardOfMeasure(id, selection = DEFAULT_STANDARDS) {
+  for (const sid of Object.keys(STANDARDS)) {
+    const sel = standardFor(sid, selection)
+    if (sid === id || measuresOf(sel).includes(id)) return sel
+  }
+  return null
+}
+
+/** The indicator `id` scores for when it is the selected standard's own measure (US AQI under US EPA scores air
+ *  quality), or null. Views then show it like the scored indicator: same direction, meter and best mark. */
+export function scoresFor(id, selection = DEFAULT_STANDARDS) {
+  for (const [sid, s] of Object.entries(STANDARDS)) if (!s.valueFromInput && sid !== id && standardFor(sid, selection).input === id) return sid
+  return null
+}
+
+/** The band a value of `id` falls in, when `id` is in the selected standard's own units (its input; not a score). */
+export function measureBand(id, v, selection = DEFAULT_STANDARDS) {
+  for (const sid of Object.keys(STANDARDS)) {
+    const s = STANDARDS[sid], sel = standardFor(sid, selection)
+    if (!s.valueFromInput && sel.input === id) return bandOf(sel, v)
+  }
+  return null
 }
 
 /** 0–100 score of a value under a standard (piecewise linear on its points, clamped). */

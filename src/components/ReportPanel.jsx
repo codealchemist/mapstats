@@ -24,6 +24,8 @@ import { agreementOf } from '../lib/sourceWeights.js'
 import { floodLevel } from './mapLayers.js'
 import { NewsSection } from './NewsSection.jsx'
 import { SourceButtons } from './SourceButtons.jsx'
+import { MeasureInfo } from './MeasureInfo.jsx'
+import { hiddenMeasures, standardOfMeasure, measureBand, scoresFor } from '../data/standards.js'
 
 const EAQI = [
   [20, 'Good', 'good'], [40, 'Fair', 'good'], [60, 'Moderate', 'warning'],
@@ -49,6 +51,7 @@ export function ReportPanel({ entity, model, country, live, theme, onClose, onSe
   const scrollRef = useRef(null)
   const toast = useToast()
   const [exporting, setExporting] = useState(false)
+  const [info, setInfo] = useState(null) // the measure whose "About" dialog is open
   const detail = useEntityDetail(entity.lat, entity.lon)
   const national = model.national
   const isCity = entity.type === 'city'
@@ -385,10 +388,11 @@ export function ReportPanel({ entity, model, country, live, theme, onClose, onSe
           {/* ---------- Indicators ---------- */}
           <section id="sec-indicators" className="report-section">
             <SectionHead icon={Info} title="All indicators" sub="Value · position between the lowest and highest in the country · country average" />
-            {CATEGORIES.map((c) => <IndicatorGroup key={c.id} category={c} entity={entity} national={national} ranges={model.ranges} standards={standards} />)}
+            {CATEGORIES.map((c) => <IndicatorGroup key={c.id} category={c} entity={entity} national={national} ranges={model.ranges} standards={standards} onInfo={setInfo} />)}
           </section>
         </ChartRegistry>
       </div>
+      {info && <MeasureInfo measure={info} standards={standards} onClose={() => setInfo(null)} />}
     </aside>
   )
 }
@@ -451,10 +455,12 @@ function Coverage({ value = 0 }) {
   )
 }
 
-function IndicatorGroup({ category, entity, national, ranges, standards }) {
+function IndicatorGroup({ category, entity, national, ranges, standards, onInfo }) {
   const Icon = ICONS[category.icon]
   const isCity = entity.type === 'city'
-  const inCategory = INDICATORS.filter((i) => i.category === category.id)
+  // One row per measure, as the selected standard measures it (data/standards.js hiddenMeasures).
+  const hidden = hiddenMeasures(standards)
+  const inCategory = INDICATORS.filter((i) => i.category === category.id && !hidden.has(i.id))
   // Cities only show values measured for the city; province figures are reported as missing.
   const rows = inCategory.filter((i) => (isCity ? isOwnValue(entity, i.id) : entity.values[i.id] != null || national.values[i.id] != null))
   const missing = isCity ? inCategory.filter((i) => i.better && !isOwnValue(entity, i.id)).map((i) => i.id) : []
@@ -469,13 +475,15 @@ function IndicatorGroup({ category, entity, national, ranges, standards }) {
       {rows.map((i) => {
         const v = entity.values[i.id], avg = national.values[i.id], range = ranges[i.id]
         const pos = meterScale(range, [v, avg])
-        const n = i.better ? pos(v) : null
-        const na = i.better ? pos(avg) : null
+        // A standard's own measure (US AQI under US EPA) reads like the indicator it scores.
+        const better = i.better || indicatorById[scoresFor(i.id, standards)]?.better || null
+        const n = better ? pos(v) : null
+        const na = better ? pos(avg) : null
         return (
           <div key={i.id} className="ind-row">
-            <div className="ind-label">{i.label}</div>
-            <div className="ind-val">{fmtIndicator(i.id, v)}</div>
-            <div className={`meter dir-${i.better}`} title={n != null && range ? `Lowest to highest in the country: ${fmtIndicator(i.id, range[0])} – ${fmtIndicator(i.id, range[1])} (${i.better === 'low' ? 'lower' : 'higher'} is better)` : 'Not scored'}>
+            <button className="ind-label" onClick={() => onInfo({ indicator: i.id, sub: standardOfMeasure(i.id, standards)?.name })} title="What this measures and how to read it">{i.label}</button>
+            <div className="ind-val" title={measureBand(i.id, v, standards) || undefined}>{fmtIndicator(i.id, v)}</div>
+            <div className={`meter dir-${better}`} title={n != null && range ? `Lowest to highest in the country: ${fmtIndicator(i.id, range[0])} – ${fmtIndicator(i.id, range[1])} (${better === 'low' ? 'lower' : 'higher'} is better)` : 'Not scored'}>
               {n != null && <span style={{ width: `${n}%` }} />}
               {na != null && <i style={{ left: `${na}%` }} title="Country average" />}
             </div>

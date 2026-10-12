@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react'
 import { Chart } from 'react-chartjs-2'
-import { Check, Focus } from 'lucide-react'
+import { Check, Focus, Info } from 'lucide-react'
 import { CATEGORIES, INDICATORS } from '../../data/metrics.js'
 import { baseOptions, barStyle, lineStyle } from '../charts/theme.js'
 import { fmtIndicator, fmtScore, MONTHS } from '../../lib/format.js'
@@ -8,6 +8,8 @@ import { meterScale, isOwnValue } from '../../lib/scoring.js'
 import { providerUnder, PROVIDERS, localFirst } from '../../core/providers.js'
 import { floodLevel } from '../mapLayers.js'
 import { warningsFor } from '../../lib/warnings.js'
+import { hiddenMeasures, standardOfMeasure, measureBand, scoresFor } from '../../data/standards.js'
+import { indicatorById } from '../../data/metrics.js'
 import { matches } from './match.js'
 
 /**
@@ -15,7 +17,7 @@ import { matches } from './match.js'
  * columns always scroll together and line up. Charts in a row share one axis range.
  * places: fixed-length array (3) of { e, i, d, flood } or null for an empty slot.
  */
-export function SideBySide({ places, header, national, ranges, standards, tk, onFocus, query = '', scrollRef, initialScroll, flashKey, onFlashDone }) {
+export function SideBySide({ places, header, national, ranges, standards, tk, onFocus, onInfo, query = '', scrollRef, initialScroll, flashKey, onFlashDone }) {
   const filled = places.filter(Boolean)
   const rows = filterRows(buildRows(filled, national, ranges, standards), query)
   // Phones hide every empty slot but the first, so the filled places get the width.
@@ -36,14 +38,14 @@ export function SideBySide({ places, header, national, ranges, standards, tk, on
         {rows.map((r) => (r.section ? (
           <div key={r.key} className="sbs-section">{r.section}{r.score && <span className="muted"> · category score</span>}</div>
         ) : (
-          <Row key={r.key} r={r} places={places} spare={spare} tk={tk} onFocus={onFocus} flash={r.key === flashKey} onFlashDone={onFlashDone} />
+          <Row key={r.key} r={r} places={places} spare={spare} tk={tk} onFocus={onFocus} onInfo={onInfo} flash={r.key === flashKey} onFlashDone={onFlashDone} />
         )))}
       </div>
     </div>
   )
 }
 
-function Row({ r, places, spare, tk, onFocus, flash, onFlashDone }) {
+function Row({ r, places, spare, tk, onFocus, onInfo, flash, onFlashDone }) {
   const labelRef = useRef(null)
   // Briefly highlight the row we came back to; bring it into view if the restored scroll doesn't show it.
   useEffect(() => {
@@ -63,7 +65,10 @@ function Row({ r, places, spare, tk, onFocus, flash, onFlashDone }) {
       <div ref={labelRef} className={`sbs-label sbs-sticky-left${fl}`}>
         <span>{r.label}</span>
         {r.sub && <small className="muted">{r.sub}</small>}
-        {r.focus && <button className="icon-btn sm" onClick={() => onFocus(r.focus, r)} title="Show as one large chart"><Focus size={13} /></button>}
+        <span className="sbs-label-actions">
+          {r.info && onInfo && <button className="icon-btn sm" onClick={() => onInfo({ ...r.info, sub: r.sub })} title="What this measures and how to read it" aria-label={`About ${r.label}`}><Info size={13} /></button>}
+          {r.focus && <button className="icon-btn sm" onClick={() => onFocus(r.focus, r)} title="Show as one large chart"><Focus size={13} /></button>}
+        </span>
       </div>
       {places.map((p, k) => (
         <div key={k} className={`sbs-cell ${r.chart ? 'chart' : ''}${p ? '' : ' vacant'}${spare[k] ? ' spare' : ''}${fl}`} style={{ '--place': tk.series[k] }}>
@@ -119,30 +124,37 @@ function MiniChart({ cfg, height = 140 }) {
 // ---------- rows ----------
 function buildRows(filled, national, ranges, standards) {
   const rows = []
+  // Direction of a row: its own, or that of the indicator it scores for under the selected standard.
+  const betterOf = (ind) => ind.better || indicatorById[scoresFor(ind.id, standards)]?.better || null
   const bestOf = (ind) => {
-    if (!ind.better || filled.length < 2) return null
+    const better = betterOf(ind)
+    if (!better || filled.length < 2) return null
     const own = filled.filter(({ e }) => isOwnValue(e, ind.id))
     if (own.length < 2) return null
     // Real values in the indicator's direction: normalised scores clamp at the domain ends and would tie.
     const vals = own.map(({ e }) => e.values[ind.id])
-    const top = ind.better === 'high' ? Math.max(...vals) : Math.min(...vals)
+    const top = better === 'high' ? Math.max(...vals) : Math.min(...vals)
     return new Set(own.filter((_, k) => vals[k] === top).map(({ e }) => e.id))
   }
   // tint: the value itself takes the place's colour (climate rows mostly have no meter to carry it).
   const indicatorRow = (ind, { tint = false } = {}) => {
-    const best = bestOf(ind)
+    const best = bestOf(ind), better = betterOf(ind)
     const pos = meterScale(ranges[ind.id], [...filled.map(({ e }) => e.values[ind.id]), national.values[ind.id]])
     return {
-      key: `ind:${ind.id}`, label: ind.label, sub: providerUnder(ind.id, standards)?.short, focus: `ind:${ind.id}`,
+      key: `ind:${ind.id}`, label: ind.label, focus: `ind:${ind.id}`, info: { indicator: ind.id },
+      // The standard measuring it (when one does), then the source.
+      sub: [standardOfMeasure(ind.id, standards)?.short, providerUnder(ind.id, standards)?.short].filter(Boolean).join(' · '),
       cell: ({ e }) => {
         const v = e.values[ind.id]
         if (v == null) return null
-        const n = ind.better ? pos(v) : null
+        const n = better ? pos(v) : null
+        const band = measureBand(ind.id, v, standards) // its category under the selected standard ("Moderate")
         return (
           <div className={`sbs-value ${best?.has(e.id) ? 'best' : ''}${tint ? ' tint' : ''}`}>
             <b>{best?.has(e.id) && <Check size={12} />} {fmtIndicator(ind.id, v)}</b>
             {e.inherited?.has(ind.id) && <span className="tag" title="Province figure, not this place's own">prov.</span>}
-            {n != null && <span className={`meter dir-${ind.better}`} title={ind.better === 'low' ? 'Lower is better' : 'Higher is better'}><span style={{ width: `${n}%` }} />{national.values[ind.id] != null && <i style={{ left: `${pos(national.values[ind.id])}%` }} />}</span>}
+            {band && <span className="muted small">{band}</span>}
+            {n != null && <span className={`meter dir-${better}`} title={better === 'low' ? 'Lower is better' : 'Higher is better'}><span style={{ width: `${n}%` }} />{national.values[ind.id] != null && <i style={{ left: `${pos(national.values[ind.id])}%` }} />}</span>}
           </div>
         )
       },
@@ -158,7 +170,7 @@ function buildRows(filled, national, ranges, standards) {
     const pos = meterScale([0, 0], [...vals, latest(national)])
     const year = national.details?.[p.id]?.latestYear
     return {
-      key: `last:${p.id}:${k}`, label: `${chart.title} last year`, sub: `${year ? `${year} · ` : ''}${unit} · ${p.short}`, focus: `last:${p.id}:${k}`, na: `No ${p.short} data`,
+      key: `last:${p.id}:${k}`, info: { row: 'last', title: `${chart.title} last year` }, label: `${chart.title} last year`, sub: `${year ? `${year} · ` : ''}${unit} · ${p.short}`, focus: `last:${p.id}:${k}`, na: `No ${p.short} data`,
       cell: ({ e }) => {
         const v = latest(e)
         if (v == null) return null
@@ -171,18 +183,20 @@ function buildRows(filled, national, ranges, standards) {
       },
     }
   }
-  const indicatorsOf = (cat, opts) => INDICATORS.filter((i) => i.category === cat && filled.some(({ e }) => e.values[i.id] != null)).map((i) => indicatorRow(i, opts))
+  // One row per measure: other standards' versions of it are left out (data/standards.js hiddenMeasures).
+  const hidden = hiddenMeasures(standards)
+  const indicatorsOf = (cat, opts) => INDICATORS.filter((i) => i.category === cat && !hidden.has(i.id) && filled.some(({ e }) => e.values[i.id] != null)).map((i) => indicatorRow(i, opts))
 
   // Overview
   rows.push({ key: 's:overview', section: 'Overview' })
   rows.push({
-    key: 'score', label: 'MapStats score', sub: `Country average ${fmtScore(national.score)}`, focus: 'score',
+    key: 'score', info: { row: 'score' }, label: 'MapStats score', sub: `Country average ${fmtScore(national.score)}`, focus: 'score',
     cell: ({ e }) => <div className="sbs-score">{fmtScore(e.score)}<small>/100</small><span className="muted small">{e.rank ? `#${e.rank} of ${e.rankOf}` : 'not ranked'}</span></div>,
   })
   // Extremes a good yearly mean would hide (lib/warnings.js), under the selected standards.
   if (filled.some(({ e }) => warningsFor(e, standards).length)) {
     rows.push({
-      key: 'warnings', label: 'Warnings', sub: 'Extremes in the last year', na: 'None',
+      key: 'warnings', info: { row: 'warnings' }, label: 'Warnings', sub: 'Extremes in the last year', na: 'None',
       cell: ({ e }) => {
         const list = warningsFor(e, standards)
         return list.length > 0 && <div className="sbs-warnings">{list.map((w) => <span key={w.id} title={w.why}>⚠ {w.text}</span>)}</div>
@@ -190,7 +204,7 @@ function buildRows(filled, national, ranges, standards) {
     })
   }
   rows.push({
-    key: 'cats', label: 'Score by category', sub: '0–100', chart: true, focus: 'categories',
+    key: 'cats', info: { row: 'categories' }, label: 'Score by category', sub: '0–100', chart: true, focus: 'categories',
     cell: ({ e, i }, tk) => <MiniChart height={170} cfg={mini(tk, { type: 'bar', horizontal: true, labels: CATEGORIES.map((c) => c.label), data: CATEGORIES.map((c) => e.categories[c.id]), color: tk.series[i], scale: { min: 0, max: 100 } })} />,
   })
 
@@ -206,7 +220,7 @@ function buildRows(filled, national, ranges, standards) {
           for (const chart of t.charts.filter((x) => !x.focusOnly)) {
             const scale = range(filled.map(({ e }) => of(e)?.series?.[chart.indicator] || []), { zero: true })
             extra.push({
-              key: `trend:${p.id}:${chart.indicator}`, label: `${chart.title} by year`, sub: `${t.unit} · ${p.short}`, chart: true, focus: `trend:${p.id}:${chart.indicator}`, na: `No ${p.short} data`,
+              key: `trend:${p.id}:${chart.indicator}`, info: { row: 'trend', title: `${chart.title} by year` }, label: `${chart.title} by year`, sub: `${t.unit} · ${p.short}`, chart: true, focus: `trend:${p.id}:${chart.indicator}`, na: `No ${p.short} data`,
               cell: ({ e, i }, tk) => of(e)?.series && <MiniChart cfg={mini(tk, { labels: years, data: of(e).series[chart.indicator], color: tk.series[i], scale })} />,
             })
           }
@@ -217,7 +231,7 @@ function buildRows(filled, national, ranges, standards) {
     }
     if (c.id === 'hazards' && filled.some(({ flood }) => flood)) {
       extra.push({
-        key: 'flood', label: 'River flood watch', sub: '30-day peak ÷ usual high water · GloFAS', focus: 'flood', na: 'No significant river',
+        key: 'flood', info: { row: 'flood' }, label: 'River flood watch', sub: '30-day peak ÷ usual high water · GloFAS', focus: 'flood', na: 'No significant river',
         cell: ({ flood }) => flood?.river && flood.floodWatch != null && (
           <div className="sbs-value"><b>{flood.floodWatch.toFixed(2)}×</b><span className="muted small">{floodLevel(flood.floodWatch).label}</span></div>
         ),
@@ -227,12 +241,12 @@ function buildRows(filled, national, ranges, standards) {
       const dates = [...new Set(filled.flatMap(({ d }) => d.air?.daily.map((x) => x.date) || []))].sort()
       const scale = range(filled.map(({ d }) => d.air?.daily.map((x) => x.aqi) || []), { zero: true })
       extra.push({
-        key: 'aqi', label: 'Daily air quality', sub: 'European AQI, last 3 months', chart: true, focus: 'aqi', na: 'Loading…',
+        key: 'aqi', info: { row: 'airDaily' }, label: 'Daily air quality', sub: 'European AQI, last 3 months', chart: true, focus: 'aqi', na: 'Loading…',
         cell: ({ d, i }, tk) => d.air && <MiniChart cfg={mini(tk, { labels: dates.map((x) => x.slice(5)), data: dates.map((dt) => d.air.daily.find((x) => x.date === dt)?.aqi ?? null), color: tk.series[i], scale })} />,
       })
     }
     rows.push({ key: `s:${c.id}`, section: c.label })
-    rows.push({ key: `cat:${c.id}`, label: `${c.label} score`, sub: `Country average ${fmtScore(national.categories[c.id])}`, cell: ({ e }) => e.categories[c.id] != null && <div className="sbs-value"><b>{fmtScore(e.categories[c.id])}</b><span className="meter"><span style={{ width: `${e.categories[c.id]}%` }} /></span></div> })
+    rows.push({ key: `cat:${c.id}`, info: { row: 'category', title: `${c.label} score` }, label: `${c.label} score`, sub: `Country average ${fmtScore(national.categories[c.id])}`, cell: ({ e }) => e.categories[c.id] != null && <div className="sbs-value"><b>{fmtScore(e.categories[c.id])}</b><span className="meter"><span style={{ width: `${e.categories[c.id]}%` }} /></span></div> })
     rows.push(...indicatorsOf(c.id), ...extra)
   }
 
@@ -244,18 +258,18 @@ function buildRows(filled, national, ranges, standards) {
     const precip = range(filled.map(({ d }) => d.climate?.monthly.map((m) => m.precip) || []), { zero: true })
     for (const [field, label] of [['tmax', 'Average daily maximum'], ['tmin', 'Average daily minimum']]) {
       rows.push({
-        key: `m:${field}`, label, sub: '°C by month · same scale for both rows', chart: true, focus: `m:${field}`, na: 'Loading…',
+        key: `m:${field}`, info: { row: 'monthly', title: label }, label, sub: '°C by month · same scale for both rows', chart: true, focus: `m:${field}`, na: 'Loading…',
         cell: ({ d, i }, tk) => d.climate && <MiniChart cfg={mini(tk, { labels: MONTHS, data: d.climate.monthly.map((m) => m[field]), color: tk.series[i], scale: temps })} />,
       })
     }
     rows.push({
-      key: 'm:precip', label: 'Precipitation', sub: 'mm by month', chart: true, focus: 'm:precip', na: 'Loading…',
+      key: 'm:precip', info: { row: 'monthly', title: 'Precipitation' }, label: 'Precipitation', sub: 'mm by month', chart: true, focus: 'm:precip', na: 'Loading…',
       cell: ({ d, i }, tk) => d.climate && <MiniChart cfg={mini(tk, { type: 'bar', labels: MONTHS, data: d.climate.monthly.map((m) => m.precip), color: tk.series[i], scale: precip })} />,
     })
     if (filled.some(({ d }) => d.climate?.snowfall > 0)) {
       const snow = range(filled.map(({ d }) => d.climate?.monthly.map((m) => m.snow) || []), { zero: true })
       rows.push({
-        key: 'm:snow', label: 'Snowfall', sub: 'cm by month', chart: true, focus: 'm:snow', na: 'Loading…',
+        key: 'm:snow', info: { row: 'monthly', title: 'Snowfall' }, label: 'Snowfall', sub: 'cm by month', chart: true, focus: 'm:snow', na: 'Loading…',
         cell: ({ d, i }, tk) => d.climate && <MiniChart cfg={mini(tk, { type: 'bar', labels: MONTHS, data: d.climate.monthly.map((m) => m.snow), color: tk.series[i], scale: snow })} />,
       })
     }

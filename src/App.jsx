@@ -334,6 +334,7 @@ export default function App() {
             theme={theme}
             sourceMode={sourceMode}
             standards={standards}
+            onStandards={setStandards}
             live={live}
             onAdd={addToCompare}
             onRemove={(i) => setCompare((c) => c.map((x, k) => (k === i ? null : x)))}

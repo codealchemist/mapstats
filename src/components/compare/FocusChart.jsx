@@ -1,15 +1,19 @@
 import { useEffect, useMemo } from 'react'
+import { Info } from 'lucide-react'
 import { ChartCard } from '../charts/ChartCard.jsx'
 import { buildMeasures } from './measures.js'
 import { matches } from './match.js'
+import { hiddenMeasures } from '../../data/standards.js'
 
 /**
  * One measure, all selected places, the whole screen. The measure list on the left is grouped;
  * on narrow screens it becomes a dropdown.
  */
-export function FocusChart({ places, national, theme, measureId, onMeasure, query = '' }) {
+export function FocusChart({ places, national, theme, measureId, onMeasure, query = '', standards, onInfo }) {
   const measures = useMemo(() => buildMeasures(), [])
-  const available = measures.filter((m) => m.available(places) && matches(query, m.label, m.group, m.unit))
+  // Other standards' versions of a measure are left out, as in side by side.
+  const hidden = useMemo(() => hiddenMeasures(standards), [standards])
+  const available = measures.filter((m) => !hidden.has(m.indicator?.id) && m.available(places) && matches(query, m.label, m.group, m.unit))
   const measure = available.find((m) => m.id === measureId) || available[0]
   // Keep the selection in sync with the search: the first match becomes the shown measure.
   useEffect(() => {
@@ -52,6 +56,7 @@ export function FocusChart({ places, national, theme, measureId, onMeasure, quer
             ))}
           </select>
         </div>
+        {onInfo && measure.info && <button className="link small focus-about" onClick={() => onInfo({ ...measure.info, sub: measure.group })}><Info size={13} /> About this measure</button>}
         <ChartCard key={measure.id} id={`focus-${measure.id}`} title={measure.label} subtitle={[measure.unit, measure.group].filter(Boolean).join(' · ')}
           theme={theme} build={build} height="fill" table={table} />
       </div>

@@ -373,6 +373,9 @@ input[type='range']::-moz-range-thumb {
 .ind-head svg { color: var(--muted); }
 .ind-row { display: grid; grid-template-columns: 1fr 76px 76px; align-items: center; gap: 10px; padding: 4px 0; font-size: 12px; }
 .ind-label { color: var(--ink-2); display: flex; align-items: center; gap: 6px; min-width: 0; }
+button.ind-label { background: none; border: 0; padding: 0; font: inherit; text-align: left; cursor: help; text-decoration: underline dotted var(--line-2); text-underline-offset: 3px; }
+button.ind-label:hover { color: var(--ink); text-decoration-color: currentColor; }
+.focus-about { display: inline-flex; align-items: center; gap: 4px; margin: 0 0 6px; }
 .ind-val { text-align: right; font-variant-numeric: tabular-nums; font-weight: 550; white-space: nowrap; }
 .tag { font-size: 9.5px; color: var(--muted); border: 1px solid var(--line-2); border-radius: 4px; padding: 0 4px; }
 .meter { position: relative; height: 6px; background: var(--track); border-radius: 99px; }
@@ -554,10 +557,12 @@ a.src-btn:hover, button.src-btn:hover { border-color: var(--accent); color: var(
 .sbs-label {
   background: var(--bg); padding: 10px 10px 10px 6px; border-bottom: 1px solid var(--line);
   display: flex; flex-direction: column; gap: 2px; color: var(--ink-2); font-size: 12.5px; position: sticky;
+  padding-right: 54px; /* room for the row's buttons */
 }
 .sbs-label small { font-size: 10.5px; line-height: 1.3; }
-.sbs-label .icon-btn { position: absolute; top: 6px; right: 2px; opacity: 0.5; }
-.sbs-label:hover .icon-btn { opacity: 1; }
+.sbs-label-actions { position: absolute; top: 6px; right: 2px; display: flex; gap: 2px; }
+.sbs-label .icon-btn { opacity: 0.5; }
+.sbs-label:hover .icon-btn, .sbs-label .icon-btn:focus-visible { opacity: 1; }
 .sbs-cell { padding: 8px 10px; border-bottom: 1px solid var(--line); border-left: 1px solid var(--line); display: flex; align-items: center; min-width: 0; }
 .sbs-cell.chart { align-items: stretch; }
 .sbs-chart { position: relative; width: 100%; }
@@ -611,6 +616,16 @@ a.src-btn:hover, button.src-btn:hover { border-color: var(--accent); color: var(
 .modal-head { display: flex; justify-content: space-between; align-items: center; padding: 16px 16px 8px 22px; }
 .modal-head h2 { margin: 0; font-size: 18px; font-weight: 650; letter-spacing: -0.02em; }
 .modal-body { overflow: auto; padding: 4px 22px 22px; }
+.measure-info { width: min(560px, 100%); }
+.measure-info h3 { font-size: 12px; font-weight: 650; letter-spacing: 0.04em; text-transform: uppercase; color: var(--muted); margin: 18px 0 6px; }
+.measure-info p { margin: 0 0 8px; line-height: 1.5; }
+.measure-info .reading { display: flex; align-items: center; gap: 6px; font-weight: 600; }
+.measure-info .bands { border-collapse: collapse; font-size: 12.5px; margin: 4px 0 8px; }
+.measure-info .bands th, .measure-info .bands td { text-align: left; padding: 4px 16px 4px 0; border-bottom: 1px solid var(--line); }
+.measure-info .bands th { font-weight: 600; color: var(--muted); }
+.std-pickers { display: flex; flex-wrap: wrap; gap: 4px 12px; align-items: center; }
+.std-pickers label { display: inline-flex; align-items: center; gap: 4px; }
+.std-pickers select { font: inherit; color: var(--ink); background: var(--bg); border: 1px solid var(--line-2); border-radius: 6px; padding: 1px 4px; }
 .steps { padding-left: 18px; color: var(--ink-2); display: grid; gap: 6px; margin: 4px 0 18px; }
 .steps b { color: var(--ink); }
 .sources { list-style: none; padding: 0; margin: 0 0 12px; display: grid; gap: 6px; }
@@ -743,10 +758,11 @@ a.src-btn:hover, button.src-btn:hover { border-color: var(--accent); color: var(
   .sbs-head .slot-input { width: 100%; min-width: 0; }
   .sbs-label {
     grid-column: 1 / -1; position: relative; flex-direction: row; flex-wrap: wrap; align-items: baseline; gap: 2px 8px;
-    padding: 12px 36px 2px 6px; border-bottom: 0; font-weight: 600; color: var(--ink);
+    padding: 12px 64px 2px 6px; border-bottom: 0; font-weight: 600; color: var(--ink);
   }
   .sbs-label small { font-weight: 400; }
-  .sbs-label .icon-btn { top: 8px; }
+  .sbs-label-actions { top: 8px; }
+  .sbs-label .icon-btn { opacity: 1; } /* no hover on touch screens */
   .sbs-label + .sbs-cell { border-left: 0; }
   .sbs-cell { padding: 6px 6px 10px; }
   .sbs-cell.chart { grid-column: 1 / -1; flex-direction: column; gap: 4px; border-left: 0; }
