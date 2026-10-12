@@ -10,6 +10,7 @@ import { floodLevel } from '../mapLayers.js'
 import { warningsFor } from '../../lib/warnings.js'
 import { hiddenMeasures, standardOfMeasure, measureBand, scoresFor } from '../../data/standards.js'
 import { indicatorById } from '../../data/metrics.js'
+import { ORIGIN } from '../../data/about.js'
 import { matches } from './match.js'
 
 /**
@@ -142,8 +143,8 @@ function buildRows(filled, national, ranges, standards) {
     const pos = meterScale(ranges[ind.id], [...filled.map(({ e }) => e.values[ind.id]), national.values[ind.id]])
     return {
       key: `ind:${ind.id}`, label: ind.label, focus: `ind:${ind.id}`, info: { indicator: ind.id },
-      // The standard measuring it (when one does), then the source.
-      sub: [standardOfMeasure(ind.id, standards)?.short, providerUnder(ind.id, standards)?.short].filter(Boolean).join(' · '),
+      // Whether MapStats calculates it as a score, the standard measuring it (when one does), then the source.
+      sub: [ORIGIN[ind.id]?.[0] === 'score' && 'MapStats score', standardOfMeasure(ind.id, standards)?.short, providerUnder(ind.id, standards)?.short].filter(Boolean).join(' · '),
       cell: ({ e }) => {
         const v = e.values[ind.id]
         if (v == null) return null
@@ -190,7 +191,7 @@ function buildRows(filled, national, ranges, standards) {
   // Overview
   rows.push({ key: 's:overview', section: 'Overview' })
   rows.push({
-    key: 'score', info: { row: 'score' }, label: 'MapStats score', sub: `Country average ${fmtScore(national.score)}`, focus: 'score',
+    key: 'score', info: { row: 'score' }, label: 'MapStats score', sub: `MapStats score · country average ${fmtScore(national.score)}`, focus: 'score',
     cell: ({ e }) => <div className="sbs-score">{fmtScore(e.score)}<small>/100</small><span className="muted small">{e.rank ? `#${e.rank} of ${e.rankOf}` : 'not ranked'}</span></div>,
   })
   // Extremes a good yearly mean would hide (lib/warnings.js), under the selected standards.
@@ -246,7 +247,7 @@ function buildRows(filled, national, ranges, standards) {
       })
     }
     rows.push({ key: `s:${c.id}`, section: c.label })
-    rows.push({ key: `cat:${c.id}`, info: { row: 'category', title: `${c.label} score` }, label: `${c.label} score`, sub: `Country average ${fmtScore(national.categories[c.id])}`, cell: ({ e }) => e.categories[c.id] != null && <div className="sbs-value"><b>{fmtScore(e.categories[c.id])}</b><span className="meter"><span style={{ width: `${e.categories[c.id]}%` }} /></span></div> })
+    rows.push({ key: `cat:${c.id}`, info: { row: 'category', title: `${c.label} score` }, label: `${c.label} score`, sub: `MapStats score · country average ${fmtScore(national.categories[c.id])}`, cell: ({ e }) => e.categories[c.id] != null && <div className="sbs-value"><b>{fmtScore(e.categories[c.id])}</b><span className="meter"><span style={{ width: `${e.categories[c.id]}%` }} /></span></div> })
     rows.push(...indicatorsOf(c.id), ...extra)
   }
 

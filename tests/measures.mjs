@@ -3,11 +3,13 @@
 import { check, done } from '../tools/sdk/test.mjs'
 import { INDICATORS } from '../src/data/metrics.js'
 import { STANDARDS, DEFAULT_STANDARDS, hiddenMeasures, standardOfMeasure, measureBand, scoresFor } from '../src/data/standards.js'
-import { ABOUT } from '../src/data/about.js'
+import { ABOUT, ORIGIN, ROW_ABOUT } from '../src/data/about.js'
 
 const under = (sel) => hiddenMeasures({ ...DEFAULT_STANDARDS, ...sel })
 const shown = (sel, ids) => ids.filter((id) => !under(sel).has(id))
 
+check('every indicator says where its number comes from', INDICATORS.every((i) => ['score', 'derived', 'published'].includes(ORIGIN[i.id]?.[0]) && ORIGIN[i.id][1]), INDICATORS.filter((i) => !ORIGIN[i.id]).map((i) => i.id).join(', '))
+check('so does every other compare row', Object.values(ROW_ABOUT).every((r) => r.origin?.[1]), Object.keys(ROW_ABOUT).filter((k) => !ROW_ABOUT[k].origin).join(', '))
 check('every indicator has an explanation', INDICATORS.every((i) => ABOUT[i.id]?.text), INDICATORS.filter((i) => !ABOUT[i.id]?.text).map((i) => i.id).join(', '))
 
 // Heat and cold stress: one score row (the selected standard's), its own warning counts, nothing from the others.

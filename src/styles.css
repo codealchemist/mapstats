@@ -620,6 +620,9 @@ a.src-btn:hover, button.src-btn:hover { border-color: var(--accent); color: var(
 .measure-info h3 { font-size: 12px; font-weight: 650; letter-spacing: 0.04em; text-transform: uppercase; color: var(--muted); margin: 18px 0 6px; }
 .measure-info p { margin: 0 0 8px; line-height: 1.5; }
 .measure-info .reading { display: flex; align-items: center; gap: 6px; font-weight: 600; }
+.measure-info .origin { display: flex; align-items: flex-start; gap: 6px; }
+.measure-info .origin svg { flex: none; margin-top: 3px; }
+.measure-info .origin-score b { color: var(--accent-ink); }
 .measure-info .bands { border-collapse: collapse; font-size: 12.5px; margin: 4px 0 8px; }
 .measure-info .bands th, .measure-info .bands td { text-align: left; padding: 4px 16px 4px 0; border-bottom: 1px solid var(--line); }
 .measure-info .bands th { font-weight: 600; color: var(--muted); }

@@ -66,19 +66,87 @@ export const ABOUT = {
   elevation: { read: 'context', text: 'Height above sea level, in metres.' },
 }
 
+// Where each number comes from: [kind, how]. Kinds:
+//   'score'     a MapStats score: calculated by this app, published by no source (how it is built: `how`)
+//   'derived'   calculated by MapStats from a source's data (what was calculated: `how`)
+//   'published' the source's own figure, as published (`how`: any note)
+const SCORE = 'score', DERIVED = 'derived', PUBLISHED = 'published'
+export const ORIGIN = {
+  homicide: [DERIVED, 'the mean of the last three yearly rates the official crime statistics publish.'],
+  propertyCrime: [DERIVED, 'robberies plus thefts, each a yearly rate the official crime statistics publish, averaged over the last three years.'],
+  roadDeaths: [DERIVED, 'the mean of the last three yearly rates the official crime statistics publish.'],
+  seismicZone: [PUBLISHED, 'copied by hand from INPRES’s official zoning map (the highest zone in the populated areas).'],
+  pga475: [DERIVED, 'read from the GEM hazard map: the map cell at a city’s point; for a region, the mean of the cells inside it.'],
+  pga475Max: [DERIVED, 'the highest GEM map cell inside the region.'],
+  quakes: [DERIVED, 'counted from the USGS earthquake catalogue: events of magnitude 5 or more within 200 km.'],
+  aqi: [DERIVED, 'the mean of the last 365 days of hourly European AQI values from Open-Meteo (CAMS air-quality model).'],
+  usAqi: [DERIVED, 'the mean of the last 365 days of hourly US AQI values from Open-Meteo (CAMS air-quality model).'],
+  pm25: [DERIVED, 'the mean of the last 365 days of hourly PM2.5 concentrations from Open-Meteo (CAMS air-quality model).'],
+  aqiRecent: [DERIVED, 'the mean of the last 30 days of hourly European AQI values from Open-Meteo.'],
+  pm25WorstDay: [DERIVED, 'daily means of Open-Meteo’s hourly PM2.5; the highest of the last 365 days.'],
+  aqiPoorDays: [DERIVED, 'daily means of Open-Meteo’s hourly European AQI; the days above 60 are counted.'],
+  usAqiUnhealthyDays: [DERIVED, 'daily means of Open-Meteo’s hourly US AQI; the days above 100 are counted.'],
+  pm25HighDays: [DERIVED, 'daily means of Open-Meteo’s hourly PM2.5; the days above 15 µg/m³ are counted.'],
+  thermalStress: [SCORE, 'from a year of hourly weather (Open-Meteo ERA5; UTCI: Copernicus daily values), each day is placed in the selected standard’s heat and cold categories and scored; the yearly mean of those day scores is the value. The categories are the standard’s; turning them into a 0–100 score is MapStats’.'],
+  thermalNws: [SCORE, 'MapStats computes the heat index and wind chill from Open-Meteo’s hourly ERA5 temperature, humidity and wind, places each day in the US NWS categories and scores it; this is the yearly mean.'],
+  thermalEccc: [SCORE, 'MapStats computes the humidex and wind chill from Open-Meteo’s hourly ERA5 temperature, humidity and wind, places each day in Environment Canada’s categories and scores it; this is the yearly mean.'],
+  thermalUtci: [SCORE, 'Copernicus publishes each day’s highest and lowest UTCI; MapStats places each day in the UTCI stress categories and scores it; this is the yearly mean.'],
+  heatDangerDays: [DERIVED, 'MapStats computes the heat index from Open-Meteo’s hourly ERA5 temperature and humidity (US NWS formula) and counts the days reaching 39.4 °C felt.'],
+  humidexDangerDays: [DERIVED, 'MapStats computes the humidex from Open-Meteo’s hourly ERA5 temperature and humidity (Environment Canada’s formula) and counts the days reaching 46.'],
+  frostbiteDays: [DERIVED, 'MapStats computes the wind chill from Open-Meteo’s hourly ERA5 temperature and wind (North American formula) and counts the days reaching −28 °C.'],
+  utciHeatDays: [DERIVED, 'counted from the daily highest UTCI Copernicus publishes (ERA5-HEAT).'],
+  utciColdDays: [DERIVED, 'counted from the daily lowest UTCI Copernicus publishes (ERA5-HEAT).'],
+  climateComfort: [SCORE, 'MapStats’ own model: monthly temperature, rain and sunshine (ERA5 normals) scored against what MapStats considers comfortable. No standard behind it.'],
+  uvRisk: [SCORE, 'each day’s maximum UV index (Open-Meteo) is placed in the Global Solar UV Index categories and scored; the yearly mean of those day scores is the value. The categories are WHO’s; the 0–100 score is MapStats’.'],
+  uvScore: [SCORE, 'each day’s maximum UV index (Open-Meteo) is placed in the Global Solar UV Index categories and scored; this is the yearly mean.'],
+  uvMean: [DERIVED, 'the mean of the last year’s daily maximum UV index from Open-Meteo.'],
+  uvVeryHighDays: [DERIVED, 'counted from Open-Meteo’s daily maximum UV index over the last year.'],
+  uvExtremeDays: [DERIVED, 'counted from Open-Meteo’s daily maximum UV index over the last year.'],
+  doctors: [DERIVED, 'the number of registered physicians the Health Ministry and PAHO publish, divided by INDEC’s population projection for the same year.'],
+  water: [DERIVED, 'households on the public water network divided by all households, from the census’s published counts.'],
+  sewer: [DERIVED, 'households whose toilet drains to the public sewer divided by all households, from the census’s published counts.'],
+  internet: [DERIVED, 'households with internet at home divided by all households, from the census’s published counts.'],
+  poverty: [DERIVED, 'INDEC publishes poverty for 31 urban areas, not provinces: a province’s value is the mean of its areas’ published rates, weighted by their population.'],
+  unemployment: [PUBLISHED, 'INDEC’s rate for all urban areas of each province.'],
+  lifeExp: [DERIVED, 'INDEC publishes men’s and women’s life expectancy; MapStats combines them, weighting 105 boys to 100 girls at birth.'],
+  hdi: [PUBLISHED, 'UNDP’s provincial index, as reprinted by the Health Ministry and PAHO.'],
+  pop: [PUBLISHED, 'INDEC’s projection for provinces; Natural Earth’s approximate figure for cities.'],
+  meanTemp: [DERIVED, 'averaged by MapStats from 10 years of Open-Meteo’s daily ERA5 data.'],
+  annualPrecip: [DERIVED, 'summed per year and averaged by MapStats over 10 years of Open-Meteo’s daily ERA5 data.'],
+  snowfall: [DERIVED, 'summed per year and averaged by MapStats over 10 years of Open-Meteo’s daily ERA5 data.'],
+  sunshine: [DERIVED, 'summed per year and averaged by MapStats over 10 years of Open-Meteo’s daily ERA5 data.'],
+  tempMaxAnnual: [DERIVED, 'each year’s highest daily maximum in Open-Meteo’s ERA5 data, averaged over 10 years.'],
+  tempMinAnnual: [DERIVED, 'each year’s lowest daily minimum in Open-Meteo’s ERA5 data, averaged over 10 years.'],
+  hotDays: [DERIVED, 'counted per year in Open-Meteo’s daily ERA5 data and averaged over 10 years.'],
+  tropicalNights: [DERIVED, 'counted per year in Open-Meteo’s daily ERA5 data and averaged over 10 years.'],
+  frostDays: [DERIVED, 'counted per year in Open-Meteo’s daily ERA5 data and averaged over 10 years.'],
+  heavyRainDays: [DERIVED, 'counted per year in Open-Meteo’s daily ERA5 data and averaged over 10 years.'],
+  drySpell: [DERIVED, 'the longest dry run of each year in Open-Meteo’s daily ERA5 data, averaged over 10 years.'],
+  floodWatch: [DERIVED, 'the highest river discharge in the last 30 days and the forecast (GloFAS, via Open-Meteo), divided by the river’s usual high water from its own record.'],
+  floodPeakPast: [DERIVED, 'the highest river discharge of the last year (GloFAS, via Open-Meteo), divided by the river’s usual high water.'],
+  elevation: [PUBLISHED, 'Open-Meteo’s elevation model at the place’s point.'],
+}
+
+/** Plain-language lead for each kind of origin. */
+export const ORIGIN_KIND = {
+  score: 'MapStats score: calculated by this app, not published by any source. It’s MapStats’ way of comparing places, built from the sources’ data.',
+  derived: 'Calculated by MapStats from the source’s data.',
+  published: 'The source’s own figure, as published.',
+}
+
 // Rows of the comparison that aren't a single indicator.
 export const ROW_ABOUT = {
-  score: { title: 'MapStats score', read: 'high', text: 'Overall 0–100 score: the weighted mean of the category scores, with the weights you set. Places are ranked by it. It compares places MapStats covers; it is not an absolute grade.' },
-  category: { read: 'high', text: 'The 0–100 score of this category: each source scores the place from its indicators, then the sources are combined (median, weighted by reliability, or one source, as selected).' },
-  categories: { title: 'Score by category', read: 'high', text: 'Each category’s 0–100 score side by side, to see where a place is strong or weak.' },
-  warnings: { title: 'Warnings', read: 'low', text: 'Extremes in the last year that a good yearly mean would hide: days over a standard’s daily limit, heat or cold danger days, extreme UV, and climate extremes. They never change scores.' },
-  trend: { read: 'low', text: 'The yearly rate published by the source, to see whether things are improving.' },
-  last: { read: 'low', text: 'The latest year’s published rate, as opposed to the three-year average that scores.' },
-  flood: { title: 'River flood watch', read: 'low', text: ABOUT.floodWatch.text },
-  airDaily: { title: 'Daily air quality', read: 'low', text: 'European Air Quality Index, day by day over the last three months: spikes show pollution episodes.' },
-  uvDaily: { title: 'Daily UV index', read: 'low', text: 'Each day’s maximum UV index over the last three months and the forecast. 0–2 low, 3–5 moderate, 6–7 high, 8–10 very high, 11+ extreme.' },
-  pollutants: { title: 'Pollutants', read: 'low', text: 'Mean concentration of each pollutant over the last 92 days, in µg/m³. WHO 2021 guidelines (annual means): PM2.5 5, PM10 15, NO₂ 10; ozone and SO₂ have short-term guidelines only.' },
-  monthly: { read: 'context', text: 'The 10-year average by month (ERA5 reanalysis), to see the shape of the year.' },
+  score: { title: 'MapStats score', read: 'high', origin: [SCORE, 'each category score is weighted by the weights you set (Weights tab) and averaged; categories without data for the place are left out.'], text: 'Overall 0–100 score: the weighted mean of the category scores, with the weights you set. Places are ranked by it. It compares places MapStats covers; it is not an absolute grade.' },
+  category: { read: 'high', origin: [SCORE, 'each indicator is turned into 0–100, either by a health standard (air, heat and cold, UV) or between two values from the data (the 2nd and 98th percentile of regions across every country). Each source’s indicators are averaged, then the sources are combined: their median, a mean weighted by reliability, or one source, as selected in the source selector.'], text: 'How the place does in this category, from 0 to 100, relative to the places MapStats covers. Open an indicator below it to see what goes in.' },
+  categories: { title: 'Score by category', read: 'high', origin: [SCORE, 'each bar is a category score (see a category’s own row).'], text: 'Each category’s 0–100 score side by side, to see where a place is strong or weak.' },
+  warnings: { title: 'Warnings', read: 'low', origin: [DERIVED, 'MapStats counts the days over each standard’s limits, and climate extremes against its own thresholds (src/data/extremes.js), from the sources’ data.'], text: 'Extremes in the last year that a good yearly mean would hide: days over a standard’s daily limit, heat or cold danger days, extreme UV, and climate extremes. They never change scores.' },
+  trend: { read: 'low', origin: [PUBLISHED, 'the yearly rates the source publishes.'], text: 'The yearly rate published by the source, to see whether things are improving.' },
+  last: { read: 'low', origin: [PUBLISHED, 'the latest yearly rate the source publishes.'], text: 'The latest year’s published rate, as opposed to the three-year average that scores.' },
+  flood: { title: 'River flood watch', read: 'low', origin: ORIGIN.floodWatch, text: ABOUT.floodWatch.text },
+  airDaily: { title: 'Daily air quality', read: 'low', origin: [DERIVED, 'daily means of Open-Meteo’s hourly European AQI.'], text: 'European Air Quality Index, day by day over the last three months: spikes show pollution episodes.' },
+  uvDaily: { title: 'Daily UV index', read: 'low', origin: [PUBLISHED, 'Open-Meteo’s daily maximum UV index (archive and forecast).'], text: 'Each day’s maximum UV index over the last three months and the forecast. 0–2 low, 3–5 moderate, 6–7 high, 8–10 very high, 11+ extreme.' },
+  pollutants: { title: 'Pollutants', read: 'low', origin: [DERIVED, '92-day means of Open-Meteo’s hourly concentrations (CAMS model).'], text: 'Mean concentration of each pollutant over the last 92 days, in µg/m³. WHO 2021 guidelines (annual means): PM2.5 5, PM10 15, NO₂ 10; ozone and SO₂ have short-term guidelines only.' },
+  monthly: { read: 'context', origin: [DERIVED, 'monthly averages over 10 years of Open-Meteo’s daily ERA5 data.'], text: 'The 10-year average by month (ERA5 reanalysis), to see the shape of the year.' },
 }
 
 /** How to read a measure: 'low' | 'high' | 'mid' | 'context'. */
