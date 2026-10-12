@@ -9,11 +9,11 @@
   "poverty": "ARG/eph",
   "unemployment": "ARG/eph",
   "lifeExp": "ARG/indec",
-  "seismicZone": "ARG/inpres",
   "doctors": "ARG/refeps",
-  "hdi": "ARG/pnud"
+  "hdi": "ARG/pnud",
+  "seismicZone": "ARG/inpres"
  },
- "generatedAt": "2026-10-12T04:36:52.047Z",
+ "generatedAt": "2026-10-12T04:55:59.063Z",
  "period": {
   "latest": 2026
  },
@@ -45,7 +45,14 @@
     "url": "https://www.indec.gob.ar/ftp/cuadros/poblacion/proyecciones_jurisdicciones_2022_2040_c1.xlsx",
     "sha256": "7dd84165fe90415793f6788338ed3273ed1d2fe9ea25cbe355110805e1cc89f3",
     "retrievedAt": "2026-10-12",
-    "note": "pop: persons at 1 July 2026 (INDEC projections 2022–2040, based on Censo 2022)"
+    "note": "pop: persons at 1 July 2026 (INDEC projections 2022–2040, based on Censo 2022); also the 2024 population for physicians per 1,000"
+   },
+   {
+    "name": "indicadores_basicos_argentina_2025.pdf",
+    "url": "https://iris.paho.org/server/api/core/bitstreams/51f85638-d3b2-4c43-8a74-452e44cb1d10/content",
+    "sha256": "2e21cd17d8e77ad8c68443a97a4e7a378510b804352ffa73535d433704050c3e",
+    "retrievedAt": "2026-10-12",
+    "note": "doctors: registered physicians under 65 (OFETHUS, from REFEPS), 2024, per 1,000 inhabitants of INDEC's 2024 projection · hdi: provincial Human Development Index 2021 (PNUD, 2022) · both from Indicadores Básicos Argentina 2025, https://iris.paho.org/handle/10665.2/69845"
    },
    {
     "name": "c2022_caba_hogares_c2_1.xlsx",
@@ -555,7 +562,7 @@
     "name": "hand-entered.json",
     "sha256": null,
     "retrievedAt": null,
-    "note": "Hand-entered per province until an official file replaces them (see prefill.mjs). seismicZone: INPRES-CIRSOC 103 zone 0–4, highest zone in populated areas, copied from the official INPRES map · doctors: physicians per 1,000 inhabitants (REFEPS) · hdi: provincial HDI (PNUD Argentina)."
+    "note": "Hand-entered per province: no table to read. seismicZone: INPRES-CIRSOC 103 zone 0–4, highest zone in populated areas, copied from the official INPRES map."
    }
   ],
   "notes": "INDEC tables, read by countries/ARG/providers/provincial-stats/prefill.mjs. Each value cites its provider (providers)."
@@ -570,9 +577,9 @@
     "poverty": 42.3,
     "unemployment": 4.1,
     "lifeExp": 78.2,
-    "seismicZone": 0,
-    "doctors": 3.3,
-    "hdi": 0.816
+    "doctors": 3.41,
+    "hdi": 0.836,
+    "seismicZone": 0
    },
    "AR-A": {
     "pop": 1492267,
@@ -582,9 +589,9 @@
     "poverty": 29.7,
     "unemployment": 5.4,
     "lifeExp": 77.8,
-    "seismicZone": 3,
-    "doctors": 2.8,
-    "hdi": 0.807
+    "doctors": 2.28,
+    "hdi": 0.844,
+    "seismicZone": 3
    },
    "AR-Y": {
     "pop": 802922,
@@ -594,9 +601,9 @@
     "poverty": 27.6,
     "unemployment": 3.9,
     "lifeExp": 77.9,
-    "seismicZone": 3,
-    "doctors": 2.6,
-    "hdi": 0.799
+    "doctors": 2.34,
+    "hdi": 0.84,
+    "seismicZone": 3
    },
    "AR-P": {
     "pop": 628876,
@@ -606,9 +613,9 @@
     "poverty": 29.9,
     "unemployment": 4.5,
     "lifeExp": 76,
-    "seismicZone": 0,
-    "doctors": 2.4,
-    "hdi": 0.773
+    "doctors": 1.96,
+    "hdi": 0.822,
+    "seismicZone": 0
    },
    "AR-N": {
     "pop": 1355029,
@@ -618,9 +625,9 @@
     "poverty": 42.2,
     "unemployment": 4.8,
     "lifeExp": 76.7,
-    "seismicZone": 0,
-    "doctors": 2.4,
-    "hdi": 0.789
+    "doctors": 1.93,
+    "hdi": 0.842,
+    "seismicZone": 0
    },
    "AR-H": {
     "pop": 1214280,
@@ -630,9 +637,9 @@
     "poverty": 48.6,
     "unemployment": 7.4,
     "lifeExp": 75.1,
-    "seismicZone": 0,
-    "doctors": 2.4,
-    "hdi": 0.778
+    "doctors": 2.22,
+    "hdi": 0.808,
+    "seismicZone": 0
    },
    "AR-W": {
     "pop": 1208334,
@@ -642,9 +649,9 @@
     "poverty": 41,
     "unemployment": 4.6,
     "lifeExp": 76.9,
-    "seismicZone": 0,
-    "doctors": 3,
-    "hdi": 0.795
+    "doctors": 3.4,
+    "hdi": 0.839,
+    "seismicZone": 0
    },
    "AR-K": {
     "pop": 440503,
@@ -654,9 +661,9 @@
     "poverty": 37.3,
     "unemployment": 4.6,
     "lifeExp": 79.2,
-    "seismicZone": 2,
-    "doctors": 2.6,
-    "hdi": 0.809
+    "doctors": 2.53,
+    "hdi": 0.844,
+    "seismicZone": 2
    },
    "AR-F": {
     "pop": 405241,
@@ -666,9 +673,9 @@
     "poverty": 38.4,
     "unemployment": 3.8,
     "lifeExp": 78.3,
-    "seismicZone": 3,
-    "doctors": 3.8,
-    "hdi": 0.81
+    "doctors": 4.38,
+    "hdi": 0.84,
+    "seismicZone": 3
    },
    "AR-J": {
     "pop": 852747,
@@ -678,9 +685,9 @@
     "poverty": 36.8,
     "unemployment": 3.2,
     "lifeExp": 78.7,
-    "seismicZone": 4,
-    "doctors": 3.4,
-    "hdi": 0.814
+    "doctors": 3.17,
+    "hdi": 0.838,
+    "seismicZone": 4
    },
    "AR-M": {
     "pop": 2051912,
@@ -690,9 +697,9 @@
     "poverty": 36.9,
     "unemployment": 5.4,
     "lifeExp": 79.1,
-    "seismicZone": 4,
-    "doctors": 3.7,
-    "hdi": 0.83
+    "doctors": 3.56,
+    "hdi": 0.848,
+    "seismicZone": 4
    },
    "AR-Q": {
     "pop": 707092,
@@ -702,9 +709,9 @@
     "poverty": 19.6,
     "unemployment": 4.3,
     "lifeExp": 79.4,
-    "seismicZone": 2,
-    "doctors": 3.6,
-    "hdi": 0.837
+    "doctors": 4.39,
+    "hdi": 0.832,
+    "seismicZone": 2
    },
    "AR-U": {
     "pop": 603930,
@@ -714,9 +721,9 @@
     "poverty": 36.4,
     "unemployment": 4.8,
     "lifeExp": 79.4,
-    "seismicZone": 1,
-    "doctors": 3,
-    "hdi": 0.83
+    "doctors": 2.98,
+    "hdi": 0.858,
+    "seismicZone": 1
    },
    "AR-R": {
     "pop": 792587,
@@ -726,9 +733,9 @@
     "poverty": 33.2,
     "unemployment": 3,
     "lifeExp": 79.6,
-    "seismicZone": 1,
-    "doctors": 3.2,
-    "hdi": 0.823
+    "doctors": 3.92,
+    "hdi": 0.844,
+    "seismicZone": 1
    },
    "AR-Z": {
     "pop": 335096,
@@ -738,9 +745,9 @@
     "poverty": 25.6,
     "unemployment": 10.7,
     "lifeExp": 78.1,
-    "seismicZone": 1,
-    "doctors": 3,
-    "hdi": 0.836
+    "doctors": 3.09,
+    "hdi": 0.854,
+    "seismicZone": 1
    },
    "AR-V": {
     "pop": 182744,
@@ -750,9 +757,9 @@
     "poverty": 25.9,
     "unemployment": 6.8,
     "lifeExp": 80.8,
-    "seismicZone": 2,
-    "doctors": 3.2,
-    "hdi": 0.838
+    "doctors": 4.99,
+    "hdi": 0.856,
+    "seismicZone": 2
    },
    "AR-B": {
     "pop": 17453039,
@@ -762,9 +769,9 @@
     "poverty": 36,
     "unemployment": 7.7,
     "lifeExp": 78,
-    "seismicZone": 0,
-    "doctors": 3.2,
-    "hdi": 0.827
+    "doctors": 2.75,
+    "hdi": 0.842,
+    "seismicZone": 0
    },
    "AR-C": {
     "pop": 3065991,
@@ -774,9 +781,9 @@
     "poverty": 11.1,
     "unemployment": 3.9,
     "lifeExp": 80.5,
-    "seismicZone": 0,
-    "doctors": 10,
-    "hdi": 0.882
+    "doctors": 16.47,
+    "hdi": 0.882,
+    "seismicZone": 0
    },
    "AR-S": {
     "pop": 3688683,
@@ -786,9 +793,9 @@
     "poverty": 27.6,
     "unemployment": 7.2,
     "lifeExp": 78.3,
-    "seismicZone": 0,
-    "doctors": 4.2,
-    "hdi": 0.829
+    "doctors": 4.4,
+    "hdi": 0.841,
+    "seismicZone": 0
    },
    "AR-T": {
     "pop": 1778484,
@@ -798,9 +805,9 @@
     "poverty": 27.9,
     "unemployment": 6.6,
     "lifeExp": 77.5,
-    "seismicZone": 2,
-    "doctors": 3.6,
-    "hdi": 0.812
+    "doctors": 3.04,
+    "hdi": 0.841,
+    "seismicZone": 2
    },
    "AR-G": {
     "pop": 1059927,
@@ -810,9 +817,9 @@
     "poverty": 38.5,
     "unemployment": 3.7,
     "lifeExp": 76.9,
-    "seismicZone": 1,
-    "doctors": 2.6,
-    "hdi": 0.784
+    "doctors": 1.58,
+    "hdi": 0.833,
+    "seismicZone": 1
    },
    "AR-D": {
     "pop": 538852,
@@ -822,9 +829,9 @@
     "poverty": 35.7,
     "unemployment": 2.5,
     "lifeExp": 78.1,
-    "seismicZone": 2,
-    "doctors": 3,
-    "hdi": 0.819
+    "doctors": 3.4,
+    "hdi": 0.843,
+    "seismicZone": 2
    },
    "AR-L": {
     "pop": 377663,
@@ -834,9 +841,9 @@
     "poverty": 25.4,
     "unemployment": 7.8,
     "lifeExp": 80.6,
-    "seismicZone": 0,
-    "doctors": 3.2,
-    "hdi": 0.825
+    "doctors": 3.4,
+    "hdi": 0.861,
+    "seismicZone": 0
    },
    "AR-X": {
     "pop": 3968336,
@@ -846,9 +853,9 @@
     "poverty": 30.3,
     "unemployment": 5,
     "lifeExp": 78.9,
-    "seismicZone": 1,
-    "doctors": 4,
-    "hdi": 0.834
+    "doctors": 4.04,
+    "hdi": 0.841,
+    "seismicZone": 1
    }
   }
  }

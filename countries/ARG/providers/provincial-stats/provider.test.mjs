@@ -1,6 +1,6 @@
 // Offline test (npm test): the INDEC table rules on a few rows shaped like the published sheets, no download.
 import { check, done } from '#sdk/test.mjs'
-import { provinceMatcher, provinceSheet, censusHouseholds, unemployment, poverty, lifeExpectancy, population, AREAS } from './parse.mjs'
+import { provinceMatcher, provinceSheet, censusHouseholds, unemployment, poverty, lifeExpectancy, population, pdfTableColumn, AREAS } from './parse.mjs'
 
 const regions = [{ id: 'AR-C', name: 'Ciudad de Buenos Aires' }, { id: 'AR-V', name: 'Tierra del Fuego' }, { id: 'AR-G', name: 'Santiago del Estero' }]
 const regionIds = regions.map((r) => r.id)
@@ -70,4 +70,17 @@ const pop = population([
   { name: '94-TIERRA DEL FUEGO', rows: [['Año', 'Ambos sexos'], [2026, 182744]] },
 ], { regionIds, codes: { '02': 'AR-C', '86': 'AR-G', '94': 'AR-V' }, year: 2026 })
 check('population: the year\'s row of each province sheet', pop['AR-C'] === 3065991 && pop['AR-V'] === 182744)
+
+// Lines as readPdf gives them for Indicadores Básicos' demographic table: a letter-spaced title, a wrapped name around
+// its numbers, cells merged by the PDF, and the notes below.
+const pages = [
+  [['Contenido'], ['Indicadores demográficos', '4'], ['1', '2']],
+  [['In di ca do res demográficos'], ['(*)'], ['1', '2', '3', '4', '5'], ['República'], ['46.654.581', '22,0', '11,8 1,40', '0,847'], ['Argentina'],
+    ['CABA', '3.083.770', '14,8', '17,3 0,90', '0,882'], ['Sgo. del'], ['1.007.830', '25,4', '9,0 1,70', '0,833'], ['Estero'],
+    ['Tierra del'], ['186.285', '23,2', '6,6', '1,3', '0,856'], ['Fuego'], ['Notas: (*)'], ['1.', 'Población total, 2023.'], ['Santa Fe', '1', '2', '3', '4', '9']],
+]
+const hdi = pdfTableColumn(pages, { ...ctx, title: 'Indicadores demográficos', column: 5 })
+check('PDF table: the table under its title, not the contents entry', Object.keys(hdi).length === 3)
+check('PDF table: wrapped names and merged cells', hdi['AR-G'] === 0.833 && hdi['AR-V'] === 0.856 && hdi['AR-C'] === 0.882, JSON.stringify(hdi))
+check('PDF table: thousands separators and decimal commas', pdfTableColumn(pages, { ...ctx, title: 'Indicadores demográficos', column: 1 })['AR-C'] === 3083770)
 done()

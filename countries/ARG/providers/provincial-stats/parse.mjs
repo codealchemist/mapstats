@@ -1,7 +1,7 @@
 // INDEC tables (sheets as rows of cells, from readWorkbook) → values per province (ISO 3166-2). Pure: no I/O, so
 // the offline test runs the same rules on a few rows. Every reader finds its columns by header text, not position,
 // and fails when a province is missing rather than leaving a gap.
-import { fold } from '#sdk'
+import { fold, num } from '#sdk'
 
 const clean = (s) => fold(String(s ?? '').replace(/\(\d+\)/g, ''))
 
@@ -12,6 +12,9 @@ export function provinceMatcher(regions) {
   for (const { id, name } of regions) index.set(strip(name), id)
   index.set(strip('Ciudad Autónoma de Buenos Aires'), 'AR-C')
   index.set(strip('Tierra del Fuego, Antártida e Islas del Atlántico Sur'), 'AR-V')
+  index.set(strip('T. del Fuego'), 'AR-V')
+  index.set(strip('Sgo. del Estero'), 'AR-G')
+  index.set(strip('CABA'), 'AR-C')
   return (name) => index.get(strip(name)) ?? null
 }
 
@@ -161,4 +164,48 @@ export function population(sheets, { codes, regionIds, year }) {
     values[iso] = row[1]
   }
   return complete(values, regionIds, 'population')
+}
+
+// ---------- Indicadores Básicos (Ministerio de Salud and PAHO), a PDF ----------
+
+const NUMBER = /^[\d.,]+$/
+// Where a table ends: its notes ("Notas:", or numbered "1." / "1. Número…").
+const NOTES = /^(notas|\d+\.( |$))/
+
+/**
+ * One column of a numbered table in a PDF (pages of lines of cells, from readPdf): the table under the line starting
+ * with `title`, whose header line numbers its columns 1…n. Rows run until the notes. A province name that wraps
+ * ("Buenos" / "Aires") lands on the lines above and below its numbers; cells merged by the PDF ("17,3 0,90") are split.
+ * @returns { iso: number }
+ */
+export function pdfTableColumn(pages, { title, column, province, regionIds }) {
+  for (const lines of pages) {
+    // Titles may come out letter-spaced ("In di ca do res"): compare without spaces.
+    const at = lines.findIndex((l) => clean(l[0]).replace(/ /g, '').startsWith(clean(title).replace(/ /g, '')))
+    // The column numbers, right under the title (elsewhere, e.g. in the contents, the title is just text).
+    const head = lines.findIndex((l, i) => i > at && i <= at + 3 && l[0] === '1' && l.length > 2 && l.every((c) => /^\d+[a-z]?$/.test(c)))
+    if (at < 0 || head < 0) continue
+    const col = lines[head].indexOf(String(column))
+    if (col < 0) throw new Error(`${title}: no column ${column}`)
+    const values = {}
+    let pending = ''
+    for (let i = head + 1; i < lines.length && !NOTES.test(clean(lines[i][0])); i++) {
+      const cells = lines[i].flatMap((c) => (c.split(' ').every((x) => NUMBER.test(x)) ? c.split(' ') : [c]))
+      const numbers = cells.filter((c) => NUMBER.test(c))
+      if (!numbers.length) { pending = `${pending} ${cells.join(' ')}`.trim(); continue }
+      let name = cells.filter((c) => !NUMBER.test(c)).join(' ')
+      if (!name) {
+        const next = lines[i + 1]
+        const wraps = next && !next.some((c) => NUMBER.test(c)) && !NOTES.test(clean(next[0]))
+        name = `${pending} ${wraps ? next.join(' ') : ''}`.trim()
+        if (wraps) i++
+      }
+      pending = ''
+      if (numbers.length !== lines[head].length) throw new Error(`${title}: ${name} has ${numbers.length} numbers for ${lines[head].length} columns`)
+      const iso = province(name)
+      if (iso) values[iso] = num(numbers[col], { decimal: ',' })
+    }
+    return complete(values, regionIds, title)
+  }
+  throw new Error(`no table "${title}"`)
 }

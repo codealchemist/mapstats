@@ -71,6 +71,38 @@ export async function* readXlsx(file, { sheet = 0, lowercase = true } = {}) {
   }
 }
 
+/**
+ * A PDF's text, for tables published only as PDF: pages → lines (top to bottom) → cells (left to right). Text pieces
+ * on the same baseline (within 2 pt) form a line; a gap wider than `gap` points starts a new cell. Scanned PDFs have
+ * no text. Uses pdf.js (pdfjs-dist, dev dependency).
+ */
+export async function readPdf(file, { gap = 6 } = {}) {
+  const { getDocument } = await import('pdfjs-dist/legacy/build/pdf.mjs')
+  const doc = await getDocument({ data: new Uint8Array(fs.readFileSync(file)), useSystemFonts: false, verbosity: 0 }).promise
+  const pages = []
+  for (let n = 1; n <= doc.numPages; n++) {
+    const items = (await (await doc.getPage(n)).getTextContent()).items.filter((i) => i.str.trim())
+    const lines = []
+    for (const i of items.map((i) => ({ x: i.transform[4], y: i.transform[5], w: i.width, s: i.str })).sort((a, b) => b.y - a.y || a.x - b.x)) {
+      const line = lines.find((l) => Math.abs(l.y - i.y) <= 2)
+      if (line) line.items.push(i)
+      else lines.push({ y: i.y, items: [i] })
+    }
+    pages.push(lines.sort((a, b) => b.y - a.y).map(({ items }) => {
+      const cells = []
+      let end = -Infinity
+      for (const i of items.sort((a, b) => a.x - b.x)) {
+        if (cells.length && i.x - end <= gap) cells[cells.length - 1] += (i.x - end > 1 ? ' ' : '') + i.s
+        else cells.push(i.s)
+        end = i.x + i.w
+      }
+      return cells.map((c) => c.replace(/\s+/g, ' ').trim()).filter(Boolean)
+    }))
+  }
+  await doc.destroy()
+  return pages
+}
+
 /** HTML → a cheerio document ($('table tr')…), for sources that publish tables only as web pages. */
 export async function loadHtml(html) {
   const { load } = await import('cheerio')

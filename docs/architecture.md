@@ -158,7 +158,7 @@ Global live providers (Open-Meteo, USGS, Natural Earth, basemaps, news) serve ev
 
 ### 3.3 Provider
 
-A provider is one data source. **Global** providers live in `src/providers/<id>/`; **country** providers in `countries/<ISO3>/providers/<id>/`. One `provider.js` may export several related providers (Open-Meteo's APIs, Argentina's provincial statistics: INDEC's publications and three hand-entered references).
+A provider is one data source. **Global** providers live in `src/providers/<id>/`; **country** providers in `countries/<ISO3>/providers/<id>/`. One `provider.js` may export several related providers (Open-Meteo's APIs, Argentina's provincial statistics: INDEC's publications, the Health Ministry and PAHO's report, and the hand-entered INPRES zones).
 
 ```js
 // countries/ARG/providers/snic/provider.js (abridged)
@@ -193,12 +193,12 @@ defineProvider({
 
 | `kind` | Weight | Meaning | Today |
 |---|---|---|---|
-| `register` | 1.0 | Official count of recorded cases | SNIC |
+| `register` | 1.0 | Official count of recorded cases | SNIC, Argentina's physician register (REFEPS) |
 | `measurement` | 1.0 | Instrument or reanalysis | Open-Meteo, USGS |
 | `official-survey` | 0.8 | Statistics office survey with published methodology | Argentina's provincial statistics (INDEC), the template's example |
 | `crowd-survey` | 0.5 | Perception survey, self-selected respondents | none (Numbeo is links only, section 9) |
-| `estimate` | 0.3 | Modelled or derived | |
-| `manual` | 0.3 | Hand-entered from a publication | Argentina's INPRES zones, physicians and HDI |
+| `estimate` | 0.3 | Modelled or derived | Argentina's provincial HDI (PNUD) |
+| `manual` | 0.3 | Hand-entered from a publication | Argentina's INPRES zones |
 
 **Generic factors**, applied by the core to every family: a family that only publishes region-wide figures counts ×0.5 for a city; any other family's value borrowed from the region counts ×0.5. Provider-specific factors (SNIC: department ×0.9, recency) come from `weightFactors`.
 
@@ -311,7 +311,7 @@ Node only, used by prefills and tests.
 | Module | Provides |
 |---|---|
 | `http` | `rawStore(iso3, id)`: `fetchOnce(url)` downloads each file once into the provider's `raw/` folder, honours robots.txt, identifies MapStats, spaces requests (5 s), stops at the first 403/429, and records URL, date and SHA-256 in `manifest.json`. `add(name, { note })` registers a file downloaded by hand. `read`, `list`. |
-| `parse` | `parseCsv` (quoted fields, delimiter detection, BOM), `readXlsx` (streamed, for 100 MB+ workbooks; `.xls` too), `readWorkbook` (every sheet as rows of cells, for statistics tables; SheetJS), `loadHtml` (cheerio), `num` (decimal commas, blanks and dashes → `null`) |
+| `parse` | `parseCsv` (quoted fields, delimiter detection, BOM), `readXlsx` (streamed, for 100 MB+ workbooks; `.xls` too), `readWorkbook` (every sheet as rows of cells, for statistics tables; SheetJS), `readPdf` (a PDF's text as pages of lines of cells; pdf.js), `loadHtml` (cheerio), `num` (decimal commas, blanks and dashes → `null`) |
 | `places` | `fold`, `matcher(entries, { strip })` that reports unmatched names instead of guessing, `featureAt(lat, lon, featureCollection)` |
 | `stats` | `round`, `per100k`, `share`, `meanOfLast` |
 | `dataset` | `checkDataset` (schema, ids, providers, domains, coverage), `writeDataset` |

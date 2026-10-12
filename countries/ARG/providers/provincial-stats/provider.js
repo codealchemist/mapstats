@@ -1,6 +1,6 @@
-// Provincial statistics: INDEC's published tables, imported by prefill.mjs (countries/ARG/data/provincial-stats.json),
-// plus the few values with no official file yet, hand-entered (hand-entered.json). Every publication is its own
-// provider so values cite it; they share the "provincial" source family.
+// Provincial statistics, imported by prefill.mjs (countries/ARG/data/provincial-stats.json): INDEC's published tables
+// and the Health Ministry and PAHO's Indicadores Básicos; plus the INPRES seismic zones, hand-entered
+// (hand-entered.json). Every publication is its own provider so values cite it; they share the "provincial" family.
 import { defineProvider } from '#core/define.js'
 
 const indec = { kind: 'official-survey', levels: ['region'], access: 'import', scope: 'Argentina · province', types: ['society'], family: 'provincial', refresh: 'year' }
@@ -27,15 +27,17 @@ export default [
     family: null, kind: null, provides: ['pop'], cadence: 'Yearly projections / approximate', scope: 'Provinces · cities',
   }),
   defineProvider({
-    ...manual, id: 'refeps', short: 'REFEPS', name: 'REFEPS – Ministerio de Salud', url: 'https://sisa.msal.gov.ar/', covers: 'Physicians per 1,000 inhabitants',
-    provides: ['doctors'], cadence: 'Registry',
+    ...indec, kind: 'register', id: 'refeps', short: 'REFEPS', name: 'REFEPS / OFETHUS – Ministerio de Salud', url: 'https://iris.paho.org/handle/10665.2/69845',
+    covers: 'Registered physicians under 65 per 1,000 inhabitants, by province of registration (Indicadores Básicos 2025, Ministerio de Salud and PAHO)',
+    provides: ['doctors'], cadence: 'Yearly (Indicadores Básicos)',
   }),
   defineProvider({
     ...manual, id: 'inpres', short: 'INPRES', name: 'INPRES', url: 'https://www.inpres.gob.ar/', covers: 'Seismic zoning (CIRSOC 103)',
     provides: ['seismicZone'], cadence: 'Building-code zoning', types: ['hazards'],
   }),
   defineProvider({
-    ...manual, id: 'pnud', short: 'PNUD', name: 'PNUD Argentina', url: 'https://www.undp.org/es/argentina', covers: 'Provincial Human Development Index',
+    ...indec, kind: 'estimate', id: 'pnud', short: 'PNUD', name: 'PNUD Argentina', url: 'https://iris.paho.org/handle/10665.2/69845',
+    covers: 'Provincial Human Development Index, 2021 (PNUD 2022, as published in Indicadores Básicos 2025)',
     provides: ['hdi'], cadence: 'Periodic reports',
   }),
 ]

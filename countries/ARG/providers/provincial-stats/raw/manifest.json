@@ -527,6 +527,12 @@
       "retrievedAt": "2026-10-12",
       "sha256": "8af7fb4f911f90c86cfaf310538e97def16b0cf608513e4f7998fa5cffdc1e4d",
       "bytes": 46770
+    },
+    "indicadores_basicos_argentina_2025.pdf": {
+      "url": "https://iris.paho.org/server/api/core/bitstreams/51f85638-d3b2-4c43-8a74-452e44cb1d10/content",
+      "retrievedAt": "2026-10-12",
+      "sha256": "2e21cd17d8e77ad8c68443a97a4e7a378510b804352ffa73535d433704050c3e",
+      "bytes": 485796
     }
   }
 }

@@ -233,6 +233,8 @@ Fill in `countries/CHL/README.md`: tier, sources table, coverage, known gaps, ne
 
 **Excel workbooks.** `readXlsx(path, { sheet })` streams the rows of one worksheet as objects (first row = header), so 100 MB files are fine (Argentina's SNIC departmental base is one). Old-format `.xls` files are read too. Statistics tables with titles, notes and multi-row headers read better with `readWorkbook(path)`: every sheet as `{ name, rows }`, each row an array of cells. Find the columns by their header text in `parse.mjs` (Argentina's `provincial-stats` does this for INDEC's tables). Test the parsing on a few real rows, either as a CSV excerpt in `fixtures/` read with `parseCsv`, or as inline arrays.
 
+**PDF tables.** Some figures are published only as PDF. `readPdf(path)` gives each page as lines (top to bottom) of cells (left to right), from the PDF's text; scanned PDFs have none. Rebuild the table in `parse.mjs`: Argentina's `pdfTableColumn` finds a numbered table by its title, rejoins province names that wrap onto two lines and splits cells the PDF merged. Check the result against a total the publication prints.
+
 **Counts instead of rates.** Convert with `stats.per100k(count, population)`, using the population the publisher used in the same release. If the publisher doesn't give one, say which population you used in the README. Prefer published rates when they exist. That is SNIC's rule: rates are used exactly as published.
 
 **Small areas with noisy rates.** Publish the multi-year mean (`stats.meanOfLast(series, 3)`) as the value and the yearly values as `series`. Indicators whose `definition` says "mean of 3 years" expect this.
