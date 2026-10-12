@@ -18,7 +18,7 @@ export default [
     provides: ['poverty', 'unemployment'], cadence: 'Semi-annual (poverty) · yearly by province (unemployment)', scope: 'Argentina · urban areas',
   }),
   defineProvider({
-    ...indec, id: 'censo-2022', short: 'Censo 2022', name: 'INDEC – Censo 2022', url: 'https://censo.gob.ar/', covers: 'Homes with public water and sewer networks, and with internet',
+    ...indec, id: 'censo-2022', short: 'Censo 2022', name: 'INDEC – Censo 2022', url: 'https://censo.gob.ar/', covers: 'Households with public water and sewer networks, and with internet at home',
     provides: ['water', 'sewer', 'internet'], cadence: 'Census 2022', refresh: null,
   }),
   defineProvider({

@@ -15,19 +15,6 @@ export function provinceMatcher(regions) {
   return (name) => index.get(strip(name)) ?? null
 }
 
-/** Index of the first row whose first cell starts with `label`, and the column of each header matched by `cols`. */
-function locate(rows, label, cols) {
-  const at = rows.findIndex((r) => clean(r[0]).startsWith(clean(label)))
-  if (at < 0) throw new Error(`no "${label}" header row`)
-  const out = { row: at }
-  for (const [key, test] of Object.entries(cols)) {
-    const col = rows[at].findIndex((h, i) => i > 0 && test(clean(h)))
-    if (col < 0) throw new Error(`no column for ${key}`)
-    out[key] = col
-  }
-  return out
-}
-
 /** Rows below `from` whose first cell is a province, until the first blank first cell: { iso: row }. */
 function provinceRows(rows, from, province) {
   const out = {}
@@ -45,20 +32,43 @@ function complete(values, regionIds, what) {
   return values
 }
 
-const pick = (byIso, cols) => Object.fromEntries(Object.entries(byIso).map(([iso, r]) => [iso, Object.fromEntries(Object.entries(cols).map(([k, c]) => [k, r[c]]))]))
+// ---------- Census 2022, definitive results: one workbook per province and table ----------
+
+/** A province's own sheet in a census workbook ("Cuadro 2.11"; the "Cuadro 2.11.1"… sheets are its departments). */
+export function provinceSheet(sheets) {
+  const found = sheets.find((s) => /^cuadro\s*\d+\.\d+$/i.test(s.name.trim()))
+  if (!found) throw new Error(`no province sheet among ${sheets.map((s) => s.name).join(', ')}`)
+  return found.rows
+}
+
+const pct = (part, whole) => Math.round((part / whole) * 1000) / 10
+
+/** Share of all households in the row whose first cell starts with `label`, or in the column headed `column`. */
+function share(rows, { label, column }) {
+  const header = rows.findIndex((r) => r.some((h) => clean(h).startsWith('total de hogares')))
+  if (header < 0) throw new Error('no "Total de hogares" column')
+  const all = rows[header].findIndex((h) => clean(h).startsWith('total de hogares'))
+  const total = rows.find((r, i) => i > header && clean(r[0]) === 'total')
+  if (!total) throw new Error('no "Total" row')
+  if (column) {
+    const col = rows[header].findIndex((h) => clean(h) === column)
+    if (col < 0) throw new Error(`no "${column}" column`)
+    return pct(total[col], total[all])
+  }
+  const row = rows.find((r, i) => i > header && clean(r[0]).startsWith(label))
+  if (!row) throw new Error(`no "${label}" row`)
+  return pct(row[all], total[all])
+}
 
 /**
- * Census 2022, housing conditions ("Cuadro 1. Total del país"): % of occupied private dwellings with drinking water
- * from the public network, a toilet draining to the public sewer, and internet.
+ * One province's census tables (households: procedencia del agua, desagüe del inodoro, internet en la vivienda) →
+ * % of households with drinking water from the public network, a toilet draining to the public sewer, internet at home.
  */
-export function censusHousing(rows, { province, regionIds }) {
-  const c = locate(rows, 'Jurisdicción', {
-    water: (h) => h.startsWith('agua para beber y cocinar por red publica'),
-    sewer: (h) => h.startsWith('desague del inodoro') && h.includes('red publica'),
-    internet: (h) => h === 'internet',
-  })
-  return complete(pick(provinceRows(rows, c.row + 1, province), { water: c.water, sewer: c.sewer, internet: c.internet }), regionIds, 'census')
-}
+export const censusHouseholds = ({ water, sewer, internet }) => ({
+  water: share(water, { label: 'red publica' }),
+  sewer: share(sewer, { label: 'a red publica' }),
+  internet: share(internet, { column: 'tiene internet en la vivienda' }),
+})
 
 /** EPH total urbano ("Cuadro 2.1"): unemployment rate (%) per province. */
 export function unemployment(rows, { province, regionIds }) {

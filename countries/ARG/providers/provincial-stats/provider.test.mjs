@@ -1,6 +1,6 @@
 // Offline test (npm test): the INDEC table rules on a few rows shaped like the published sheets, no download.
 import { check, done } from '#sdk/test.mjs'
-import { provinceMatcher, censusHousing, unemployment, poverty, lifeExpectancy, population, AREAS } from './parse.mjs'
+import { provinceMatcher, provinceSheet, censusHouseholds, unemployment, poverty, lifeExpectancy, population, AREAS } from './parse.mjs'
 
 const regions = [{ id: 'AR-C', name: 'Ciudad de Buenos Aires' }, { id: 'AR-V', name: 'Tierra del Fuego' }, { id: 'AR-G', name: 'Santiago del Estero' }]
 const regionIds = regions.map((r) => r.id)
@@ -10,22 +10,24 @@ const ctx = { province, regionIds }
 check('INDEC spellings match', province('Ciudad Autónoma de Buenos Aires ') === 'AR-C' && province('Tierra del Fuego, Antártida e\nIslas del Atlántico Sur (1)') === 'AR-V' && province('Santiago Del Estero') === 'AR-G')
 check('subtotals are not provinces', province('24 partidos del Gran Buenos Aires') === null && province('Total') === null)
 
-const census = censusHousing([
-  ['Cuadro 1. Total del país'],
-  ['Jurisdicción', 'Agua por cañería dentro de la vivienda', 'Agua para beber y cocinar por red pública', 'Desagüe del inodoro del baño a red pública (cloaca)', 'Internet', 'Celular con internet'],
-  ['Total', 92.3, 85.4, 62.6, 78, 89.7],
-  ['Ciudad Autónoma de Buenos Aires', 98.7, 98.2, 99.2, 90.6, 94],
-  ['Santiago del Estero', 69.2, 79.4, 28.7, 49.5, 80.7],
-  ['Tierra del Fuego, Antártida e Islas del Atlántico Sur (1)', 96, 94.1, 91.6, 83.9, 95.2],
-  [''],
-  ['Fuente: INDEC'],
-], ctx)
-check('census: water from the public network, not piped water', census['AR-G'].water === 79.4, census['AR-G'].water)
-check('census: sewer and internet (not mobile internet)', census['AR-V'].sewer === 91.6 && census['AR-V'].internet === 83.9)
+// Rows shaped like La Pampa's definitive tables (households; the province's own sheet, then a department's).
+const T = 'Total de hogares(¹)'
+const sheets = (rows) => [{ name: 'Índice', rows: [] }, { name: 'Cuadro 2.11', rows }, { name: 'Cuadro 2.11.1', rows: [] }]
+const census = censusHouseholds({
+  water: provinceSheet(sheets([['Censo Nacional'], ['Cuadro 2.11. Provincia de La Pampa'], ['Procedencia del agua', T, 'Provisión del agua'], ['', '', 'Por cañería dentro de la vivienda'],
+    ['Total', 141573, 140268], ['Red pública (agua corriente)', 120039, 119239], ['Perforación con bomba a motor', 10921, 10771]])),
+  sewer: [['Desagüe y descarga de agua del inodoro', '', T, 'Ubicación del baño o letrina'], ['', '', '', 'Dentro de la vivienda'],
+    ['Total', '', 141573, 140325], ['A red pública (cloaca)', 'Total', 95466, 95204], ['', 'Inodoro con botón, mochila o cadena', 94453, 94238], ['A cámara séptica y pozo ciego', 'Total', 31301, 31140]],
+  internet: [['Tenencia de celular con internet', T, 'Tiene internet en la vivienda', '', '', 'No tiene internet en la vivienda'], ['', '', 'Total', 'Tiene computadora', 'No tiene computadora', 'Total'],
+    ['Total', 141573, 121210, 86221, 34989, 20363], ['Tiene celular con internet', 128233, 117949, 84897, 33052, 10284]],
+})
+check('census: the province sheet, not a department\'s', census.water === 84.8, census.water)
+check('census: sewer counts every household draining to the public network', census.sewer === 67.4, census.sewer)
+check('census: internet at home from its column total', census.internet === 85.6, census.internet)
 
 let missing = null
-try { censusHousing([['Jurisdicción', 'Agua para beber y cocinar por red pública', 'Desagüe del inodoro a red pública', 'Internet'], ['Total', 1, 2, 3]], ctx) } catch (e) { missing = e.message }
-check('a missing province fails instead of leaving a gap', /AR-C/.test(missing || ''), missing)
+try { unemployment([['', 'Desocupación'], ['Total 31 aglomerados urbanos', 6.6], [''], ['Ciudad Autónoma de Buenos Aires', 3.9], ['']], ctx) } catch (e) { missing = e.message }
+check('a missing province fails instead of leaving a gap', /AR-V, AR-G/.test(missing || ''), missing)
 
 const unemp = unemployment([
   ['Área geográfica', 'Tasas generales de'],
