@@ -1,0 +1,357 @@
+{
+ "schema": 1,
+ "provider": "gem",
+ "country": "ESP",
+ "generatedAt": "2026-10-11T17:01:36.326Z",
+ "period": {
+  "latest": 2023,
+  "aggregation": "regions: mean of the raster cells inside them; cities: the cell at their point"
+ },
+ "origin": {
+  "files": [
+   {
+    "name": "v2023_1_pga_475_rock_3min.tif",
+    "sha256": "c6928e0edea4d2a03e6a0d6b4aa9699159834f015c20ffb2d8ee8492ff67a5af",
+    "retrievedAt": "2023-09-19"
+   }
+  ],
+  "notes": "GEM Global Seismic Hazard Map v2023.1.0, PGA 475-year return period on rock, 3-arc-minute raster (zenodo.org/records/8409647, doi:10.5281/zenodo.8409647), downloaded 2026-10-11; CC BY-NC-SA 4.0. Licence: as published by GEM (check before redistributing)."
+ },
+ "values": {
+  "region": {
+   "ES-CE": {
+    "pga475": 0.112,
+    "pga475Max": 0.112
+   },
+   "ES-ML": {
+    "pga475": 0.268,
+    "pga475Max": 0.268
+   },
+   "ES-NA": {
+    "pga475": 0.063,
+    "pga475Max": 0.094
+   },
+   "ES-SS": {
+    "pga475": 0.047,
+    "pga475Max": 0.055
+   },
+   "ES-HU": {
+    "pga475": 0.054,
+    "pga475Max": 0.109
+   },
+   "ES-L": {
+    "pga475": 0.05,
+    "pga475Max": 0.089
+   },
+   "ES-GI": {
+    "pga475": 0.05,
+    "pga475Max": 0.065
+   },
+   "ES-BA": {
+    "pga475": 0.038,
+    "pga475Max": 0.07
+   },
+   "ES-CA": {
+    "pga475": 0.122,
+    "pga475Max": 0.167
+   },
+   "ES-OR": {
+    "pga475": 0.05,
+    "pga475Max": 0.055
+   },
+   "ES-CC": {
+    "pga475": 0.035,
+    "pga475Max": 0.066
+   },
+   "ES-SA": {
+    "pga475": 0.031,
+    "pga475Max": 0.048
+   },
+   "ES-ZA": {
+    "pga475": 0.036,
+    "pga475Max": 0.046
+   },
+   "ES-PO": {
+    "pga475": 0.053,
+    "pga475Max": 0.054
+   },
+   "ES-H": {
+    "pga475": 0.091,
+    "pga475Max": 0.165
+   },
+   "ES-B": {
+    "pga475": 0.046,
+    "pga475Max": 0.057
+   },
+   "ES-T": {
+    "pga475": 0.04,
+    "pga475Max": 0.048
+   },
+   "ES-CS": {
+    "pga475": 0.043,
+    "pga475Max": 0.051
+   },
+   "ES-V": {
+    "pga475": 0.071,
+    "pga475Max": 0.116
+   },
+   "ES-A": {
+    "pga475": 0.135,
+    "pga475Max": 0.229
+   },
+   "ES-MU": {
+    "pga475": 0.178,
+    "pga475Max": 0.318
+   },
+   "ES-AL": {
+    "pga475": 0.199,
+    "pga475Max": 0.288
+   },
+   "ES-GR": {
+    "pga475": 0.174,
+    "pga475Max": 0.211
+   },
+   "ES-MA": {
+    "pga475": 0.131,
+    "pga475Max": 0.192
+   },
+   "ES-SE": {
+    "pga475": 0.084,
+    "pga475Max": 0.135
+   },
+   "ES-C": {
+    "pga475": 0.049,
+    "pga475Max": 0.052
+   },
+   "ES-LU": {
+    "pga475": 0.049,
+    "pga475Max": 0.053
+   },
+   "ES-O": {
+    "pga475": 0.038,
+    "pga475Max": 0.047
+   },
+   "ES-S": {
+    "pga475": 0.033,
+    "pga475Max": 0.035
+   },
+   "ES-BI": {
+    "pga475": 0.037,
+    "pga475Max": 0.041
+   },
+   "ES-TF": {
+    "pga475": 0.024,
+    "pga475Max": 0.025
+   },
+   "ES-GC": {
+    "pga475": 0.023,
+    "pga475Max": 0.024
+   },
+   "ES-PM": {
+    "pga475": 0.023,
+    "pga475Max": 0.027
+   },
+   "ES-Z": {
+    "pga475": 0.041,
+    "pga475Max": 0.084
+   },
+   "ES-LO": {
+    "pga475": 0.045,
+    "pga475Max": 0.054
+   },
+   "ES-VI": {
+    "pga475": 0.043,
+    "pga475Max": 0.057
+   },
+   "ES-AB": {
+    "pga475": 0.086,
+    "pga475Max": 0.162
+   },
+   "ES-TE": {
+    "pga475": 0.037,
+    "pga475Max": 0.044
+   },
+   "ES-CU": {
+    "pga475": 0.036,
+    "pga475Max": 0.053
+   },
+   "ES-TO": {
+    "pga475": 0.024,
+    "pga475Max": 0.052
+   },
+   "ES-LE": {
+    "pga475": 0.037,
+    "pga475Max": 0.05
+   },
+   "ES-SO": {
+    "pga475": 0.04,
+    "pga475Max": 0.049
+   },
+   "ES-BU": {
+    "pga475": 0.032,
+    "pga475Max": 0.044
+   },
+   "ES-AV": {
+    "pga475": 0.016,
+    "pga475Max": 0.021
+   },
+   "ES-P": {
+    "pga475": 0.027,
+    "pga475Max": 0.035
+   },
+   "ES-CR": {
+    "pga475": 0.036,
+    "pga475Max": 0.077
+   },
+   "ES-CO": {
+    "pga475": 0.071,
+    "pga475Max": 0.159
+   },
+   "ES-GU": {
+    "pga475": 0.028,
+    "pga475Max": 0.045
+   },
+   "ES-J": {
+    "pga475": 0.098,
+    "pga475Max": 0.168
+   },
+   "ES-M": {
+    "pga475": 0.017,
+    "pga475Max": 0.029
+   },
+   "ES-SG": {
+    "pga475": 0.016,
+    "pga475Max": 0.021
+   },
+   "ES-VA": {
+    "pga475": 0.022,
+    "pga475Max": 0.032
+   }
+  },
+  "city": {
+   "ESP-madrid": {
+    "pga475": 0.016
+   },
+   "ESP-barcelona": {
+    "pga475": 0.043
+   },
+   "ESP-seville": {
+    "pga475": 0.084
+   },
+   "ESP-bilbao": {
+    "pga475": 0.036
+   },
+   "ESP-valencia": {
+    "pga475": 0.068
+   },
+   "ESP-zaragoza": {
+    "pga475": 0.031
+   },
+   "ESP-malaga": {
+    "pga475": 0.125
+   },
+   "ESP-murcia": {
+    "pga475": 0.199
+   },
+   "ESP-granada": {
+    "pga475": 0.201
+   },
+   "ESP-vigo": {
+    "pga475": 0.052
+   },
+   "ESP-las-palmas": {
+    "pga475": 0.024
+   },
+   "ESP-palma": {
+    "pga475": 0.024
+   },
+   "ESP-la-coruna": {
+    "pga475": 0.049
+   },
+   "ESP-san-sebastian": {
+    "pga475": 0.048
+   },
+   "ESP-santa-cruz-de-tenerife": {
+    "pga475": 0.025
+   },
+   "ESP-gijon": {
+    "pga475": 0.034
+   },
+   "ESP-valladolid": {
+    "pga475": 0.019
+   },
+   "ESP-cordoba": {
+    "pga475": 0.088
+   },
+   "ESP-alicante": {
+    "pga475": 0.127
+   },
+   "ESP-cadiz": {
+    "pga475": 0.157
+   },
+   "ESP-pamplona": {
+    "pga475": 0.068
+   },
+   "ESP-oviedo": {
+    "pga475": 0.036
+   },
+   "ESP-vitoria": {
+    "pga475": 0.041
+   },
+   "ESP-santander": {
+    "pga475": 0.031
+   },
+   "ESP-cartagena": {
+    "pga475": 0.146
+   },
+   "ESP-marbella": {
+    "pga475": 0.116
+   },
+   "ESP-mataro": {
+    "pga475": 0.042
+   },
+   "ESP-castello": {
+    "pga475": 0.048
+   },
+   "ESP-almeria": {
+    "pga475": 0.229
+   },
+   "ESP-burgos": {
+    "pga475": 0.032
+   },
+   "ESP-salamanca": {
+    "pga475": 0.025
+   },
+   "ESP-albacete": {
+    "pga475": 0.064
+   },
+   "ESP-huelva": {
+    "pga475": 0.127
+   },
+   "ESP-logrono": {
+    "pga475": 0.048
+   },
+   "ESP-melilla": {
+    "pga475": 0.268
+   },
+   "ESP-badajoz": {
+    "pga475": 0.054
+   },
+   "ESP-leon": {
+    "pga475": 0.035
+   },
+   "ESP-tarragona": {
+    "pga475": 0.047
+   },
+   "ESP-ourense": {
+    "pga475": 0.054
+   },
+   "ESP-jaen": {
+    "pga475": 0.119
+   },
+   "ESP-algeciras": {
+    "pga475": 0.115
+   }
+  }
+ }
+}

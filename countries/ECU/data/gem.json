@@ -1,0 +1,161 @@
+{
+ "schema": 1,
+ "provider": "gem",
+ "country": "ECU",
+ "generatedAt": "2026-10-11T17:00:52.797Z",
+ "period": {
+  "latest": 2023,
+  "aggregation": "regions: mean of the raster cells inside them; cities: the cell at their point"
+ },
+ "origin": {
+  "files": [
+   {
+    "name": "v2023_1_pga_475_rock_3min.tif",
+    "sha256": "c6928e0edea4d2a03e6a0d6b4aa9699159834f015c20ffb2d8ee8492ff67a5af",
+    "retrievedAt": "2023-09-19"
+   }
+  ],
+  "notes": "GEM Global Seismic Hazard Map v2023.1.0, PGA 475-year return period on rock, 3-arc-minute raster (zenodo.org/records/8409647, doi:10.5281/zenodo.8409647), downloaded 2026-10-11; CC BY-NC-SA 4.0. Licence: as published by GEM (check before redistributing)."
+ },
+ "values": {
+  "region": {
+   "EC-E": {
+    "pga475": 0.634,
+    "pga475Max": 0.976
+   },
+   "EC-C": {
+    "pga475": 0.388,
+    "pga475Max": 0.471
+   },
+   "EC-U": {
+    "pga475": 0.181,
+    "pga475Max": 0.349
+   },
+   "EC-D": {
+    "pga475": 0.155,
+    "pga475Max": 0.345
+   },
+   "EC-Y": {
+    "pga475": 0.252,
+    "pga475Max": 0.43
+   },
+   "EC-S": {
+    "pga475": 0.449,
+    "pga475Max": 0.564
+   },
+   "EC-Z": {
+    "pga475": 0.41,
+    "pga475Max": 0.45
+   },
+   "EC-L": {
+    "pga475": 0.508,
+    "pga475Max": 0.702
+   },
+   "EC-O": {
+    "pga475": 0.56,
+    "pga475Max": 0.652
+   },
+   "EC-G": {
+    "pga475": 0.599,
+    "pga475Max": 0.733
+   },
+   "EC-W": {
+    "pga475": 0,
+    "pga475Max": 0
+   },
+   "EC-SE": {
+    "pga475": 0.733,
+    "pga475Max": 0.797
+   },
+   "EC-M": {
+    "pga475": 0.71,
+    "pga475Max": 0.918
+   },
+   "EC-A": {
+    "pga475": 0.467,
+    "pga475Max": 0.573
+   },
+   "EC-F": {
+    "pga475": 0.451,
+    "pga475Max": 0.562
+   },
+   "EC-N": {
+    "pga475": 0.445,
+    "pga475Max": 0.515
+   },
+   "EC-T": {
+    "pga475": 0.348,
+    "pga475Max": 0.496
+   },
+   "EC-H": {
+    "pga475": 0.434,
+    "pga475Max": 0.496
+   },
+   "EC-B": {
+    "pga475": 0.411,
+    "pga475Max": 0.493
+   },
+   "EC-I": {
+    "pga475": 0.39,
+    "pga475Max": 0.492
+   },
+   "EC-X": {
+    "pga475": 0.43,
+    "pga475Max": 0.5
+   },
+   "EC-R": {
+    "pga475": 0.468,
+    "pga475Max": 0.557
+   },
+   "EC-P": {
+    "pga475": 0.435,
+    "pga475Max": 0.558
+   },
+   "EC-SD": {
+    "pga475": 0.486,
+    "pga475Max": 0.598
+   }
+  },
+  "city": {
+   "ECU-guayaquil": {
+    "pga475": 0.662
+   },
+   "ECU-quito": {
+    "pga475": 0.529
+   },
+   "ECU-cuenca": {
+    "pga475": 0.431
+   },
+   "ECU-ambato": {
+    "pga475": 0.446
+   },
+   "ECU-portoviejo": {
+    "pga475": 0.78
+   },
+   "ECU-machala": {
+    "pga475": 0.6
+   },
+   "ECU-manta": {
+    "pga475": 0.887
+   },
+   "ECU-sangolqui": {
+    "pga475": 0.467
+   },
+   "ECU-esmeraldas": {
+    "pga475": 0.836
+   },
+   "ECU-riobamba": {
+    "pga475": 0.452
+   },
+   "ECU-ibarra": {
+    "pga475": 0.361
+   },
+   "ECU-loja": {
+    "pga475": 0.449
+   },
+   "ECU-milagro": {
+    "pga475": 0.534
+   }
+  }
+ }
+}

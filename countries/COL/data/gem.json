@@ -1,0 +1,260 @@
+{
+ "schema": 1,
+ "provider": "gem",
+ "country": "COL",
+ "generatedAt": "2026-10-11T17:01:33.671Z",
+ "period": {
+  "latest": 2023,
+  "aggregation": "regions: mean of the raster cells inside them; cities: the cell at their point"
+ },
+ "origin": {
+  "files": [
+   {
+    "name": "v2023_1_pga_475_rock_3min.tif",
+    "sha256": "c6928e0edea4d2a03e6a0d6b4aa9699159834f015c20ffb2d8ee8492ff67a5af",
+    "retrievedAt": "2023-09-19"
+   }
+  ],
+  "notes": "GEM Global Seismic Hazard Map v2023.1.0, PGA 475-year return period on rock, 3-arc-minute raster (zenodo.org/records/8409647, doi:10.5281/zenodo.8409647), downloaded 2026-10-11; CC BY-NC-SA 4.0. Licence: as published by GEM (check before redistributing)."
+ },
+ "values": {
+  "region": {
+   "CO-NAR": {
+    "pga475": 0.429,
+    "pga475Max": 0.762
+   },
+   "CO-PUT": {
+    "pga475": 0.125,
+    "pga475Max": 0.297
+   },
+   "CO-CHO": {
+    "pga475": 0.517,
+    "pga475Max": 0.763
+   },
+   "CO-GUA": {
+    "pga475": 0.027,
+    "pga475Max": 0.323
+   },
+   "CO-VAU": {
+    "pga475": 0.025,
+    "pga475Max": 0.199
+   },
+   "CO-AMA": {
+    "pga475": 0.005,
+    "pga475Max": 0.093
+   },
+   "CO-LAG": {
+    "pga475": 0.144,
+    "pga475Max": 0.243
+   },
+   "CO-CES": {
+    "pga475": 0.249,
+    "pga475Max": 0.42
+   },
+   "CO-NSA": {
+    "pga475": 0.337,
+    "pga475Max": 0.442
+   },
+   "CO-ARA": {
+    "pga475": 0.154,
+    "pga475Max": 0.451
+   },
+   "CO-BOY": {
+    "pga475": 0.322,
+    "pga475Max": 0.452
+   },
+   "CO-VID": {
+    "pga475": 0.028,
+    "pga475Max": 0.293
+   },
+   "CO-CAU": {
+    "pga475": 0.334,
+    "pga475Max": 0.58
+   },
+   "CO-VAC": {
+    "pga475": 0.409,
+    "pga475Max": 0.708
+   },
+   "CO-ANT": {
+    "pga475": 0.264,
+    "pga475Max": 0.593
+   },
+   "CO-COR": {
+    "pga475": 0.155,
+    "pga475Max": 0.335
+   },
+   "CO-SUC": {
+    "pga475": 0.144,
+    "pga475Max": 0.239
+   },
+   "CO-BOL": {
+    "pga475": 0.219,
+    "pga475Max": 0.354
+   },
+   "CO-ATL": {
+    "pga475": 0.082,
+    "pga475Max": 0.124
+   },
+   "CO-MAG": {
+    "pga475": 0.172,
+    "pga475Max": 0.288
+   },
+   "CO-SAP": {
+    "pga475": 0,
+    "pga475Max": 0
+   },
+   "CO-X01~": {
+    "pga475": null,
+    "pga475Max": null
+   },
+   "CO-CAQ": {
+    "pga475": 0.066,
+    "pga475Max": 0.348
+   },
+   "CO-HUI": {
+    "pga475": 0.253,
+    "pga475Max": 0.371
+   },
+   "CO-GUV": {
+    "pga475": 0.121,
+    "pga475Max": 0.392
+   },
+   "CO-CAL": {
+    "pga475": 0.228,
+    "pga475Max": 0.315
+   },
+   "CO-CAS": {
+    "pga475": 0.146,
+    "pga475Max": 0.411
+   },
+   "CO-MET": {
+    "pga475": 0.14,
+    "pga475Max": 0.378
+   },
+   "CO-CUN": {
+    "pga475": 0.244,
+    "pga475Max": 0.35
+   },
+   "CO-SAN": {
+    "pga475": 0.391,
+    "pga475Max": 0.452
+   },
+   "CO-TOL": {
+    "pga475": 0.24,
+    "pga475Max": 0.351
+   },
+   "CO-QUI": {
+    "pga475": 0.296,
+    "pga475Max": 0.348
+   },
+   "CO-RIS": {
+    "pga475": 0.305,
+    "pga475Max": 0.375
+   }
+  },
+  "city": {
+   "COL-bogota": {
+    "pga475": 0.213
+   },
+   "COL-medellin": {
+    "pga475": 0.19
+   },
+   "COL-cali": {
+    "pga475": 0.35
+   },
+   "COL-barranquilla": {
+    "pga475": 0.089
+   },
+   "COL-bucaramanga": {
+    "pga475": 0.446
+   },
+   "COL-cartagena": {
+    "pga475": 0.072
+   },
+   "COL-cucuta": {
+    "pga475": 0.342
+   },
+   "COL-soledad": {
+    "pga475": 0.104
+   },
+   "COL-pereira": {
+    "pga475": 0.256
+   },
+   "COL-bello": {
+    "pga475": 0.189
+   },
+   "COL-santa-marta": {
+    "pga475": 0.131
+   },
+   "COL-ibague": {
+    "pga475": 0.297
+   },
+   "COL-pasto": {
+    "pga475": 0.347
+   },
+   "COL-manizales": {
+    "pga475": 0.236
+   },
+   "COL-villavicencio": {
+    "pga475": 0.34
+   },
+   "COL-neiva": {
+    "pga475": 0.189
+   },
+   "COL-armenia": {
+    "pga475": 0.294
+   },
+   "COL-valledupar": {
+    "pga475": 0.186
+   },
+   "COL-monteria": {
+    "pga475": 0.087
+   },
+   "COL-sincelejo": {
+    "pga475": 0.122
+   },
+   "COL-popayan": {
+    "pga475": 0.315
+   },
+   "COL-buenaventura": {
+    "pga475": 0.549
+   },
+   "COL-barrancabermeja": {
+    "pga475": 0.383
+   },
+   "COL-tulua": {
+    "pga475": 0.359
+   },
+   "COL-tunja": {
+    "pga475": 0.317
+   },
+   "COL-cartago": {
+    "pga475": 0.319
+   },
+   "COL-riohacha": {
+    "pga475": 0.18
+   },
+   "COL-cienaga": {
+    "pga475": 0.186
+   },
+   "COL-florencia": {
+    "pga475": 0.234
+   },
+   "COL-girardot": {
+    "pga475": 0.191
+   },
+   "COL-sogamoso": {
+    "pga475": 0.303
+   },
+   "COL-ipiales": {
+    "pga475": 0.336
+   },
+   "COL-duitama": {
+    "pga475": 0.312
+   },
+   "COL-magangue": {
+    "pga475": 0.158
+   }
+  }
+ }
+}

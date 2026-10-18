@@ -1,0 +1,89 @@
+{
+ "schema": 1,
+ "provider": "gem",
+ "country": "BOL",
+ "generatedAt": "2026-10-11T17:00:49.314Z",
+ "period": {
+  "latest": 2023,
+  "aggregation": "regions: mean of the raster cells inside them; cities: the cell at their point"
+ },
+ "origin": {
+  "files": [
+   {
+    "name": "v2023_1_pga_475_rock_3min.tif",
+    "sha256": "c6928e0edea4d2a03e6a0d6b4aa9699159834f015c20ffb2d8ee8492ff67a5af",
+    "retrievedAt": "2023-09-19"
+   }
+  ],
+  "notes": "GEM Global Seismic Hazard Map v2023.1.0, PGA 475-year return period on rock, 3-arc-minute raster (zenodo.org/records/8409647, doi:10.5281/zenodo.8409647), downloaded 2026-10-11; CC BY-NC-SA 4.0. Licence: as published by GEM (check before redistributing)."
+ },
+ "values": {
+  "region": {
+   "BO-L": {
+    "pga475": 0.159,
+    "pga475Max": 0.52
+   },
+   "BO-O": {
+    "pga475": 0.323,
+    "pga475Max": 0.541
+   },
+   "BO-P": {
+    "pga475": 0.23,
+    "pga475Max": 0.502
+   },
+   "BO-T": {
+    "pga475": 0.218,
+    "pga475Max": 0.664
+   },
+   "BO-S": {
+    "pga475": 0.053,
+    "pga475Max": 0.569
+   },
+   "BO-H": {
+    "pga475": 0.109,
+    "pga475Max": 0.409
+   },
+   "BO-N": {
+    "pga475": 0.005,
+    "pga475Max": 0.023
+   },
+   "BO-B": {
+    "pga475": 0.018,
+    "pga475Max": 0.253
+   },
+   "BO-C": {
+    "pga475": 0.179,
+    "pga475Max": 0.336
+   }
+  },
+  "city": {
+   "BOL-santa-cruz": {
+    "pga475": 0.251
+   },
+   "BOL-la-paz": {
+    "pga475": 0.234
+   },
+   "BOL-cochabamba": {
+    "pga475": 0.277
+   },
+   "BOL-oruro": {
+    "pga475": 0.256
+   },
+   "BOL-santa-ana": {
+    "pga475": 0.022
+   },
+   "BOL-quillacollo": {
+    "pga475": 0.262
+   },
+   "BOL-sucre": {
+    "pga475": 0.097
+   },
+   "BOL-potosi": {
+    "pga475": 0.142
+   },
+   "BOL-tarija": {
+    "pga475": 0.117
+   }
+  }
+ }
+}

@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { X, Maximize2, Minimize2, Plus, FileSpreadsheet, Columns3, MapPin, Building2, ChartLine, Search, ArrowLeft } from 'lucide-react'
-import { CATEGORIES, INDICATORS } from '../data/metrics.js'
-import { familyById } from '../data/sources.js'
+import { CATEGORIES, INDICATORS, indicatorById } from '../data/metrics.js'
+import { STANDARDS, standardFor } from '../data/standards.js'
+import { familyById } from '../core/providers.js'
 import { TOKENS } from './charts/theme.js'
 import { useEntityDetail } from '../hooks/useEntityDetail.js'
 import { fmtScore, fold } from '../lib/format.js'
@@ -9,6 +10,7 @@ import { downloadBlob } from '../lib/export.js'
 import { useToast } from './Toast.jsx'
 import { SideBySide } from './compare/SideBySide.jsx'
 import { FocusChart } from './compare/FocusChart.jsx'
+import { MeasureInfo } from './MeasureInfo.jsx'
 
 export const MAX_COMPARE = 3
 
@@ -18,7 +20,7 @@ export const MAX_COMPARE = 3
  *  - Focus chart: one measure for all places as a single full-screen chart.
  * `slots` is fixed-length (nulls for empty slots) so each place keeps its colour.
  */
-export function CompareView({ slots, model, country, theme, sourceMode, live, onAdd, onRemove, onClose, onOpen }) {
+export function CompareView({ slots, model, country, theme, sourceMode, standards, onStandards, live, onAdd, onRemove, onClose, onOpen }) {
   const ref = useRef(null)
   const toast = useToast()
   const [isFull, setIsFull] = useState(false)
@@ -32,6 +34,7 @@ export function CompareView({ slots, model, country, theme, sourceMode, live, on
   // Set when a row's "large chart" button opened focus mode: where to go back to.
   const [origin, setOrigin] = useState(null) // { rowKey, query, label }
   const [flashKey, setFlashKey] = useState(null)
+  const [info, setInfo] = useState(null) // the measure whose "About" dialog is open
   // One detail loader per slot (hooks must not be called conditionally).
   const d0 = useEntityDetail(slots[0]?.lat, slots[0]?.lon)
   const d1 = useEntityDetail(slots[1]?.lat, slots[1]?.lon)
@@ -126,7 +129,20 @@ export function CompareView({ slots, model, country, theme, sourceMode, live, on
             <button role="tab" aria-selected={mode === 'side'} className={mode === 'side' ? 'active' : ''} onClick={() => switchMode('side')}><Columns3 size={13} /> Side by side</button>
             <button role="tab" aria-selected={mode === 'focus'} className={mode === 'focus' ? 'active' : ''} onClick={() => switchMode('focus')}><ChartLine size={13} /> Focus chart</button>
           </div>
-          <span className="muted small">up to {MAX_COMPARE} places · scores from {familyById[sourceMode].short}</span>
+          <span className="muted small std-pickers">
+            <span>up to {MAX_COMPARE} places · scores from {familyById[sourceMode].short}</span>
+            {/* Each measure shows as the selected standard measures it: pick the standard here or in the Weights tab. */}
+            {Object.entries(STANDARDS).map(([id, s]) => {
+              const name = indicatorById[id].label.replace(/\s*\(.*\)$/, '')
+              return s.options.length > 1 && onStandards ? (
+                <label key={id}>{name}
+                  <select value={standardFor(id, standards).id} onChange={(ev) => onStandards({ ...standards, [id]: ev.target.value })} aria-label={`Standard for ${name.toLowerCase()}`}>
+                    {s.options.map((o) => <option key={o.id} value={o.id}>{o.short}</option>)}
+                  </select>
+                </label>
+              ) : <span key={id}>{name}: {standardFor(id, standards).short}</span>
+            })}
+          </span>
         </div>
         <div className="search-inline measure-search">
           <Search size={15} />
@@ -152,7 +168,7 @@ export function CompareView({ slots, model, country, theme, sourceMode, live, on
       </header>
 
       {mode === 'side' ? (
-        <SideBySide places={places} header={header} national={model.national} tk={t} onFocus={focus} query={query}
+        <SideBySide places={places} header={header} national={model.national} ranges={model.ranges} standards={standards} tk={t} onFocus={focus} onInfo={setInfo} query={query}
           scrollRef={sideScrollRef} initialScroll={sideScroll.current} flashKey={flashKey} onFlashDone={() => setFlashKey(null)} />
       ) : (
         <div className="fullview-body focus-body">
@@ -167,9 +183,10 @@ export function CompareView({ slots, model, country, theme, sourceMode, live, on
               : <span key={k} className="pill static muted"><Plus size={11} /> empty slot</span>))}
             <button className="link small" onClick={() => switchMode('side')}>Add or remove places</button>
           </div>
-          <FocusChart places={filled} national={model.national} theme={theme} measureId={measureId} onMeasure={setMeasureId} query={query} />
+          <FocusChart places={filled} national={model.national} theme={theme} measureId={measureId} onMeasure={setMeasureId} query={query} standards={standards} onInfo={setInfo} />
         </div>
       )}
+      {info && <MeasureInfo measure={info} standards={standards} onClose={() => setInfo(null)} />}
     </div>
   )
 }

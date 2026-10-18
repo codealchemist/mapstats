@@ -64,17 +64,33 @@ done < <(echo "$gh_ranges" | jq -r '(.web + .api + .git)[]' | aggregate -q)
 # Resolve and add other allowed domains
 for domain in \
     "registry.npmjs.org" \
+    "cds.climate.copernicus.eu" \
+    "object-store.os-api.cci2.ecmwf.int" \
     "api.anthropic.com" \
+    "zenodo.org" \
+    "censo.gob.ar" \
+    "www.paho.org" \
+    "iris.paho.org" \
+    "globaldatalab.org" \
+    "cdn.sheetjs.com" \
+    "archive-api.open-meteo.com" \
+    "air-quality-api.open-meteo.com" \
+    "historical-forecast-api.open-meteo.com" \
+    "api.open-meteo.com" \
+    "flood-api.open-meteo.com" \
+    "geocoding-api.open-meteo.com" \
+    "earthquake.usgs.gov" \
+    "www.indec.gob.ar" \
+    "www.argentina.gob.ar" \
+    "datos.gob.ar" \
+    "datosabiertos.enacom.gob.ar" \
     "sentry.io" \
     "statsig.anthropic.com" \
     "statsig.com" \
     "marketplace.visualstudio.com" \
     "vscode.blob.core.windows.net" \
-    "update.code.visualstudio.com" \
-    "player-broker.firstarrivingdigital.com" \
-    "player-broker-wss.staging.firstarrivingdigital.com" \
-    "player-broker-wss.ca-staging.firstarrivingdigital.com" \
-    "player-broker-wss-ca.firstarrivingdigital.com"; do
+    "update.code.visualstudio.com"
+do
     echo "Resolving $domain..."
     ips=$(dig +noall +answer A "$domain" | awk '$4 == "A" {print $5}')
     if [ -z "$ips" ]; then

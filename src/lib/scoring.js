@@ -1,21 +1,27 @@
 // MapStats livability score.
 //
-// 1. Each indicator is normalised to 0–100 on its fixed domain (metrics.js),
-//    flipped when lower is better, and clamped.
+// 1. Each indicator is scored 0–100: by the selected standard when it has standards (data/standards.js, the
+//    same for every place), else on its fixed score range (metrics.js scoreRange: anchors from the data, else
+//    the hand-set domain), flipped when lower is better, and clamped.
 // 2. A category score is the mean of its available indicator scores.
 // 3. The MapStats score is the weight-averaged category score, renormalising
 //    weights over the categories that have data, so missing data neither
 //    rewards nor punishes a place. `coverage` reports how much data was used.
 
-import { CATEGORIES, INDICATORS, indicatorById } from '../data/metrics.js'
-import { PROVINCES as AR_PROVINCES, CITIES as AR_CITIES, SNIC } from '../data/argentina.js'
+import { CATEGORIES, INDICATORS, indicatorById, scoreRange } from '../data/metrics.js'
+import { DEFAULT_STANDARDS, STANDARDS, standardFor, standardScore } from '../data/standards.js'
 import { haversineKm, labelPoint } from './geo.js'
-import { familyOf, isMultiSource } from '../data/sources.js'
+import { familyOf, isMultiSource, isRegionOnly } from '../core/providers.js'
 import { sourceWeight, percentile } from './sourceWeights.js'
+import { resolvePlaces, weightedMean } from '../core/resolve.js'
 
 const SCORED = INDICATORS.filter((i) => i.better)
-const NUMBEO_KEYS = ['crimeIndex', 'healthcareIndex', 'pollutionIndex', 'trafficIndex', 'costOfLiving', 'purchasingPower', 'qualityOfLife']
-const LIVE_KEYS = ['climateComfort', 'meanTemp', 'annualPrecip', 'snowfall', 'sunshine', 'elevation', 'aqi', 'quakes', 'tempMaxAnnual', 'tempMinAnnual', 'uvMean', 'floodWatch', 'floodPeakPast']
+// Live values per place: the climate summary and the air summary (src/lib/live.js), plus nearby earthquakes.
+const CLIMATE_KEYS = ['climateComfort', 'meanTemp', 'annualPrecip', 'snowfall', 'sunshine', 'elevation', 'tempMaxAnnual', 'tempMinAnnual', 'hotDays', 'tropicalNights', 'frostDays', 'heavyRainDays', 'drySpell']
+const AIR_KEYS = ['aqi', 'usAqi', 'pm25', 'aqiRecent', 'pm25WorstDay', 'aqiPoorDays', 'usAqiUnhealthyDays', 'pm25HighDays']
+const THERMAL_KEYS = ['thermalNws', 'thermalEccc', 'heatDangerDays', 'humidexDangerDays', 'frostbiteDays']
+const UV_KEYS = ['uvMean', 'uvScore', 'uvVeryHighDays', 'uvExtremeDays']
+const LIVE_KEYS = [...CLIMATE_KEYS, ...AIR_KEYS, ...THERMAL_KEYS, ...UV_KEYS, 'quakes', 'floodWatch', 'floodPeakPast']
 
 // True when the entity's value for `id` was measured for the entity itself (not copied from its province).
 export const isOwnValue = (entity, id) => entity.values[id] != null && !entity.inherited?.has(id)
@@ -23,10 +29,33 @@ export const isOwnValue = (entity, id) => entity.values[id] != null && !entity.i
 // City-level value or null: never falls back to the province baseline.
 export const ownValue = (entity, id) => (isOwnValue(entity, id) ? entity.values[id] : null)
 
-export function normalise(id, v) {
+// Real-value [min, max] of every indicator over the country's places (own values, as on the map legend).
+function valueRanges(entities) {
+  const ranges = {}
+  for (const e of entities) {
+    for (const i of INDICATORS) {
+      const v = ownValue(e, i.id)
+      if (v == null) continue
+      const r = (ranges[i.id] ||= [v, v])
+      if (v < r[0]) r[0] = v
+      if (v > r[1]) r[1] = v
+    }
+  }
+  return ranges
+}
+
+// Meter position (0–100) of a real value on the country's range, widened to include the values shown
+// (an ad-hoc place or the national average can fall outside it). Domains are for scores only.
+export function meterScale(range, shown = []) {
+  const vs = [...(range || []), ...shown.filter((v) => v != null)]
+  const lo = Math.min(...vs), hi = Math.max(...vs)
+  return (v) => (v == null ? null : hi === lo ? 50 : ((v - lo) / (hi - lo)) * 100)
+}
+
+function normalise(id, v) {
   const ind = indicatorById[id]
   if (v == null || !ind?.better) return null
-  const [lo, hi] = ind.domain
+  const [lo, hi] = scoreRange(id).range
   const n = Math.max(0, Math.min(1, (v - lo) / (hi - lo)))
   return (ind.better === 'high' ? n : 1 - n) * 100
 }
@@ -48,9 +77,10 @@ const median = (a) => {
  *    (lib/sourceWeights.js) and `spread` is the weighted standard deviation between sources.
  *  - '<family>': only that family, fixed-domain normalisation.
  * Only values measured for the place itself vote. Values borrowed from the province (`inherited`)
- * fill a category only when no source has local data for it. Provincial statistics are
- * province-level by nature and always count.
- * ctx: { type, snic, numbeo, dist } — dist[type][indicator] = sorted own values (for percentiles).
+ * fill a category only when no source has local data for it. Region-only families (e.g. provincial
+ * statistics) are region-level by nature and always count.
+ * ctx: { type, details, dist, standards } — dist[type][indicator] = sorted own values (for percentiles);
+ * standards: the selected standard per indicator (data/standards.js), applied to every place alike.
  */
 export function scoreValues(values, weights, mode = 'combined', inherited = null, ctx = {}) {
   const multi = isMultiSource(mode)
@@ -59,14 +89,16 @@ export function scoreValues(values, weights, mode = 'combined', inherited = null
   for (const c of CATEGORIES) {
     const own = {}, borrowed = {}
     for (const i of SCORED.filter((x) => x.category === c.id)) {
-      const f = familyOf(i.id)
+      const f = familyOf(i.id, ctx.standards)
       if (!multi && f !== mode) continue
       possible++
       const v = values[i.id]
       if (v == null) continue
-      const n = mode === 'weighted' ? percentileScore(i, v, f, ctx) : normalise(i.id, v)
+      const std = standardFor(i.id, ctx.standards)
+      const fixed = std ? standardScore(std, values[std.input]) : normalise(i.id, v)
+      const n = mode === 'weighted' ? percentileScore(i, v, f, ctx, fixed) : fixed
       if (n == null) continue
-      const isBorrowed = inherited?.has(i.id) && f !== 'provincial'
+      const isBorrowed = inherited?.has(i.id) && !isRegionOnly(f)
       ;((isBorrowed ? borrowed : own)[f] ||= []).push(n)
     }
     // Single-source views never show borrowed values; combined views use them only as a fallback.
@@ -99,13 +131,13 @@ export function scoreValues(values, weights, mode = 'combined', inherited = null
   return { score: wsum ? acc / wsum : null, categories, bySource, spread, sourceWeights, coverage: possible ? used / possible : 0 }
 }
 
-// Percentile among places of the same type covered by the source; falls back to the fixed domain
+// Percentile among places of the same type covered by the source; falls back to the fixed-scale score
 // when fewer than 3 places have the value (a percentile of 1–2 places says nothing).
-function percentileScore(ind, v, family, ctx) {
+function percentileScore(ind, v, family, ctx, fixed) {
   // Province-level statistics are compared against provinces, even when shown for a city.
-  const type = family === 'provincial' ? 'province' : ctx.type
+  const type = isRegionOnly(family) ? 'province' : ctx.type
   const sorted = ctx.dist?.[type]?.[ind.id]
-  if (!sorted || sorted.length < 3) return normalise(ind.id, v)
+  if (!sorted || sorted.length < 3) return fixed
   const p = percentile(sorted, v)
   return ind.better === 'high' ? p : 100 - p
 }
@@ -124,19 +156,7 @@ function distributions(entities) {
   return dist
 }
 
-const ctxOf = (e, dist) => ({ type: e.type === 'national' ? 'province' : e.type, snic: e.snic, numbeo: e.numbeo, dist })
-
-const weightedMean = (items, key) => {
-  let w = 0, s = 0
-  for (const it of items) {
-    const v = it.values[key]
-    if (v == null) continue
-    const k = it.values.pop || 1
-    w += k
-    s += v * k
-  }
-  return w ? s / w : null
-}
+const ctxOf = (e, dist, standards) => ({ type: e.type === 'national' ? 'province' : e.type, details: e.details, dist, standards })
 
 export function countQuakesNear(quakes, lat, lon, km = 200) {
   if (!quakes) return null
@@ -145,9 +165,27 @@ export function countQuakesNear(quakes, lat, lon, km = 200) {
   return n
 }
 
+// Indicators whose value is their selected standard's measure (data/standards.js valueFromInput), e.g. the heat
+// and cold stress score under US NWS or Environment Canada. The copy is borrowed from the region when the measure is
+// (UTCI is a dataset value a city without a grid point takes from its region).
+function standardValues(values, standards, inherited = null) {
+  for (const [id, s] of Object.entries(STANDARDS)) {
+    if (!s.valueFromInput) continue
+    const input = standardFor(id, standards).input
+    values[id] = values[input] ?? null
+    if (inherited?.has(input)) inherited.add(id)
+    else inherited?.delete(id)
+  }
+  return values
+}
+
+/** Dataset values per place for a country: depends only on its boundaries, places and datasets. */
+export const resolveCountry = (provincesGeo, cities, datasets = []) =>
+  resolvePlaces({ regionIds: provincesGeo.features.map((f) => f.properties.id), places: cities, datasets })
+
 // Points that need live data: every city, plus provinces that have no city to aggregate from.
 export function livePoints(provincesGeo, cities) {
-  const withCities = new Set(cities.map((c) => c.province))
+  const withCities = new Set(cities.map((c) => c.region))
   const provPts = provincesGeo.features
     .filter((f) => !withCities.has(f.properties.id))
     .map((f) => {
@@ -158,85 +196,58 @@ export function livePoints(provincesGeo, cities) {
 }
 
 export function liveValuesFor(id, lat, lon, live) {
-  const clim = live.climate?.[id]
+  const clim = live.climate?.[id], air = live.aqi?.[id]
   return {
-    climateComfort: clim?.climateComfort ?? null,
-    meanTemp: clim?.meanTemp ?? null,
-    annualPrecip: clim?.annualPrecip ?? null,
-    snowfall: clim?.snowfall ?? null,
-    sunshine: clim?.sunshine ?? null,
-    elevation: clim?.elevation ?? null,
-    aqi: live.aqi?.[id] ?? null,
-    tempMaxAnnual: clim?.tempMaxAnnual ?? null,
-    tempMinAnnual: clim?.tempMinAnnual ?? null,
-    uvMean: live.uv?.[id]?.uvMean ?? null,
+    ...Object.fromEntries(CLIMATE_KEYS.map((k) => [k, clim?.[k] ?? null])),
+    ...Object.fromEntries(AIR_KEYS.map((k) => [k, air?.[k] ?? null])),
+    ...Object.fromEntries(THERMAL_KEYS.map((k) => [k, live.thermal?.[id]?.[k] ?? null])),
+    ...Object.fromEntries(UV_KEYS.map((k) => [k, live.uv?.[id]?.[k] ?? null])),
     floodWatch: live.flood?.[id]?.river ? live.flood[id].floodWatch : null,
     floodPeakPast: live.flood?.[id]?.river ? live.flood[id].pastPeakRatio : null,
     quakes: live.quakes ? countQuakesNear(live.quakes, lat, lon) : null,
   }
 }
 
-// Base (curated) data for cities in a country. Non-curated countries use Natural Earth cities.
-export function baseCities(country, neCities) {
-  return country.curated && country.iso3 === 'ARG' ? AR_CITIES : neCities
-}
-
-export function buildEntities({ country, provincesGeo, cities, live, weights, sourceMode = 'combined' }) {
-  const curated = country.iso3 === 'ARG' ? AR_PROVINCES : {}
-
-  // Province-level Numbeo baseline (population-weighted over cities Numbeo covers), so
-  // uncovered towns are compared on the same indicators instead of silently skipping them.
-  const numbeoBaseline = {}
-  for (const c of cities) {
-    if (!NUMBEO_KEYS.some((k) => c[k] != null)) continue
-    const b = (numbeoBaseline[c.province] ||= [])
-    b.push({ values: { ...Object.fromEntries(NUMBEO_KEYS.map((k) => [k, c[k] ?? null])), pop: c.pop } })
-  }
-
-  // Cities: province baseline -> city-specific (Numbeo) -> live.
+/**
+ * Scored places of a country.
+ * @param provincesGeo  region boundaries (FeatureCollection, properties.id / name)
+ * @param cities        places: the country's curated list or Natural Earth's ({ id, name, region, lat, lon, pop, codes })
+ * @param datasets      the country's datasets (countries/<ISO3>/data), see src/core/resolve.js
+ * @param base          resolvePlaces() of the same geo, cities and datasets, when the caller keeps it between builds
+ * @param live          live layers (useLiveData)
+ * @param standards     the standard chosen per indicator (data/standards.js)
+ */
+export function buildEntities({ provincesGeo, cities, datasets = [], base = resolveCountry(provincesGeo, cities, datasets), live, weights, sourceMode = 'combined', standards = DEFAULT_STANDARDS }) {
+  // Cities: dataset values (own or borrowed from the region) + live. Copied: `base` outlives this build.
   const cityEntities = cities.map((c) => {
-    const prov = curated[c.province] || {}
-    const values = { ...prov, pop: c.pop }
-    const inherited = new Set(Object.keys(prov).filter((k) => k !== 'pop'))
-    for (const k of NUMBEO_KEYS) {
-      if (c[k] != null) values[k] = c[k]
-      else if (numbeoBaseline[c.province]) {
-        values[k] = weightedMean(numbeoBaseline[c.province], k)
-        if (values[k] != null) inherited.add(k)
-      }
-    }
-    // Values measured for the city itself (e.g. its SNIC department) override the province baseline.
-    for (const [k, v] of Object.entries(c.ownValues || {})) {
-      values[k] = v
-      inherited.delete(k)
-    }
+    const b = base.cities[c.id]
+    const values = { ...b.values }, inherited = new Set(b.inherited), details = b.details
     const lv = liveValuesFor(c.id, c.lat, c.lon, live)
     for (const k of LIVE_KEYS) values[k] = lv[k]
+    standardValues(values, standards, inherited)
     return {
-      type: 'city', id: c.id, name: c.name, province: c.province, lat: c.lat, lon: c.lon,
-      capital: c.capital, numbeoSlug: c.numbeoSlug, values, inherited, snic: c.snic || null,
-      numbeo: c.numbeoSource ? { source: c.numbeoSource, fetchedAt: c.numbeoFetchedAt, contributors: c.numbeoContributors, survey: c.numbeoSurvey, safetyIndex: c.safetyIndex ?? null } : null,
+      type: 'city', id: c.id, name: c.name, province: c.region, lat: c.lat, lon: c.lon,
+      capital: c.capital, codes: c.codes || {}, values, inherited, details,
     }
   })
 
-  // Provinces: curated values, Numbeo + live aggregated from their cities (population-weighted).
+  // Regions: dataset values + live aggregated from their cities (population-weighted), or their own point.
   const provEntities = provincesGeo.features.map((f) => {
     const id = f.properties.id
     const [lon, lat] = labelPoint(f)
     const own = cityEntities.filter((c) => c.province === id)
-    const values = { ...(curated[id] || {}) }
-    if (values.pop) values.pop *= 1000
+    const r = base.regions[id]
+    const values = { ...r.values }
     for (const k of LIVE_KEYS) values[k] = own.length ? weightedMean(own, k) : null
-    for (const k of NUMBEO_KEYS) values[k] = numbeoBaseline[id] ? weightedMean(numbeoBaseline[id], k) : null
     if (!own.length) Object.assign(values, liveValuesFor(`prov:${id}`, lat, lon, live))
-    const snic = country.iso3 === 'ARG' && SNIC.provinces?.[id] ? { level: 'province', ...SNIC.provinces[id] } : null
-    return { type: 'province', id, name: f.properties.name, lat, lon, values, cityCount: own.length, snic }
+    standardValues(values, standards)
+    return { type: 'province', id, name: f.properties.name, lat, lon, values, cityCount: own.length, details: r.details, inheritable: r.inheritable }
   })
 
   const all = [...provEntities, ...cityEntities]
   const dist = distributions(all)
   for (const e of all) {
-    const ctx = ctxOf(e, dist)
+    const ctx = ctxOf(e, dist, standards)
     Object.assign(e, scoreValues(e.values, weights, sourceMode, e.inherited, ctx))
     // Both integration methods, always, so reports can compare them side by side.
     e.compare = {
@@ -250,9 +261,9 @@ export function buildEntities({ country, provincesGeo, cities, live, weights, so
   const provinceName = Object.fromEntries(provEntities.map((p) => [p.id, p.name]))
   cityEntities.forEach((c) => (c.provinceName = provinceName[c.province] || ''))
 
-  const national = nationalAverage(provEntities, weights, sourceMode, dist)
-  if (country.iso3 === 'ARG' && SNIC.national) national.snic = { ...SNIC.national, years: SNIC.years }
-  return { provinces: provEntities, cities: cityEntities, national, dist, snicOrigin: country.iso3 === 'ARG' ? SNIC.origin || null : null }
+  const national = nationalAverage(provEntities, weights, sourceMode, dist, standards)
+  national.details = base.national.details
+  return { provinces: provEntities, cities: cityEntities, national, dist, ranges: valueRanges(all), datasets: base.meta }
 }
 
 function rank(list) {
@@ -261,12 +272,12 @@ function rank(list) {
   list.forEach((e) => (e.rankOf = sorted.length))
 }
 
-function nationalAverage(provinces, weights, sourceMode, dist) {
+function nationalAverage(provinces, weights, sourceMode, dist, standards) {
   const values = {}
   for (const ind of INDICATORS) values[ind.id] = weightedMean(provinces, ind.id)
   const totalPop = provinces.reduce((s, p) => s + (p.values.pop || 0), 0)
   values.pop = totalPop || null
-  const ctx = { type: 'province', dist }
+  const ctx = { type: 'province', dist, standards }
   return {
     type: 'national', id: 'national', name: 'National average', values, ...scoreValues(values, weights, sourceMode, null, ctx),
     compare: { combined: scoreValues(values, weights, 'combined', null, ctx), weighted: scoreValues(values, weights, 'weighted', null, ctx) },
@@ -274,16 +285,16 @@ function nationalAverage(provinces, weights, sourceMode, dist) {
 }
 
 // For a city typed into search that isn't in our list: score it with live data
-// (and its province's curated baseline when it falls inside the current country).
-export function adHocEntity({ place, provinceId, provinceName, provinceEntity, country, live, weights, sourceMode = 'combined', dist = null }) {
-  const prov = { ...(country.iso3 === 'ARG' ? AR_PROVINCES[provinceId] || {} : {}) }
-  for (const k of NUMBEO_KEYS) if (provinceEntity?.values[k] != null) prov[k] = provinceEntity.values[k]
-  const values = { ...prov, pop: place.pop, ...live }
+// (and what its region's cities borrow from it, when it falls inside the current country).
+export function adHocEntity({ place, provinceId, provinceName, provinceEntity, live, weights, sourceMode = 'combined', dist = null, standards = DEFAULT_STANDARDS }) {
+  const prov = { ...provinceEntity?.inheritable }
+  const inherited = new Set(Object.keys(prov).filter((k) => k !== 'pop'))
+  const values = standardValues({ ...prov, pop: place.pop, ...live }, standards, inherited)
   const e = {
     type: 'city', id: place.id, name: place.name, province: provinceId, provinceName: provinceName || place.admin1 || '',
-    lat: place.lat, lon: place.lon, values, inherited: new Set(Object.keys(prov).filter((k) => k !== 'pop')), adHoc: true,
+    lat: place.lat, lon: place.lon, values, inherited, adHoc: true,
   }
-  const ctx = { type: 'city', dist }
+  const ctx = { type: 'city', dist, standards }
   Object.assign(e, scoreValues(values, weights, sourceMode, e.inherited, ctx))
   e.compare = { combined: scoreValues(values, weights, 'combined', e.inherited, ctx), weighted: scoreValues(values, weights, 'weighted', e.inherited, ctx) }
   return e

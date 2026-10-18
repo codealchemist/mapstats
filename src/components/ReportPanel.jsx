@@ -2,6 +2,7 @@ import { useCallback, useMemo, useRef, useState } from 'react'
 import {
   X, FileText, FileSpreadsheet, ExternalLink, MapPin, Building2, Users, Mountain, Thermometer, CloudRain,
   Wind, Sun, LoaderCircle, ShieldAlert, Database, Columns3, CircleAlert, Activity, ChevronRight, Smile, Meh, Frown, Info,
+  TriangleAlert,
 } from 'lucide-react'
 import { CATEGORIES, INDICATORS, indicatorById } from '../data/metrics.js'
 import { ICONS } from './icons.js'
@@ -9,20 +10,22 @@ import { ChartCard, ChartRegistry, renderOffscreen } from './charts/ChartCard.js
 import { baseOptions, barStyle, lineStyle } from './charts/theme.js'
 import { useEntityDetail } from '../hooks/useEntityDetail.js'
 import { fmtIndicator, fmtNum, fmtScore, MONTHS } from '../lib/format.js'
-import { normalise, isOwnValue } from '../lib/scoring.js'
+import { meterScale, isOwnValue } from '../lib/scoring.js'
 import { haversineKm } from '../lib/geo.js'
 import { downloadBlob, reportCsv, reportPdf } from '../lib/export.js'
 import { slug } from '../lib/format.js'
 import { scoreTone } from '../lib/colors.js'
 import { useToast } from './Toast.jsx'
-import { SURVEY, SURVEY_SAFER_HIGH } from '../data/numbeoSurvey.js'
 import { valuesBySource, fmtExact } from '../lib/provenance.js'
-import { familyById, SOURCE_FAMILIES, isMultiSource } from '../data/sources.js'
+import { familyById, SOURCE_FAMILIES, isMultiSource, sourcesForIndicators, providersFor, reportProviders } from '../core/providers.js'
+import { hasBlock, TrendBlock } from './report/ProviderBlocks.jsx'
+import { warningsFor } from '../lib/warnings.js'
 import { agreementOf } from '../lib/sourceWeights.js'
 import { floodLevel } from './mapLayers.js'
 import { NewsSection } from './NewsSection.jsx'
 import { SourceButtons } from './SourceButtons.jsx'
-import { sourcesForIndicators } from '../data/sources.js'
+import { MeasureInfo } from './MeasureInfo.jsx'
+import { hiddenMeasures, standardOfMeasure, measureBand, scoresFor } from '../data/standards.js'
 
 const EAQI = [
   [20, 'Good', 'good'], [40, 'Fair', 'good'], [60, 'Moderate', 'warning'],
@@ -43,11 +46,12 @@ const SECTIONS = [
   { id: 'indicators', label: 'Indicators' },
 ]
 
-export function ReportPanel({ entity, model, country, live, theme, onClose, onSelect, sourceMode = 'combined', onCompare, compareState = 'open' }) {
+export function ReportPanel({ entity, model, country, live, theme, onClose, onSelect, sourceMode = 'combined', standards, onCompare, compareState = 'open' }) {
   const registryRef = useRef(null)
   const scrollRef = useRef(null)
   const toast = useToast()
   const [exporting, setExporting] = useState(false)
+  const [info, setInfo] = useState(null) // the measure whose "About" dialog is open
   const detail = useEntityDetail(entity.lat, entity.lon)
   const national = model.national
   const isCity = entity.type === 'city'
@@ -147,39 +151,12 @@ export function ReportPanel({ entity, model, country, live, theme, onClose, onSe
     options: baseOptions(t, { horizontal: true, suggestedMax: 100 }),
   }), [provinceCities])
 
-  const survey = entity.numbeo?.survey
-  const surveyRows = useMemo(() => (survey ? SURVEY.filter(([k]) => survey[k] != null && !SURVEY_SAFER_HIGH.has(k)) : []), [survey])
-  const safetyRows = useMemo(() => (survey ? SURVEY.filter(([k]) => survey[k] != null && SURVEY_SAFER_HIGH.has(k)) : []), [survey])
-  const surveyBar = (rows, color) => (t) => ({
-    type: 'bar',
-    data: { labels: rows.map(([, label]) => label), datasets: [{ label: 'Survey score (0–100)', data: rows.map(([k]) => survey[k]), ...barStyle(t.series[color]) }] },
-    options: baseOptions(t, { horizontal: true, suggestedMax: 100 }),
-  })
-  const buildSurvey = useCallback(surveyBar(surveyRows, 1), [surveyRows]) // eslint-disable-line react-hooks/exhaustive-deps
-  const buildWalking = useCallback(surveyBar(safetyRows, 0), [safetyRows]) // eslint-disable-line react-hooks/exhaustive-deps
+  // Providers presenting safety data for this place (official series, surveys…), and their external pages.
+  const safetyProviders = reportProviders(country, 'safety')
+  const ownSafety = SAFETY_KEYS.filter((k) => isOwnValue(entity, k))
+  const links = providersFor(country).flatMap((p) => p.links?.(entity) || [])
 
-  // Official SNIC series: this place vs its province vs the country (cities sit in a SNIC department).
-  const snic = entity.snic
-  const snicProv = isCity ? model.provinces.find((p) => p.id === entity.province)?.snic : null
-  const snicNat = national.snic
-  const snicYears = snicNat?.years || []
-  const snicLabel = !snic ? '' : snic.level === 'department' ? `${snic.name} department` : snic.level === 'city' ? snic.name : entity.name
-  const buildSnicTrend = (metric) => (t) => ({
-    type: 'line',
-    data: {
-      labels: snicYears,
-      datasets: [
-        { label: snicLabel, data: snic.series[metric], ...lineStyle(t.series[0]), pointRadius: 2.5 },
-        ...(snicProv ? [{ label: snicProv.name, data: snicProv.series[metric], ...lineStyle(t.series[1]), pointRadius: 0 }] : []),
-        { label: 'Argentina', data: snicNat.series[metric], ...lineStyle(t.de), borderDash: [], pointRadius: 0 },
-      ],
-    },
-    options: baseOptions(t, { legend: true, yTitle: 'per 100,000' }),
-  })
-  const buildHomicideTrend = useCallback(buildSnicTrend('homicide'), [snic, snicProv, snicNat]) // eslint-disable-line react-hooks/exhaustive-deps
-  const buildPropertyTrend = useCallback(buildSnicTrend('propertyCrime'), [snic, snicProv, snicNat]) // eslint-disable-line react-hooks/exhaustive-deps
-
-  const sourceGroups = useMemo(() => valuesBySource({ entity, model, detail, quakes, live }), [entity, model, detail, quakes, live])
+  const sourceGroups = useMemo(() => valuesBySource({ entity, model, country, detail, quakes, live }), [entity, model, country, detail, quakes, live])
 
   // ---------- exports ----------
   const exportPdf = async () => {
@@ -187,7 +164,7 @@ export function ReportPanel({ entity, model, country, live, theme, onClose, onSe
     try {
       await new Promise((r) => setTimeout(r, 30))
       const charts = [...(registryRef.current?.values() || [])].map(({ title, build }) => ({ title, ...renderOffscreen(build) }))
-      await reportPdf({ entity, national, charts, countryName: country.name, sourceGroups })
+      await reportPdf({ entity, national, charts, countryName: country.name, sourceGroups, standards })
       toast('PDF report downloaded')
     } catch (e) {
       console.error(e)
@@ -197,7 +174,7 @@ export function ReportPanel({ entity, model, country, live, theme, onClose, onSe
     }
   }
   const exportCsv = () => {
-    downloadBlob(reportCsv(entity, detail, sourceGroups), `mapstats-${slug(entity.name)}.csv`)
+    downloadBlob(reportCsv(entity, detail, sourceGroups, standards), `mapstats-${slug(entity.name)}.csv`)
     toast('CSV downloaded')
   }
 
@@ -279,6 +256,8 @@ export function ReportPanel({ entity, model, country, live, theme, onClose, onSe
               <Tile icon={Sun} label="UV today" value={uvToday != null ? fmtNum(uvToday, 1) : '—'} status={uvLvl} />
             </div>
 
+            <Warnings list={warningsFor(entity, standards)} />
+
             <ChartCard id="categories" title="Score by category" subtitle="0–100, higher is better" theme={theme} build={buildCategories} height={230}
               table={{ columns: ['Category', entity.name, 'Country avg.'], rows: CATEGORIES.map((c) => [c.label, fmtScore(entity.categories[c.id]), fmtScore(national.categories[c.id])]) }} />
 
@@ -299,14 +278,9 @@ export function ReportPanel({ entity, model, country, live, theme, onClose, onSe
               </div>
             )}
 
-            {(entity.numbeoSlug || isCity) && (
+            {(links.length > 0 || isCity) && (
               <div className="ext-links">
-                {entity.numbeoSlug && (
-                  <a href={`https://es.numbeo.com/criminalidad/ciudad/${entity.numbeoSlug}`} target="_blank" rel="noreferrer">Numbeo crime <ExternalLink size={12} /></a>
-                )}
-                {entity.numbeoSlug && (
-                  <a href={`https://es.numbeo.com/calidad-de-vida/ciudad/${entity.numbeoSlug}`} target="_blank" rel="noreferrer">Numbeo quality of life <ExternalLink size={12} /></a>
-                )}
+                {links.map((l) => <a key={l.url} href={l.url} target="_blank" rel="noreferrer">{l.label} <ExternalLink size={12} /></a>)}
                 <a href={`https://es.wikipedia.org/wiki/Special:Search?search=${encodeURIComponent(entity.name + ' ' + country.name)}`} target="_blank" rel="noreferrer">Wikipedia <ExternalLink size={12} /></a>
               </div>
             )}
@@ -315,73 +289,24 @@ export function ReportPanel({ entity, model, country, live, theme, onClose, onSe
           {/* ---------- Safety ---------- */}
           <section id="sec-safety" className="report-section">
             <SectionHead icon={ShieldAlert} title="Safety"
-              sub={[snic && 'Official SNIC statistics', entity.numbeo?.survey && 'Numbeo survey'].filter(Boolean).join(' · ') || (isCity ? 'City-level crime data' : 'Province crime statistics')}
-              sources={sourcesForIndicators(['crimeIndex', 'homicide', 'propertyCrime', 'roadDeaths'].filter((k) => isOwnValue(entity, k)))} entity={entity} category="safety" />
-            {['crimeIndex', 'homicide', 'propertyCrime', 'roadDeaths'].some((k) => isOwnValue(entity, k)) && (
+              sub={safetyProviders.filter((p) => hasBlock(p, entity)).map((p) => p.report.label).join(' · ') || (isCity ? 'City-level crime data' : 'Province crime statistics')}
+              sources={sourcesForIndicators(ownSafety)} />
+            {ownSafety.length > 0 && (
               <div className="kv">
-                {['crimeIndex', 'homicide', 'propertyCrime', 'roadDeaths'].filter((k) => isOwnValue(entity, k)).map((k) => (
+                {ownSafety.map((k) => (
                   <span key={k}>{indicatorById[k].label} <b>{fmtIndicator(k, entity.values[k])}</b> <span className="faint">avg {fmtIndicator(k, national.values[k])}</span></span>
                 ))}
-                {entity.numbeo?.safetyIndex != null && <span>Safety index <b>{fmtNum(entity.numbeo.safetyIndex, 2)}</b></span>}
-                {entity.numbeo?.contributors != null && <span>Contributors <b>{entity.numbeo.contributors}</b></span>}
               </div>
             )}
-            {entity.numbeo?.source === 'snapshot' && (
-              <p className="note"><Info size={13} /> Numbeo values for {entity.name} are an approximate snapshot. Run the Numbeo scraper or check the live page.</p>
-            )}
-            {snic && snicYears.length > 0 && (
-              <>
-                <div className="sub-head">
-                  Official statistics · SNIC {snicYears[0]}–{snic.latestYear}
-                  <span className="muted small"> · {snic.level === 'department' ? `${snic.name} department (partido), the finest level SNIC publishes` : snic.level === 'city' ? 'city-wide' : 'province-wide'}</span>
-                </div>
-                <ChartCard id="snic-homicide" title="Homicide rate" subtitle="Victims of intentional homicide per 100,000 · SNIC" theme={theme} build={buildHomicideTrend} height={190}
-                  table={{ columns: ['Year', snicLabel, ...(snicProv ? [snicProv.name] : []), 'Argentina'], rows: snicYears.map((y, i) => [y, fmt2(snic.series.homicide[i]), ...(snicProv ? [fmt2(snicProv.series.homicide[i])] : []), fmt2(snicNat.series.homicide[i])]) }} />
-                <ChartCard id="snic-property" title="Robberies and thefts" subtitle="Incidents per 100,000 · SNIC" theme={theme} build={buildPropertyTrend} height={190}
-                  table={{ columns: ['Year', snicLabel, ...(snicProv ? [snicProv.name] : []), 'Argentina'], rows: snicYears.map((y, i) => [y, fmt0(snic.series.propertyCrime[i]), ...(snicProv ? [fmt0(snicProv.series.propertyCrime[i])] : []), fmt0(snicNat.series.propertyCrime[i])]) }} />
-                <div className="table-wrap">
-                  <table className="data-table">
-                    <thead><tr><th>Crime type ({snic.latestYear}, per 100k)</th><th className="num">{isCity ? 'Department' : entity.name}</th>{snicProv && <th className="num">Province</th>}<th className="num">Argentina</th></tr></thead>
-                    <tbody>
-                      {Object.entries(SNIC_TABLE).map(([k, label]) => (
-                        <tr key={k}>
-                          <td>{label}</td>
-                          <td className="num">{fmtRate(snic.latest[k])}</td>
-                          {snicProv && <td className="num">{fmtRate(snicProv.latest[k])}</td>}
-                          <td className="num">{fmtRate(snicNat.latest[k])}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-                <p className="chart-foot">Scores use 3-year averages. Rates are as published by SNIC; blank cells are not published for this area.</p>
-              </>
-            )}
-            {surveyRows.length > 0 && (
-              <div className="sub-head">
-                Numbeo crowd-sourced survey
-                <span className="muted small"> · {entity.numbeo.source === 'scraped' ? 'scraped' : entity.numbeo.source} {entity.numbeo.fetchedAt || ''}</span>
-              </div>
-            )}
-            {surveyRows.length > 0 && (
-              <ChartCard id="survey" title="Crime perception survey" subtitle="Numbeo, 0–100 · higher = worse" theme={theme} build={buildSurvey}
-                height={surveyRows.length * 26 + 40}
-                table={{ columns: ['Question', 'Score'], rows: surveyRows.map(([k, label]) => [label, survey[k]]) }}
-                footnote="0–20 very low · 20–40 low · 40–60 moderate · 60–80 high · 80–100 very high" />
-            )}
-            {safetyRows.length > 0 && (
-              <ChartCard id="walking" title="Perceived safety walking alone" subtitle="Numbeo, 0–100 · higher = safer" theme={theme} build={buildWalking}
-                height={safetyRows.length * 30 + 40}
-                table={{ columns: ['Question', 'Score'], rows: safetyRows.map(([k, label]) => [label, survey[k]]) }} />
-            )}
-            <MissingStats entity={entity} ids={['crimeIndex', 'homicide', 'propertyCrime', 'roadDeaths'].filter((k) => !isOwnValue(entity, k))} category="safety" />
+            {safetyProviders.map((p) => <TrendBlock key={p.id} provider={p} entity={entity} model={model} country={country} theme={theme} />)}
+            <MissingStats entity={entity} ids={SAFETY_KEYS.filter((k) => !isOwnValue(entity, k))} />
           </section>
 
           <NewsSection entity={entity} country={country} model={model} />
 
           {/* ---------- Climate ---------- */}
           <section id="sec-climate" className="report-section">
-            <SectionHead icon={Thermometer} title="Climate" sub={clim ? `ERA5 reanalysis, ${clim.period}` : 'ERA5 reanalysis, last 10 years'} status={detail.status.climate} sources={['Open-Meteo ERA5 (live)']} />
+            <SectionHead icon={Thermometer} title="Climate" sub={clim ? `ERA5 reanalysis, ${clim.period}` : 'ERA5 reanalysis, last 10 years'} status={detail.status.climate} sources={['open-meteo-era5']} />
             {clim && (
               <>
                 <div className="kv">
@@ -412,7 +337,7 @@ export function ReportPanel({ entity, model, country, live, theme, onClose, onSe
 
           {/* ---------- Air & UV ---------- */}
           <section id="sec-air" className="report-section">
-            <SectionHead icon={Wind} title="Air quality & UV" sub="Copernicus CAMS via Open-Meteo, last 92 days" status={detail.status.air} sources={['Open-Meteo CAMS (live)', 'Open-Meteo UV (live)']} />
+            <SectionHead icon={Wind} title="Air quality & UV" sub="Copernicus CAMS via Open-Meteo, last 92 days" status={detail.status.air} sources={['open-meteo-cams', 'open-meteo-uv']} />
             {air && (
               <>
                 <ChartCard id="aqi" title="Daily air quality" subtitle="European AQI, daily mean" theme={theme} build={buildAqi}
@@ -430,7 +355,7 @@ export function ReportPanel({ entity, model, country, live, theme, onClose, onSe
           {/* ---------- Risks ---------- */}
           <section id="sec-risks" className="report-section">
             <SectionHead icon={Activity} title="Natural risks" sub="USGS earthquakes M5+ within 200 km since 1980" status={live.status.quakes}
-              sources={['USGS (live)']} />
+              sources={['usgs']} />
             {HAZARD_KEYS.some((k) => isOwnValue(entity, k)) && (
               <div className="kv">
                 {HAZARD_KEYS.filter((k) => isOwnValue(entity, k)).map((k) => (
@@ -462,26 +387,33 @@ export function ReportPanel({ entity, model, country, live, theme, onClose, onSe
 
           {/* ---------- Indicators ---------- */}
           <section id="sec-indicators" className="report-section">
-            <SectionHead icon={Info} title="All indicators" sub="Value · country average · normalised score" />
-            {CATEGORIES.map((c) => <IndicatorGroup key={c.id} category={c} entity={entity} national={national} />)}
+            <SectionHead icon={Info} title="All indicators" sub="Value · position between the lowest and highest in the country · country average" />
+            {CATEGORIES.map((c) => <IndicatorGroup key={c.id} category={c} entity={entity} national={national} ranges={model.ranges} standards={standards} onInfo={setInfo} />)}
           </section>
         </ChartRegistry>
       </div>
+      {info && <MeasureInfo measure={info} standards={standards} onClose={() => setInfo(null)} />}
     </aside>
   )
 }
 
 const round1 = (v) => (v == null ? null : Math.round(v * 10) / 10)
-const fmt2 = (v) => (v == null ? null : v.toFixed(2))
-const fmt0 = (v) => (v == null ? null : Math.round(v).toLocaleString('en'))
-const fmtRate = (v) => (v == null ? '—' : v >= 100 ? Math.round(v).toLocaleString('en') : v.toFixed(1))
 
-const SNIC_TABLE = {
-  homicide: 'Intentional homicide (victims)', robbery: 'Robbery', theft: 'Theft', injuries: 'Intentional injuries',
-  threats: 'Threats', sexualAssault: 'Rape', drugs: 'Drug law offences', roadDeaths: 'Road deaths (victims)',
+// Extremes a good yearly mean would hide (lib/warnings.js).
+function Warnings({ list }) {
+  if (!list.length) return null
+  return (
+    <div className="warnings" role="note" aria-label="Warnings">
+      {list.map((w) => (
+        <p key={w.id} className="note warn">
+          <TriangleAlert size={13} /> <span><b>{w.text}</b> <span className="muted small">· {w.why} · <a href={w.url} target="_blank" rel="noreferrer">{w.source}</a></span></span>
+        </p>
+      ))}
+    </div>
+  )
 }
 
-function SectionHead({ icon: Icon, title, sub, status, sources, entity, category }) {
+function SectionHead({ icon: Icon, title, sub, status, sources }) {
   return (
     <>
       <div className="section-head">
@@ -493,7 +425,7 @@ function SectionHead({ icon: Icon, title, sub, status, sources, entity, category
         {status === 'loading' && <LoaderCircle size={15} className="spin muted push" />}
         {status === 'error' && <span className="push err small"><CircleAlert size={13} /> unavailable</span>}
       </div>
-      <SourceButtons keys={sources} entity={entity} category={category} />
+      <SourceButtons keys={sources} />
     </>
   )
 }
@@ -523,10 +455,12 @@ function Coverage({ value = 0 }) {
   )
 }
 
-function IndicatorGroup({ category, entity, national }) {
+function IndicatorGroup({ category, entity, national, ranges, standards, onInfo }) {
   const Icon = ICONS[category.icon]
   const isCity = entity.type === 'city'
-  const inCategory = INDICATORS.filter((i) => i.category === category.id)
+  // One row per measure, as the selected standard measures it (data/standards.js hiddenMeasures).
+  const hidden = hiddenMeasures(standards)
+  const inCategory = INDICATORS.filter((i) => i.category === category.id && !hidden.has(i.id))
   // Cities only show values measured for the city; province figures are reported as missing.
   const rows = inCategory.filter((i) => (isCity ? isOwnValue(entity, i.id) : entity.values[i.id] != null || national.values[i.id] != null))
   const missing = isCity ? inCategory.filter((i) => i.better && !isOwnValue(entity, i.id)).map((i) => i.id) : []
@@ -537,30 +471,35 @@ function IndicatorGroup({ category, entity, national }) {
         <span><Icon size={14} /> {category.label}</span>
         <span className="muted small">{fmtScore(entity.categories[category.id])} <span className="faint">/ avg {fmtScore(national.categories[category.id])}</span></span>
       </div>
-      <SourceButtons keys={sourcesForIndicators(rows.map((i) => i.id))} entity={entity} category={category.id} label={null} />
+      <SourceButtons keys={sourcesForIndicators(rows.map((i) => i.id), standards)} label={null} />
       {rows.map((i) => {
-        const n = normalise(i.id, entity.values[i.id])
-        const na = normalise(i.id, national.values[i.id])
+        const v = entity.values[i.id], avg = national.values[i.id], range = ranges[i.id]
+        const pos = meterScale(range, [v, avg])
+        // A standard's own measure (US AQI under US EPA) reads like the indicator it scores.
+        const better = i.better || indicatorById[scoresFor(i.id, standards)]?.better || null
+        const n = better ? pos(v) : null
+        const na = better ? pos(avg) : null
         return (
           <div key={i.id} className="ind-row">
-            <div className="ind-label">{i.label}</div>
-            <div className="ind-val">{fmtIndicator(i.id, entity.values[i.id])}</div>
-            <div className="meter" title={n != null ? `Normalised score ${Math.round(n)}/100` : 'Not scored'}>
+            <button className="ind-label" onClick={() => onInfo({ indicator: i.id, sub: standardOfMeasure(i.id, standards)?.name })} title="What this measures and how to read it">{i.label}</button>
+            <div className="ind-val" title={measureBand(i.id, v, standards) || undefined}>{fmtIndicator(i.id, v)}</div>
+            <div className={`meter dir-${better}`} title={n != null && range ? `Lowest to highest in the country: ${fmtIndicator(i.id, range[0])} – ${fmtIndicator(i.id, range[1])} (${better === 'low' ? 'lower' : 'higher'} is better)` : 'Not scored'}>
               {n != null && <span style={{ width: `${n}%` }} />}
               {na != null && <i style={{ left: `${na}%` }} title="Country average" />}
             </div>
           </div>
         )
       })}
-      <MissingStats entity={entity} ids={missing} category={category.id} />
+      <MissingStats entity={entity} ids={missing} standards={standards} />
     </div>
   )
 }
 
-const HAZARD_KEYS = ['seismicZone', 'fireRisk', 'floodRisk']
+const HAZARD_KEYS = ['seismicZone']
+const SAFETY_KEYS = ['homicide', 'propertyCrime', 'roadDeaths']
 
 // Notice for indicators with no city-level data, with links to where they could be found.
-function MissingStats({ entity, ids, category }) {
+function MissingStats({ entity, ids, standards }) {
   if (entity.type !== 'city' || !ids.length) return null
   const fallback = ids.filter((id) => entity.inherited?.has(id))
   return (
@@ -572,7 +511,7 @@ function MissingStats({ entity, ids, category }) {
           The score uses province-level figures{entity.provinceName ? ` (${entity.provinceName})` : ''} for {fallback.length === ids.length ? 'these' : fallback.map((id) => indicatorById[id].label.toLowerCase()).join(', ')}.
         </div>
       )}
-      <SourceButtons keys={sourcesForIndicators(ids)} entity={entity} category={category} label="Look up" />
+      <SourceButtons keys={sourcesForIndicators(ids, standards)} label="Look up" />
     </div>
   )
 }

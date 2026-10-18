@@ -4,7 +4,7 @@
 // When the time budget runs out before every picked article is read, the partial result is
 // cached with complete:false and the next request continues where this one stopped.
 import { newsQuery, fold } from '../../src/lib/news.js'
-import { newsSettings, countryByIso } from '../../src/data/countries.js'
+import { newsSettings, countryByIso } from '../../src/core/countries.js'
 import { Deadline, fetchText, hostOf } from './http.mjs'
 import { googleNewsItems, decodeGoogleNewsUrl } from './googleNews.mjs'
 import { outletItems } from './feeds.mjs'
@@ -40,14 +40,14 @@ export async function getNews({ place, region, type, countryIso3, withRegion }, 
   const expiresAt = entry?.fresh ? entry.expiresAt : now() + DAY
   if (!state) {
     // Up to 3 local outlets per request keeps the first (uncached) request inside the time budget.
-    const outlets = outletsFor(country.iso3, region, place).slice(0, 3)
-    const results = await Promise.all([googleNewsItems(query, country.iso2, ctx), ...outlets.map((o) => outletItems(o, ctx))])
+    const outlets = outletsFor(country, region, place).slice(0, 3)
+    const results = await Promise.all([googleNewsItems(query, country.news.edition, ctx), ...outlets.map((o) => outletItems(o, ctx))])
     // Local outlets often never name the province or country, so a scoped search can come back thin:
     // then also run the place-only search (still disambiguated by region when the name is ambiguous).
     const scopedHits = results[0].filter((it) => fold(it.title).includes(fold(place)) || relevance(it, match) > 0).length
     let fallbackUsed = false
     if (scopedHits < MIN_SCOPED && looseQuery !== query && deadline.left() > 4500) {
-      results.push(await googleNewsItems(looseQuery, country.iso2, ctx))
+      results.push(await googleNewsItems(looseQuery, country.news.edition, ctx))
       fallbackUsed = true
     }
     const answered = results.some((r) => r.length) // at least one source returned a parseable feed

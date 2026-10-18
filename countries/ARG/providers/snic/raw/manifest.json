@@ -1,0 +1,16 @@
+{
+  "files": {
+    "snic_departamentos_2000_2025.xlsx": {
+      "note": "GitHub mirror crisgomez79/dashboard-snic (copies of the SNIC provincial and departmental bases 2000-2025); replace with the official downloads",
+      "retrievedAt": "2026-10-05",
+      "sha256": "63a7feae44b0925debeae1d3861d06f11818b216b23dbe9cae590bd7c56e78d9",
+      "bytes": 25836849
+    },
+    "snic_provincias_2000_2025.xlsx": {
+      "note": "GitHub mirror crisgomez79/dashboard-snic (copies of the SNIC provincial and departmental bases 2000-2025); replace with the official downloads",
+      "retrievedAt": "2026-10-05",
+      "sha256": "b25dbb19153f4ef5b295aeaffeb7a634cebdf3517778419f244b7eb381e25bb3",
+      "bytes": 1415614
+    }
+  }
+}

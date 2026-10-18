@@ -15,14 +15,15 @@ export const KEYWORDS = {
   it: ['rapina', 'aggressione', 'omicidio', 'delitto', 'criminalità', 'furto', 'sparatoria'],
 }
 
-// Names shared by several places in Argentina (or common words) that need the province to disambiguate.
-const AMBIGUOUS = new Set(['merlo', 'junin', 'concepcion', 'san martin', 'santa rosa', 'la banda', 'capital', 'san rafael', 'general roca', 'san francisco', 'belgrano', 'colon', 'rivadavia', 'san isidro', 'san fernando'])
 export const fold = (s) => String(s ?? '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().trim()
 
-/** True when the place name alone is ambiguous and the region must be part of the query. */
-export function needsRegion({ name, provinceName, type }, extraAmbiguous = new Set()) {
+/**
+ * True when the place name alone is ambiguous and the region must be part of the query.
+ * @param ambiguous  folded names: the country's list (countries/<ISO3>/news.js) and names repeated in its places
+ */
+export function needsRegion({ name, provinceName, type }, ambiguous = new Set()) {
   const key = fold(name)
-  return type === 'city' && !!provinceName && fold(provinceName) !== key && (AMBIGUOUS.has(key) || extraAmbiguous.has(key))
+  return type === 'city' && !!provinceName && fold(provinceName) !== key && ambiguous.has(key)
 }
 
 /**
@@ -33,7 +34,7 @@ export function needsRegion({ name, provinceName, type }, extraAmbiguous = new S
  * `scope: false` gives the place-only variant (state only for ambiguous names), used as a fallback
  * when the scoped search finds too little: local outlets often never name the province or country.
  */
-export function newsQuery(entity, { lang, countryName }, extraAmbiguous = new Set(), { scope = true } = {}) {
+export function newsQuery(entity, { lang, countryName, ambiguous = new Set() }, extraAmbiguous = new Set(), { scope = true } = {}) {
   const words = KEYWORDS[lang] || KEYWORDS.en
   const phrase = (s) => `"${String(s).replace(/"/g, '')}"`
   const name = fold(entity.name)
@@ -41,24 +42,19 @@ export function newsQuery(entity, { lang, countryName }, extraAmbiguous = new Se
   const country = countryName && fold(countryName) !== name && fold(countryName) !== fold(region) ? countryName : null
   const parts = scope
     ? [entity.name, region, country]
-    : [entity.name, needsRegion(entity, extraAmbiguous) ? entity.provinceName : null]
+    : [entity.name, needsRegion(entity, new Set([...ambiguous, ...extraAmbiguous])) ? entity.provinceName : null]
   return [...parts.filter(Boolean).map(phrase), `(${words.join(' OR ')})`].join(' ')
 }
 
-// Google News edition per country: interface language (hl) and edition id (ceid) must match, or
-// Google redirects to its own defaults.
-const GN_HL = { AR: 'es-419', BO: 'es-419', CL: 'es-419', CO: 'es-419', EC: 'es-419', MX: 'es-419', PY: 'es-419', PE: 'es-419', UY: 'es-419', ES: 'es', BR: 'pt-419', PT: 'pt-150', US: 'en-US', FR: 'fr', DE: 'de', IT: 'it' }
-const edition = (iso2) => {
-  const gl = iso2 || 'US'
-  const hl = GN_HL[gl] || 'en-US'
-  return `hl=${hl}&gl=${gl}&ceid=${gl}:${hl}`
-}
+// Google News edition (country config `news.edition`): interface language (hl) and edition id (ceid) must
+// match, or Google redirects to its own defaults.
+const editionParams = ({ hl, gl } = { hl: 'en-US', gl: 'US' }) => `hl=${hl}&gl=${gl}&ceid=${gl}:${hl}`
 
 /** Same query on Google News, for a "search more" link (opened by the user, never fetched). */
-export const googleNewsUrl = (query, iso2) => `https://news.google.com/search?q=${encodeURIComponent(`${query} when:30d`)}&${edition(iso2)}`
+export const googleNewsUrl = (query, edition) => `https://news.google.com/search?q=${encodeURIComponent(`${query} when:30d`)}&${editionParams(edition)}`
 
 /** Google News RSS search feed (used server-side by the news function). */
-export const googleNewsRssUrl = (query, iso2) => `https://news.google.com/rss/search?q=${encodeURIComponent(`${query} when:30d`)}&${edition(iso2)}`
+export const googleNewsRssUrl = (query, edition) => `https://news.google.com/rss/search?q=${encodeURIComponent(`${query} when:30d`)}&${editionParams(edition)}`
 
 /**
  * Browser client for the news function.

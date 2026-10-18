@@ -1,23 +1,35 @@
 {
   "name": "mapstats",
   "private": true,
-  "version": "1.1.1",
+  "version": "2.0.1",
   "type": "module",
+  "imports": {
+    "#core/*": "./src/core/*",
+    "#providers/*": "./src/providers/*",
+    "#sdk": "./tools/sdk/index.mjs",
+    "#sdk/*": "./tools/sdk/*"
+  },
   "scripts": {
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
     "geo": "node scripts/build-geo.mjs",
     "lint": "eslint .",
-    "numbeo:fetch": "node scripts/numbeo-fetch.mjs",
-    "numbeo:build": "node scripts/numbeo-build.mjs",
-    "snic:import": "node scripts/snic-import.mjs",
+    "snic:import": "node tools/cli/prefill.mjs ARG --provider snic",
     "news:test": "node netlify/news/test/run.mjs",
     "news:probe": "node scripts/news-probe.mjs",
     "live:test": "node src/lib/test/live.mjs",
-    "deploy": "npm run lint && npm run news:test && npm run live:test && npx -y -p netlify-cli netlify deploy --prod",
+    "golden": "node tests/golden.mjs",
+    "test": "node tools/cli/test.mjs",
+    "deploy": "npm run lint && npm test && npx -y -p netlify-cli netlify deploy --prod",
     "deploy:preview": "npx -y -p netlify-cli netlify deploy",
-    "dev:netlify": "npx -y -p netlify-cli netlify dev"
+    "dev:netlify": "npx -y -p netlify-cli netlify dev",
+    "prefill": "node tools/cli/prefill.mjs",
+    "country:check": "node tools/cli/country-check.mjs",
+    "country:new": "node tools/cli/country-new.mjs",
+    "prefill:due": "node tools/cli/prefill-due.mjs",
+    "anchors": "node tools/cli/anchors.mjs",
+    "censo:download": "node countries/ARG/providers/provincial-stats/censo-download.mjs"
   },
   "dependencies": {
     "@mozilla/readability": "^0.6.0",
@@ -42,8 +54,13 @@
     "eslint-plugin-react": "^7.37.5",
     "eslint-plugin-react-hooks": "^7.1.1",
     "exceljs": "^4.4.0",
+    "fflate": "0.8.3",
+    "geotiff": "^3.0.5",
     "globals": "^17.13.0",
+    "h5wasm": "0.10.3",
     "mapshaper": "^0.7.72",
-    "vite": "^8.3.2"
+    "pdfjs-dist": "^4.10.38",
+    "vite": "^8.3.2",
+    "xlsx": "https://cdn.sheetjs.com/xlsx-0.20.3/xlsx-0.20.3.tgz"
   }
 }

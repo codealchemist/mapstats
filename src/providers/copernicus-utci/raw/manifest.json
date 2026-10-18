@@ -1,0 +1,11 @@
+{
+  "files": {
+    "ARG_2025_-21.25_-74.25_-55.75_-53.zip": {
+      "url": "https://cds.climate.copernicus.eu/datasets/derived-utci-historical",
+      "note": "Copernicus ERA5-HEAT v1.1 consolidated, UTCI daily statistics 2025, area [N, W, S, E] [-21.25,-74.25,-55.75,-53]; Licence to use Copernicus Products",
+      "retrievedAt": "2026-10-11",
+      "sha256": "b836dbc22fabe5410e1a869fb26e371675b79f4e0185d9f7997965906695a204",
+      "bytes": 48621862
+    }
+  }
+}

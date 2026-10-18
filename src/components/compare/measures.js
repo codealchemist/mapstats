@@ -2,7 +2,7 @@
 // selected places at once; colour always follows the place's slot.
 // places: [{ e: entity, i: slot index, d: detail { climate, air, uv }, flood }]
 import { CATEGORIES, INDICATORS } from '../../data/metrics.js'
-import { SURVEY } from '../../data/numbeoSurvey.js'
+import { PROVIDERS, localFirst } from '../../core/providers.js'
 import { baseOptions, barStyle, lineStyle } from '../charts/theme.js'
 import { MONTHS } from '../../lib/format.js'
 import { isOwnValue } from '../../lib/scoring.js'
@@ -42,45 +42,47 @@ function groupedBars({ places, tk, labels, series, yTitle, horizontal = false, m
 }
 
 const monthly = (field, label, unit, kind = 'line') => ({
-  id: `m:${field}`, group: 'Climate by month (10-year normals)', label, unit,
+  id: `m:${field}`, group: 'Climate by month (10-year normals)', label, unit, info: { row: 'monthly', title: label },
   available: (ps) => ps.some((p) => p.d.climate),
   build: ({ places, tk }) => (kind === 'line'
     ? linePerPlace({ places, tk, labels: MONTHS, yTitle: unit, series: (p) => p.d.climate?.monthly.map((m) => m[field]) })
     : groupedBars({ places, tk, labels: MONTHS, yTitle: unit, series: (p) => p.d.climate?.monthly.map((m) => m[field]) })),
 })
 
-const snicTrend = (metric, label) => ({
-  id: `snic:${metric}`, group: 'Crime trends (SNIC)', label, unit: 'per 100,000',
-  available: (ps) => ps.some((p) => p.e.snic),
+// Yearly series a provider publishes (its report.trends), e.g. official crime rates.
+const trendMeasures = (provider) => (provider.report?.trends?.charts || []).map((c) => ({
+  id: `trend:${provider.id}:${c.indicator}`, info: { row: 'trend', title: `${c.title} by year` }, group: `${provider.report.trends.group} (${provider.short})`, label: `${c.title} by year`, unit: provider.report.trends.unit,
+  available: (ps) => ps.some((p) => p.e.details?.[provider.id]?.series),
   build: ({ places, tk, national }) => linePerPlace({
-    places, tk, labels: national.snic?.years || [], yTitle: 'per 100,000', zero: true, pointRadius: 3,
-    series: (p) => p.e.snic?.series[metric],
+    places, tk, labels: national.details?.[provider.id]?.years || [], yTitle: provider.report.trends.unit, zero: true, pointRadius: 3,
+    series: (p) => p.e.details?.[provider.id]?.series?.[c.indicator],
   }),
+}))
+
+// The latest year's published value of a series (report.trends chart with `lastYear`), as one bar per place.
+const lastYearMeasures = (provider) => (provider.report?.trends?.charts || []).filter((c) => c.lastYear).map((c) => {
+  const latest = (d) => d?.[provider.id]?.latest?.[c.indicator] ?? null
+  return {
+    id: `last:${provider.id}:${c.indicator}`, info: { row: 'last', title: `${c.title} last year` }, group: `${provider.report.trends.group} (${provider.short})`, label: `${c.title} last year`, unit: provider.report.trends.unit,
+    available: (ps) => ps.some((p) => latest(p.e.details) != null),
+    build: ({ places, tk, national }) => barPerPlace({ places, tk, national, value: (e) => latest(e.details), nationalValue: (n) => latest(n.details), unit: provider.report.trends.unit }),
+  }
 })
 
 export function buildMeasures() {
   const list = [
     {
-      id: 'score', group: 'Scores', label: 'MapStats score', unit: '/100',
+      id: 'score', group: 'Scores', label: 'MapStats score', unit: '/100', info: { row: 'score' },
       available: () => true,
       build: ({ places, tk, national }) => barPerPlace({ places, tk, national, value: (e) => e.score, nationalValue: (n) => n.score, unit: '0–100' }),
     },
     {
-      id: 'categories', group: 'Scores', label: 'Score by category', unit: '/100',
+      id: 'categories', group: 'Scores', label: 'Score by category', unit: '/100', info: { row: 'categories' },
       available: () => true,
       build: ({ places, tk }) => groupedBars({ places, tk, labels: CATEGORIES.map((c) => c.label), series: (p) => CATEGORIES.map((c) => r1(p.e.categories[c.id])), horizontal: true, max: 100 }),
     },
-    snicTrend('homicide', 'Homicide rate by year'),
-    snicTrend('propertyCrime', 'Robberies + thefts by year'),
-    snicTrend('roadDeaths', 'Road deaths by year'),
-    {
-      id: 'survey', group: 'Crime survey (Numbeo)', label: 'Crime perception survey', unit: '0–100',
-      available: (ps) => ps.some((p) => p.e.numbeo?.survey),
-      build: ({ places, tk }) => {
-        const keys = SURVEY.filter(([k]) => places.some((p) => p.e.numbeo?.survey?.[k] != null))
-        return groupedBars({ places, tk, labels: keys.map(([, l]) => l), horizontal: true, max: 100, series: (p) => p.e.numbeo?.survey && keys.map(([k]) => p.e.numbeo.survey[k] ?? null) })
-      },
-    },
+    ...localFirst(PROVIDERS).flatMap(trendMeasures),
+    ...localFirst(PROVIDERS).flatMap(lastYearMeasures),
     monthly('tmax', 'Average daily maximum', '°C'),
     monthly('tmin', 'Average daily minimum', '°C'),
     monthly('precip', 'Precipitation', 'mm', 'bar'),
@@ -89,7 +91,7 @@ export function buildMeasures() {
     monthly('wetDays', 'Rainy days (≥ 1 mm)', 'days', 'bar'),
     monthly('comfort', 'Climate comfort', '0–100'),
     {
-      id: 'aqi', group: 'Daily series', label: 'Air quality, last 3 months', unit: 'EAQI',
+      id: 'aqi', group: 'Daily series', label: 'Air quality, last 3 months', unit: 'EAQI', info: { row: 'airDaily' },
       available: (ps) => ps.some((p) => p.d.air),
       build: ({ places, tk }) => {
         const dates = [...new Set(places.flatMap((p) => p.d.air?.daily.map((x) => x.date) || []))].sort()
@@ -97,7 +99,7 @@ export function buildMeasures() {
       },
     },
     {
-      id: 'uv', group: 'Daily series', label: 'UV index, last 3 months + forecast', unit: 'UV',
+      id: 'uv', group: 'Daily series', label: 'UV index, last 3 months + forecast', unit: 'UV', info: { row: 'uvDaily' },
       available: (ps) => ps.some((p) => p.d.uv),
       build: ({ places, tk }) => {
         const dates = [...new Set(places.flatMap((p) => p.d.uv?.map((x) => x.date) || []))].sort()
@@ -105,7 +107,7 @@ export function buildMeasures() {
       },
     },
     {
-      id: 'pollutants', group: 'Daily series', label: 'Pollutants (92-day mean)', unit: 'µg/m³',
+      id: 'pollutants', group: 'Daily series', label: 'Pollutants (92-day mean)', unit: 'µg/m³', info: { row: 'pollutants' },
       available: (ps) => ps.some((p) => p.d.air),
       build: ({ places, tk }) => {
         const keys = [['pm2_5', 'PM2.5'], ['pm10', 'PM10'], ['nitrogen_dioxide', 'NO₂'], ['ozone', 'O₃'], ['sulphur_dioxide', 'SO₂']]
@@ -113,7 +115,7 @@ export function buildMeasures() {
       },
     },
     {
-      id: 'flood', group: 'Natural risks', label: 'River flood watch', unit: '× usual high water',
+      id: 'flood', group: 'Natural risks', label: 'River flood watch', unit: '× usual high water', info: { row: 'flood' },
       available: (ps) => ps.some((p) => p.flood?.river),
       build: ({ places, tk, national }) => barPerPlace({ places, tk, national, value: (e, d, f) => (f?.river ? f.floodWatch : null), unit: '× usual high water' }),
     },
@@ -122,7 +124,7 @@ export function buildMeasures() {
   for (const ind of INDICATORS) {
     list.push({
       id: `ind:${ind.id}`, group: `Indicators · ${CATEGORIES.find((c) => c.id === ind.category)?.label || 'Climate & context'}`,
-      label: ind.label, unit: ind.unit, indicator: ind,
+      label: ind.label, unit: ind.unit, indicator: ind, info: { indicator: ind.id },
       available: (ps) => ps.some((p) => p.e.values[ind.id] != null),
       build: ({ places, tk, national }) => barPerPlace({ places, tk, national, value: (e) => e.values[ind.id], nationalValue: (n) => n.values[ind.id], unit: ind.unit || ind.label, inheritedKey: ind.id }),
     })

@@ -2,7 +2,7 @@
 
 **Compare places by what matters to you, and find your next place to live.**
 
-MapStats is an interactive map that scores and compares regions and cities on safety, natural risks, environment, services, infrastructure and economy. Choose a country, weigh the criteria you care about, and the map shows where places rank. You can open a detailed report for any place, or put up to three side by side.
+MapStats is an interactive map that scores and compares regions and cities on safety, natural risks, environment, services and economy. Choose a country, weigh the criteria you care about, and the map shows where places rank. You can open a detailed report for any place, or put up to three side by side.
 
 Every number links back to its source, and you can switch between data sources to see how much they agree.
 
@@ -24,7 +24,7 @@ Every number links back to its source, and you can switch between data sources t
 
 ### Place reports
 - Overview with score, rank, data coverage and key figures (population, elevation, temperature, rain, air quality now, UV today).
-- Sections for sources, safety (official crime statistics and crime surveys), news, climate (10-year monthly normals), air quality and UV, natural risks, and every indicator compared with the country average.
+- Sections for sources, safety (official crime statistics), news, climate (10-year monthly normals), air quality and UV, natural risks, and every indicator compared with the country average.
 - Export a report as **PDF** or **CSV**, and copy or download any chart.
 
 ### Compare places
@@ -45,11 +45,12 @@ Every number links back to its source, and you can switch between data sources t
 | Kind | Sources |
 |---|---|
 | Live (fetched in the browser and cached locally) | Open-Meteo (ERA5 climate, CAMS air quality, UV, GloFAS river flow, elevation), USGS earthquakes, geocoding |
-| Curated / imported | SNIC official crime statistics (Argentina), Numbeo city indices (snapshot), provincial statistics |
+| Curated / imported | SNIC official crime statistics (Argentina), provincial statistics |
+| Linked only | Numbeo city pages (its terms don't allow republishing its data) |
 | Map | Natural Earth boundaries and places, CARTO basemaps, terrain tiles |
 | News | Google News RSS and outlet feeds, through the `/api/news` function (never used in scores) |
 
-Argentina has the most complete data: official crime statistics by department, Numbeo city data and socio-economic baselines. The other countries are scored mainly on live environmental and natural-risk data.
+Argentina has the most complete data: official crime statistics by department and socio-economic baselines. The other countries are scored mainly on live environmental and natural-risk data.
 
 Live data is paced to Open-Meteo's free limits, so a large country can take a few minutes to fill in on first load. After that it is cached in your browser: climate for 30 days, air quality for 1 day, earthquakes for 7 days.
 
@@ -70,24 +71,27 @@ The Vite dev server also serves `/api/news`, using the same handler as productio
 | `npm run build` | Production build into `dist/` |
 | `npm run preview` | Serve the production build locally |
 | `npm run lint` | ESLint |
-| `npm run news:test` | Offline tests for the news pipeline |
-| `npm run live:test` | Tests for live-data loading |
+| `npm test` | Every offline test: news pipeline, live-data loading, the golden scoring snapshot and each provider's tests |
+| `npm run news:test` / `live:test` / `golden` | One of those suites |
 | `npm run dev:netlify` | Run in a local Netlify environment (functions + Blobs) on http://localhost:8888 |
 | `npm run deploy:preview` | Deploy a draft to Netlify with its own preview URL |
 | `npm run deploy` | Lint and test, then deploy to production on Netlify |
 
 The Netlify commands run the Netlify CLI through `npx`. The first time, log in and link the site with `npx -p netlify-cli netlify login` and `npx -p netlify-cli netlify link`.
 
-### Updating the bundled data
+### Countries and their data
 
-These scripts regenerate the data files shipped with the app. The app itself never calls these sources.
+Each country lives in `countries/<ISO3>/`; the [country guide](docs/country-guide.md) explains how to add or improve one. These commands prepare the data shipped with the app. The app itself never calls these sources.
 
 | Command | What it does |
 |---|---|
-| `npm run geo` | Rebuild boundaries and city lists in `public/geo/` from Natural Earth (`NE_DIR=/path/to/natural-earth node scripts/build-geo.mjs`) |
-| `npm run snic:import` | Import official SNIC crime statistics into `src/data/snic-argentina.json` (see the header of `scripts/snic-import.mjs`) |
-| `npm run numbeo:fetch` | Download the Numbeo pages that were never requested (each page is fetched at most once), then build |
-| `npm run numbeo:build` | Rebuild `src/data/numbeo-argentina.json` from the stored pages, offline |
+| `npm run country:new -- <ISO3> --iso2 XX --name "…" --region-label …` | Start a country folder and register it |
+| `npm run geo -- <ISO3>` | Rebuild boundaries and city lists in `countries/<ISO3>/geo/` from Natural Earth, with the country's `geo` settings (`NE_DIR=/path/to/natural-earth`; no country = all) |
+| `npm run prefill -- <ISO3> [--provider <id>]` | Run a country's provider prefills: check each dataset and write `countries/<ISO3>/data/<id>.json` |
+| `npm run country:check -- <ISO3>` | Check a country folder: datasets, coverage, score ranges, provider tests, tier |
+| `npm run prefill:due` | List datasets older than their providers' refresh period (also run monthly by CI, which opens an issue) |
+| `npm run snic:import` | Argentina: official SNIC crime statistics from the stored bases (see `countries/ARG/providers/snic/prefill.mjs`) |
+| `npm run anchors` | Recompute the score ranges from all countries' data (`src/data/anchors.json`); run it when datasets change (`npm test` fails until you do) |
 
 ## Project structure
 
@@ -97,13 +101,28 @@ src/
   components/        map, top bar, side panel, legend, reports, compare and sources views
   components/charts/ Chart.js cards and theme
   components/compare/side-by-side grid, focus chart and their measures
-  data/              countries, indicators and categories, sources, curated datasets
+  components/report/ report blocks drawn from any provider's data (trends, surveys)
+  core/              registries and contracts: countries, providers, the dataset resolver
+  providers/         global data sources (Open-Meteo, USGS, Natural Earth, basemaps, news; Numbeo as links)
+  data/              indicator catalogue and categories
   hooks/             data loading (country data, live data, place details, news)
-  lib/               scoring, colours, formatting, live APIs and request queue, exports
+  lib/               scoring, reliability weights, colours, formatting, live APIs and request queue, exports
+countries/<ISO3>/    one folder per country: manifest, places, news, providers, datasets, geo
+countries/_template/ worked example country
+tools/               SDK and CLI for country developers (prefill, country:check, country:new…)
 netlify/             /api/news function and the news pipeline
-public/geo/          per-country boundaries and city lists
-scripts/             data import and build scripts
+tests/               golden scoring snapshot
+scripts/             Natural Earth build, news probe
 ```
+
+## Documentation
+
+| Document | For |
+|---|---|
+| [Architecture](docs/architecture.md) | Core structure, the country/provider/dataset contracts, the prefill process and the migration |
+| [Country integration guide](docs/country-guide.md) | Developers adding or improving a country: choosing sources, writing a provider, testing, PR checklist |
+| [Country template](countries/_template/) | A complete example country folder with one provider, a fixture and a test |
+| [Dataset schema](docs/schemas/dataset.schema.json) | The JSON format every prefill produces |
 
 ## Deployment
 

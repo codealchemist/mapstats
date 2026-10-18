@@ -9,17 +9,19 @@ import { Methodology } from './components/Methodology.jsx'
 import { SourcesView } from './components/SourcesView.jsx'
 import { CompareView } from './components/CompareView.jsx'
 import { ToastProvider } from './components/Toast.jsx'
-import { COUNTRIES, countryByIso } from './data/countries.js'
+import { COUNTRIES, countryByIso } from './core/countries.js'
 import { DEFAULT_WEIGHTS, metricById } from './data/metrics.js'
-import { familyOf, isMultiSource } from './data/sources.js'
+import { DEFAULT_STANDARDS, STANDARDS } from './data/standards.js'
+import { familyOf, scoringFamiliesFor, isMultiSource } from './core/providers.js'
 import { useCountryData } from './hooks/useCountryData.js'
 import { useLiveData } from './hooks/useLiveData.js'
-import { adHocEntity, buildEntities, ownValue } from './lib/scoring.js'
+import { adHocEntity, buildEntities, ownValue, resolveCountry } from './lib/scoring.js'
 import { colorAt, scaleFor } from './lib/colors.js'
 import { renderSurface, surfaceSamples, surfaceVarById } from './lib/surface.js'
 import { livePoints } from './lib/scoring.js'
 import { floodLevel } from './components/mapLayers.js'
 import { isNarrow } from './lib/viewport.js'
+import { warningsFor } from './lib/warnings.js'
 
 const store = {
   get: (k, d) => { try { const v = localStorage.getItem(`mapstats:${k}`); return v ? JSON.parse(v) : d } catch { return d } },
@@ -33,12 +35,21 @@ const initialTheme = () => store.get('theme', window.matchMedia?.('(prefers-colo
 export default function App() {
   const [iso3, setIso3] = useState(() => store.get('country', 'ARG'))
   const [theme, setTheme] = useState(initialTheme)
-  const [metricId, setMetricId] = useState('score')
+  const [chosenMetric, setMetricId] = useState('score')
   const [overlays, setOverlays] = useState(DEFAULT_OVERLAYS)
   // Bumped by the logo (home view) to remount stateful panels: search text, side-panel tab.
   const [homeKey, setHomeKey] = useState(0)
-  const [weights, setWeights] = useState(() => ({ ...DEFAULT_WEIGHTS, ...store.get('weights', {}) }))
-  const [sourceMode, setSourceMode] = useState(() => store.get('sourceMode', 'combined'))
+  // Only current categories: a remembered weight for a removed one would still count in the totals.
+  const [weights, setWeights] = useState(() => {
+    const saved = store.get('weights', {})
+    return Object.fromEntries(Object.entries(DEFAULT_WEIGHTS).map(([id, w]) => [id, saved[id] ?? w]))
+  })
+  // The standard chosen per indicator (air quality: EEA, US EPA or WHO); unknown remembered choices are dropped.
+  const [standards, setStandards] = useState(() => {
+    const saved = store.get('standards', {})
+    return Object.fromEntries(Object.entries(DEFAULT_STANDARDS).map(([id, d]) => [id, STANDARDS[id].options.some((o) => o.id === saved[id]) ? saved[id] : d]))
+  })
+  const [chosenSource, setSourceMode] = useState(() => store.get('sourceMode', 'combined'))
   const [selected, setSelected] = useState(null) // { type, id } | { type: 'adhoc', entityInput }
   const [panelOpen, setPanelOpen] = useState(() => !isNarrow())
   const [showInfo, setShowInfo] = useState(false)
@@ -49,29 +60,37 @@ export default function App() {
   const mapRef = useRef(null)
 
   const country = countryByIso(iso3)
+  // The source and map metric in effect: the user's choice while the country and standards offer it, else all
+  // sources and the score. A remembered source may no longer exist or be missing here, and a standard moves an
+  // indicator between sources (UTCI: Copernicus instead of Open-Meteo); the choice comes back when it applies again.
+  const sourceMode = scoringFamiliesFor(country, standards).some((f) => f.id === chosenSource) ? chosenSource : 'combined'
+  const metricId = !isMultiSource(sourceMode) && metricById[chosenMetric].kind === 'indicator' && familyOf(chosenMetric, standards) !== sourceMode ? 'score' : chosenMetric
   const data = useCountryData(country)
   const live = useLiveData(data)
 
   useEffect(() => { document.documentElement.dataset.theme = theme; store.set('theme', theme) }, [theme])
   useEffect(() => store.set('country', iso3), [iso3])
   useEffect(() => store.set('weights', weights), [weights])
-  useEffect(() => store.set('sourceMode', sourceMode), [sourceMode])
+  useEffect(() => store.set('standards', standards), [standards])
+  useEffect(() => store.set('sourceMode', chosenSource), [chosenSource])
 
   // Only the data layers feed scoring: status/progress updates (one per loaded chunk) must not
   // rebuild the model and the map.
-  const { climate, aqi, quakes, uv, flood } = live
-  const liveData = useMemo(() => ({ climate, aqi, quakes, uv, flood }), [climate, aqi, quakes, uv, flood])
+  const { climate, aqi, thermal, quakes, uv, flood } = live
+  const liveData = useMemo(() => ({ climate, aqi, thermal, quakes, uv, flood }), [climate, aqi, thermal, quakes, uv, flood])
+  // Dataset values per place change only with the country; scores also change with weights, mode and live data.
+  const base = useMemo(() => (data.geo ? resolveCountry(data.geo, data.cities, data.datasets) : null), [data.geo, data.cities, data.datasets])
   const model = useMemo(
-    () => (data.geo ? buildEntities({ country, provincesGeo: data.geo, cities: data.cities, live: liveData, weights, sourceMode }) : null),
-    [country, data.geo, data.cities, liveData, weights, sourceMode],
+    () => (base ? buildEntities({ provincesGeo: data.geo, cities: data.cities, base, live: liveData, weights, sourceMode, standards }) : null),
+    [base, data.geo, data.cities, liveData, weights, sourceMode, standards],
   )
 
   // Ad-hoc (searched) places are rescored when weights change.
   const adHoc = useMemo(() => {
     if (selected?.type !== 'adhoc') return null
     const provinceEntity = model?.provinces.find((p) => p.id === selected.input.provinceId)
-    return adHocEntity({ ...selected.input, provinceEntity, country, weights, sourceMode, dist: model?.dist })
-  }, [selected, model, country, weights, sourceMode])
+    return adHocEntity({ ...selected.input, provinceEntity, weights, sourceMode, standards, dist: model?.dist })
+  }, [selected, model, weights, sourceMode, standards])
 
   const adHocPoint = useMemo(() => adHoc && { lat: adHoc.lat, lon: adHoc.lon }, [adHoc?.lat, adHoc?.lon]) // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -95,6 +114,9 @@ export default function App() {
     return scaleFor(metric, [...model.provinces, ...model.cities].map(valueOf), theme)
   }, [model, metric, valueOf, theme])
 
+  // Map features carry their warnings as text, one per line (feature properties are flat).
+  const warningText = useCallback((e) => warningsFor(e, standards).map((w) => w.text).join('\n'), [standards])
+
   const provincesFC = useMemo(() => {
     if (!model) return null
     const byId = Object.fromEntries(model.provinces.map((p) => [p.id, p]))
@@ -103,10 +125,10 @@ export default function App() {
       features: data.geo.features.map((f) => {
         const e = byId[f.properties.id]
         const v = valueOf(e)
-        return { ...f, properties: { id: e.id, name: e.name, value: v ?? undefined, score: e.score ?? undefined, rank: e.rank, color: colorAt(scale, v, theme) } }
+        return { ...f, properties: { id: e.id, name: e.name, value: v ?? undefined, score: e.score ?? undefined, rank: e.rank, color: colorAt(scale, v, theme), warnings: warningText(e) } }
       }),
     }
-  }, [model, data.geo, valueOf, scale, theme])
+  }, [model, data.geo, valueOf, scale, theme, warningText])
 
   const citiesFC = useMemo(() => {
     if (!model) return null
@@ -123,11 +145,12 @@ export default function App() {
             id: c.id, name: c.name, provinceName: c.provinceName, pop: c.values.pop || 50000, value: v ?? undefined,
             score: c.score ?? undefined, rank: c.rank, color: colorAt(scale, v, theme),
             heatWeight: c.score == null || hi === lo ? 0 : ((c.score - lo) / (hi - lo)) ** 1.5,
+            warnings: warningText(c),
           },
         }
       }),
     }
-  }, [model, valueOf, scale, theme])
+  }, [model, valueOf, scale, theme, warningText])
 
   const quakesFC = useMemo(() => live.quakes && {
     type: 'FeatureCollection',
@@ -166,20 +189,15 @@ export default function App() {
     if (e) mapRef.current?.flyTo(e.lon, e.lat, sel.type === 'city' ? 9 : 5.5)
   }, [model])
 
-  const changeSource = (mode) => {
-    setSourceMode(mode)
-    if (!isMultiSource(mode) && metric.kind === 'indicator' && familyOf(metricId) !== mode) setMetricId('score')
-  }
-
   // Resolve compare selections against the current model (so weights / source mode apply).
   const compareEntities = useMemo(() => compare.map((sel) => {
     if (!sel || !model) return null
     if (sel.type === 'adhoc') {
       const provinceEntity = model.provinces.find((p) => p.id === sel.input.provinceId)
-      return adHocEntity({ ...sel.input, provinceEntity, country, weights, sourceMode, dist: model.dist })
+      return adHocEntity({ ...sel.input, provinceEntity, weights, sourceMode, standards, dist: model.dist })
     }
     return (sel.type === 'city' ? model.cities : model.provinces).find((e) => e.id === sel.id) || null
-  }), [compare, model, country, weights, sourceMode])
+  }), [compare, model, weights, sourceMode, standards])
 
   const addToCompare = useCallback((sel, slot) => {
     if (!sel) return
@@ -276,22 +294,25 @@ export default function App() {
           onOverlays={setOverlays}
           weights={weights}
           onWeights={setWeights}
+          standards={standards}
+          onStandards={setStandards}
           selected={selected}
           onSelect={select}
           mapRef={mapRef}
           onInfo={() => setShowInfo(true)}
           sourceMode={sourceMode}
-          onSourceMode={changeSource}
+          onSourceMode={setSourceMode}
         />
 
-        <Legend surface={overlays.surface ? surface : null} surfaceVar={surfaceVar} sourceMode={sourceMode} metric={metric} scale={scale} overlays={overlays} theme={theme} national={model?.national} shifted={panelOpen} />
-        <LiveStatus status={live.status} progress={live.progress} errors={live.errors} error={data.error} />
+        <Legend surface={overlays.surface ? surface : null} surfaceVar={surfaceVar} sourceMode={sourceMode} standards={standards} metric={metric} scale={scale} overlays={overlays} theme={theme} national={model?.national} shifted={panelOpen} />
+        <LiveStatus status={live.status} progress={live.progress} errors={live.errors} error={data.error} startedAt={live.startedAt} />
 
         {selectedEntity && model && (
           <ReportPanel
             key={selectedEntity.id}
             entity={selectedEntity}
             model={model}
+            standards={standards}
             country={country}
             live={live}
             theme={theme}
@@ -303,8 +324,8 @@ export default function App() {
           />
         )}
 
-        {showInfo && <Methodology onClose={() => setShowInfo(false)} weights={weights} onSources={() => { setShowInfo(false); setShowSources(true) }} />}
-        {showSources && <SourcesView onClose={() => setShowSources(false)} snicOrigin={model?.snicOrigin} />}
+        {showInfo && <Methodology onClose={() => setShowInfo(false)} weights={weights} standards={standards} onSources={() => { setShowInfo(false); setShowSources(true) }} />}
+        {showSources && <SourcesView onClose={() => setShowSources(false)} datasets={model?.datasets} />}
         {showCompare && model && (
           <CompareView
             slots={compareEntities}
@@ -312,6 +333,8 @@ export default function App() {
             country={country}
             theme={theme}
             sourceMode={sourceMode}
+            standards={standards}
+            onStandards={setStandards}
             live={live}
             onAdd={addToCompare}
             onRemove={(i) => setCompare((c) => c.map((x, k) => (k === i ? null : x)))}

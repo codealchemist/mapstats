@@ -2,87 +2,41 @@
 // publishes it, with the geographic level and period it refers to. Nothing here
 // is averaged across sources or borrowed from another area without saying so.
 import { INDICATORS } from '../data/metrics.js'
-import { SURVEY } from '../data/numbeoSurvey.js'
-import { SOURCES } from '../data/sources.js'
-import { isOwnValue } from './scoring.js'
-
-const NUMBEO_INDICES = [
-  ['crimeIndex', 'Crime index'], ['healthcareIndex', 'Health care index'], ['pollutionIndex', 'Pollution index'],
-  ['trafficIndex', 'Traffic commute time index'], ['costOfLiving', 'Cost of living index'],
-  ['purchasingPower', 'Purchasing power index'], ['qualityOfLife', 'Quality of life index'],
-]
-
-const SNIC_ROWS = [
-  ['homicide', 'Intentional homicide victims'], ['robbery', 'Robberies'], ['theft', 'Thefts'],
-  ['propertyCrime', 'Robberies + thefts'], ['injuries', 'Intentional injuries'], ['threats', 'Threats'],
-  ['sexualAssault', 'Rapes'], ['drugs', 'Drug law offences'], ['roadDeaths', 'Road traffic death victims'],
-]
+import { providerById, providerOf, providersFor, localFirst, familyOf, familyBase, isRegionOnly } from '../core/providers.js'
 
 const POLLUTANTS = [['pm2_5', 'PM2.5'], ['pm10', 'PM10'], ['nitrogen_dioxide', 'NO₂'], ['ozone', 'O₃'], ['sulphur_dioxide', 'SO₂']]
 
 const row = (label, value, unit = '') => ({ label, value, unit })
+const src = (id) => providerById(id)
 
 /**
  * @returns [{ key, name, url, level, area, period, status, note, rows: [{ label, value, unit }] }]
  */
-export function valuesBySource({ entity, model, detail, quakes, live = {} }) {
+export function valuesBySource({ entity, model, country, detail, quakes, live = {} }) {
   const isCity = entity.type === 'city'
   const point = `${entity.lat.toFixed(3)}, ${entity.lon.toFixed(3)}`
   const groups = []
 
-  // ---- SNIC (official crime statistics) ----
-  const snic = entity.snic
-  if (snic) {
-    const y = snic.latestYear
-    const span = `${y - 2}–${String(y).slice(2)}`
-    groups.push({
-      key: 'SNIC', name: SOURCES.SNIC.name, url: SOURCES.SNIC.url,
-      level: snic.level === 'department' ? 'Department (partido)' : snic.level === 'city' ? 'City' : 'Province',
-      area: snic.level === 'department' ? `${snic.name} (INDEC ${snic.code})` : snic.name,
-      period: `${y} (+ ${span} average)`,
-      status: /mirror/i.test(model.snicOrigin || '') ? 'Unofficial mirror copy' : 'Official download',
-      rows: SNIC_ROWS.flatMap(([k, label]) => [
-        row(`${label}, ${y}`, snic.counts?.[k], 'count'),
-        row(`${label}, ${y}`, snic.latest[k], 'per 100k'),
-        row(`${label}, ${span} average`, snic.avg3[k], 'per 100k'),
-      ]).filter((r) => r.value != null),
-      note: `Rates as published by SNIC, rounded to 2 decimals. Counts are exact.${model.snicOrigin ? ` Files: ${model.snicOrigin}.` : ''}`,
-    })
-  } else if (isCity) {
-    groups.push({ key: 'SNIC', name: SOURCES.SNIC.name, url: SOURCES.SNIC.url, rows: [], note: `No SNIC department matched to ${entity.name}.` })
-  }
-
-  // ---- Numbeo (crowd-sourced) ----
-  const nb = entity.numbeo
-  if (isCity) {
-    const rows = nb
-      ? [
-          ...NUMBEO_INDICES.filter(([k]) => isOwnValue(entity, k)).map(([k, label]) => row(label, entity.values[k])),
-          ...(nb.safetyIndex != null ? [row('Safety index', nb.safetyIndex)] : []),
-          ...SURVEY.filter(([k]) => nb.survey?.[k] != null).map(([k, label]) => row(label, nb.survey[k], '0–100')),
-          ...(nb.contributors != null ? [row('Contributors', nb.contributors)] : []),
-        ]
-      : []
-    groups.push({
-      key: 'Numbeo', name: 'Numbeo', url: SOURCES.Numbeo.urlFor(entity, 'safety') || SOURCES.Numbeo.url,
-      level: 'City', area: entity.name, period: nb?.fetchedAt || null,
-      status: !nb ? null : nb.source === 'scraped' ? 'Downloaded from numbeo.com' : nb.source === 'snapshot' ? 'Approximate snapshot, not verified' : nb.source,
-      rows,
-      note: rows.length ? null : `No Numbeo data stored for ${entity.name}.`,
-    })
+  // ---- The country's datasets: each provider describes its own figures ----
+  for (const p of localFirst(providersFor(country))) {
+    const g = p.provenance?.({ entity, detail: entity.details?.[p.id], meta: model.datasets?.[p.id], country })
+    if (g) groups.push({ key: p.short, name: p.name, url: p.url, ...g })
   }
 
   // ---- Open-Meteo: climate (ERA5) ----
   const clim = detail?.climate
   if (clim) {
     groups.push({
-      key: 'Open-Meteo ERA5 (live)', name: SOURCES['Open-Meteo ERA5 (live)'].name, url: SOURCES['Open-Meteo ERA5 (live)'].url,
+      key: 'Open-Meteo ERA5 (live)', name: src('open-meteo-era5').name, url: src('open-meteo-era5').url,
       level: 'Point (≈ 25 km grid)', area: point, period: clim.period, status: 'Live',
       rows: [
         row('Mean temperature', clim.meanTemp, '°C'), row('Annual precipitation', clim.annualPrecip, 'mm'),
         row('Annual snowfall', clim.snowfall, 'cm'), row('Sunshine', clim.sunshine, 'h/yr'),
         row('Hottest day (mean of annual maxima)', clim.tempMaxAnnual, '°C'), row('Coldest night (mean of annual minima)', clim.tempMinAnnual, '°C'),
         row('Grid elevation', clim.elevation, 'm'), row('Climate comfort (MapStats model on ERA5)', clim.climateComfort, '/100'),
+        row('Very hot days (≥ 35 °C), per year', clim.hotDays, 'days'), row('Tropical nights (min ≥ 20 °C), per year', clim.tropicalNights, 'days'),
+        row('Frost days (min < 0 °C), per year', clim.frostDays, 'days'), row('Very heavy rain days (≥ 20 mm), per year', clim.heavyRainDays, 'days'),
+        row('Longest dry spell (< 1 mm), per year', clim.drySpell, 'days'),
       ].filter((r) => r.value != null),
     })
   }
@@ -92,11 +46,16 @@ export function valuesBySource({ entity, model, detail, quakes, live = {} }) {
   if (air || entity.values.aqi != null) {
     const cur = air?.current || {}
     groups.push({
-      key: 'Open-Meteo CAMS (live)', name: SOURCES['Open-Meteo CAMS (live)'].name, url: SOURCES['Open-Meteo CAMS (live)'].url,
-      level: 'Point (≈ 10–40 km grid)', area: point, period: cur.time ? `now (${cur.time.replace('T', ' ')}) · last 92 days` : 'last 30–92 days', status: 'Live',
+      key: 'Open-Meteo CAMS (live)', name: src('open-meteo-cams').name, url: src('open-meteo-cams').url,
+      level: 'Point (≈ 10–40 km grid)', area: point, period: cur.time ? `now (${cur.time.replace('T', ' ')}) · last 92 days · last 365 days` : 'last 30–365 days', status: 'Live',
       rows: [
         row('European AQI, now', cur.european_aqi), row('US AQI, now', cur.us_aqi),
-        row('European AQI, 30-day mean', entity.values.aqi),
+        row('European AQI, mean of the last 365 days', entity.values.aqi), row('European AQI, mean of the last 30 days', entity.values.aqiRecent),
+        row('US AQI, mean of the last 365 days', entity.values.usAqi), row('PM2.5, mean of the last 365 days', entity.values.pm25, 'µg/m³'),
+        row('PM2.5, worst day of the last 365', entity.values.pm25WorstDay, 'µg/m³'),
+        row('Days with poor air or worse (European AQI daily mean > 60)', entity.values.aqiPoorDays, 'days'),
+        row('Days unhealthy for sensitive groups (US AQI daily mean > 100)', entity.values.usAqiUnhealthyDays, 'days'),
+        row('Days above the WHO 24-hour PM2.5 guideline (15 µg/m³)', entity.values.pm25HighDays, 'days'),
         ...POLLUTANTS.map(([k, l]) => row(`${l}, now`, cur[k], 'µg/m³')),
         ...POLLUTANTS.map(([k, l]) => row(`${l}, 92-day mean`, air?.means?.[k], 'µg/m³')),
       ].filter((r) => r.value != null),
@@ -106,23 +65,24 @@ export function valuesBySource({ entity, model, detail, quakes, live = {} }) {
   const uvToday = detail?.uv?.find((d) => d.date === today)?.uv
   if (uvToday != null) {
     groups.push({
-      key: 'Open-Meteo UV (live)', name: SOURCES['Open-Meteo UV (live)'].name, url: SOURCES['Open-Meteo UV (live)'].url,
+      key: 'Open-Meteo UV (live)', name: src('open-meteo-uv').name, url: src('open-meteo-uv').url,
       level: 'Point', area: point, period: today, status: 'Live', rows: [row('Maximum UV index, today', uvToday)],
     })
   }
 
   const uvy = live.uv?.[entity.id]
   if (uvy?.uvMean != null) {
-    const s = SOURCES['Open-Meteo UV history (live)']
+    const s = src('open-meteo-uv-history')
     groups.push({
       key: 'Open-Meteo UV history (live)', name: s.name, url: s.url, level: 'Point', area: point,
       period: String(new Date().getFullYear() - 1), status: 'Live',
-      rows: [row('UV index, mean of daily maxima', uvy.uvMean), row('UV index, highest daily maximum', uvy.uvMax)].filter((r) => r.value != null),
+      rows: [row('UV index, mean of daily maxima', uvy.uvMean), row('UV index, highest daily maximum', uvy.uvMax),
+        row('Days with very high UV or worse (index ≥ 8)', uvy.uvVeryHighDays, 'days'), row('Days with extreme UV (index ≥ 11)', uvy.uvExtremeDays, 'days')].filter((r) => r.value != null),
     })
   }
   const fl = live.flood?.[entity.id]
   if (fl) {
-    const s = SOURCES['Open-Meteo GloFAS (live)']
+    const s = src('open-meteo-glofas')
     groups.push({
       key: 'Open-Meteo GloFAS (live)', name: s.name, url: s.url, level: 'Nearest river cell (≈ 5 km)', area: point,
       period: 'past 365 days + 30-day forecast', status: 'Live',
@@ -140,7 +100,7 @@ export function valuesBySource({ entity, model, detail, quakes, live = {} }) {
   // ---- USGS earthquakes ----
   if (quakes) {
     groups.push({
-      key: 'USGS (live)', name: SOURCES['USGS (live)'].name, url: SOURCES['USGS (live)'].url,
+      key: 'USGS (live)', name: src('usgs').name, url: src('usgs').url,
       level: 'Radius 200 km', area: point, period: `1980–${new Date().getFullYear()}, M5+`, status: 'Live',
       rows: [
         row('Earthquakes M5+', quakes.near.length, 'count'),
@@ -149,14 +109,17 @@ export function valuesBySource({ entity, model, detail, quakes, live = {} }) {
     })
   }
 
-  // ---- Statistics only available for the whole province (cities) / the province's own figures ----
-  const provRows = INDICATORS.filter((i) => i.source !== 'Numbeo' && i.source !== 'SNIC' && !i.live && i.id !== 'pop')
+  // ---- Statistics only available for the whole region (cities) / the region's own figures ----
+  const regionWide = INDICATORS.filter((i) => isRegionOnly(familyOf(i.id)))
+  const provRows = regionWide
     .filter((i) => (isCity ? entity.inherited?.has(i.id) : entity.values[i.id] != null))
-    .map((i) => ({ ...row(i.label, entity.values[i.id], i.unit), source: i.source }))
+    .map((i) => ({ ...row(i.label, entity.values[i.id], i.unit), source: providerOf(i.id).short }))
   if (provRows.length) {
+    const family = familyOf(regionWide[0].id)
+    const why = familyBase(family)?.why || ''
     groups.push({
-      key: 'province', name: isCity ? `Province-level statistics (${entity.provinceName})` : 'Provincial statistics',
-      level: 'Province', area: isCity ? entity.provinceName : entity.name, status: 'Hand-entered approximations',
+      key: 'province', name: `${country.regionLabel}-level statistics${isCity ? ` (${entity.provinceName})` : ''}`,
+      level: country.regionLabel, area: isCity ? entity.provinceName : entity.name, status: why && `${why[0].toUpperCase()}${why.slice(1)}`,
       rows: provRows,
       note: isCity
         ? `Not published for ${entity.name}; shown for transparency because the score uses them. Each row names its reference source.`
