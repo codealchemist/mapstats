@@ -1,16 +1,19 @@
 import { useCallback, useRef, useState } from 'react'
-import { LoaderCircle, Check, CircleAlert, Clock, ChevronUp, ChevronDown } from 'lucide-react'
+import { LoaderCircle, Check, CircleAlert, Clock, ChevronUp, ChevronDown, CloudDownload } from 'lucide-react'
 import { useDismiss } from '../hooks/useDismiss.js'
 
 // Live layers, in panel order, with what each one feeds. `scored`: scores stay provisional until it finishes.
 // `after`: it waits in the request queue for the others (lower priority). `single`: one request, outside the queue.
+// `trigger`: what asks for a layer that loads on demand (hooks/useLiveData.js; its status is `off` until then).
 const LAYERS = [
   { key: 'aqi', label: 'Air quality', role: 'Environment score', scored: true },
   { key: 'thermal', label: 'Heat & cold', role: 'Environment score', scored: true },
   { key: 'uv', label: 'UV', role: 'Environment score', scored: true },
-  { key: 'climate', label: 'Climate', role: 'Climate map layers, extremes and warnings' },
-  { key: 'flood', label: 'Rivers', role: 'River flood watch', after: 'starts after the layers above' },
+  { key: 'climate', label: 'Climate', role: 'Climate map layers, extremes and warnings', after: 'starts after the scored layers' },
   { key: 'quakes', label: 'Earthquakes', role: 'Earthquake count nearby', single: true }, // one USGS request, not queued
+  { key: 'flood', label: 'Rivers', role: 'River flood watch', trigger: 'loads with the river flood watch' },
+  { key: 'climateGrid', label: 'Climate surface', role: 'Fills the gaps between cities', trigger: 'loads with the climate surface' },
+  { key: 'uvGrid', label: 'UV surface', role: 'Fills the gaps between cities', trigger: 'loads with the UV surface' },
 ]
 const SCORED = LAYERS.filter((l) => l.scored).map((l) => l.label)
 
@@ -36,13 +39,16 @@ function Ring({ value }) {
 
 /** Each layer's state and the overall progress, time left and score status, from the live hook's status and progress. */
 export function summarize({ status, progress = {}, startedAt }) {
-  const items = LAYERS.filter((l) => status[l.key]).map((l) => {
+  const all = LAYERS.filter((l) => status[l.key]).map((l) => {
     const s = status[l.key], p = progress[l.key] || { loaded: 0, failed: 0, total: 0 }
     const done = p.loaded + p.failed
     return { ...l, s, p, done, queued: s === 'loading' && done === 0 && !!l.after }
   })
+  const off = all.filter((i) => i.s === 'off'), rows = all.filter((i) => i.s !== 'off')
+  // The current round: layers started since it began (an on-demand layer asked for later starts a new one).
+  const items = rows.filter((i) => (i.p.since ?? 0) >= (startedAt || 0))
   const busy = items.some((i) => i.s === 'loading')
-  const problems = items.filter((i) => failed(i.s))
+  const problems = all.filter((i) => failed(i.s))
   // Overall: points done over all points (the earthquake request counts as one).
   const total = items.reduce((n, i) => n + i.p.total, 0), done = items.reduce((n, i) => n + i.done, 0)
   const lastAt = Math.max(startedAt || 0, ...items.map((i) => i.p.at || 0))
@@ -53,11 +59,11 @@ export function summarize({ status, progress = {}, startedAt }) {
   const ready = items.filter((i) => i.s === 'ready').length
   const scoresPending = items.some((i) => i.scored && i.s === 'loading')
 
-  return { items, busy, problems, overall, eta, ready, scoresPending }
+  return { items, rows, off, busy, problems, overall, eta, ready, scoresPending }
 }
 
 /** Each layer's status: what it feeds, its progress, and queued / loading / ready / failed. */
-export function LivePanel({ items, busy, overall, eta, ready, scoresPending, errors = {} }) {
+export function LivePanel({ items, rows, off, busy, overall, eta, ready, scoresPending, errors = {}, onLoad }) {
   return (
     <div className="live-panel glass" id="live-panel" aria-label="Live data status">
       <div className="live-panel-head">
@@ -65,7 +71,7 @@ export function LivePanel({ items, busy, overall, eta, ready, scoresPending, err
         <span className="muted small">{busy ? `${overall}% · ${ready} of ${items.length} ready${eta ? ` · ${eta}` : ''}` : `${ready} of ${items.length} ready`}</span>
       </div>
       <ul className="live-rows">
-        {items.map((i) => (
+        {rows.map((i) => (
           <li key={i.key} className={`live-row ${i.queued ? 'queued' : i.s}`} title={errors[i.key] || undefined}>
             <span className="live-icon">
               {i.queued ? <Clock size={13} /> : i.s === 'loading' ? <LoaderCircle size={13} className="spin" /> : failed(i.s) ? <CircleAlert size={13} /> : <Check size={13} />}
@@ -82,6 +88,13 @@ export function LivePanel({ items, busy, overall, eta, ready, scoresPending, err
             {failed(i.s) && errors[i.key] && <span className="live-error">{errors[i.key]}. {!i.scored ? 'Reload later to fill the gaps.' : i.s === 'partial' ? 'Scores use the places that loaded; reload later to fill the gaps.' : 'Scores use the remaining data; reload later.'}</span>}
           </li>
         ))}
+        {off.map((i) => (
+          <li key={i.key} className="live-row off">
+            <span className="live-icon"><CloudDownload size={13} /></span>
+            <span className="live-name">{i.label}<small>{i.role} · {i.trigger}</small></span>
+            <span className="live-state"><button className="btn sm" onClick={() => onLoad(i.key)}>Load</button></span>
+          </li>
+        ))}
       </ul>
       <p className="muted small live-note">
         {scoresPending && <>Scores are provisional until {SCORED.join(', ')} finish. </>}
@@ -95,7 +108,7 @@ export function LivePanel({ items, busy, overall, eta, ready, scoresPending, err
  * Loading status of the live layers: one pill with overall progress, time left and whether scores are final; a click
  * opens each layer's status (what it feeds, progress, queued / loading / ready / failed). Hidden once all loaded.
  */
-export function LiveStatus({ status, progress = {}, errors = {}, error, startedAt }) {
+export function LiveStatus({ status, progress = {}, errors = {}, error, startedAt, onLoad }) {
   const [open, setOpen] = useState(false)
   const ref = useRef(null)
   useDismiss(ref, open, useCallback(() => setOpen(false), []))
@@ -106,7 +119,7 @@ export function LiveStatus({ status, progress = {}, errors = {}, error, startedA
 
   return (
     <div className="live-status" ref={ref} role="status">
-      {open && <LivePanel {...sum} errors={errors} />}
+      {open && <LivePanel {...sum} errors={errors} onLoad={onLoad} />}
       {error && <span className="live-pill glass st error"><CircleAlert size={13} /> Map data failed to load</span>}
       {(busy || problems.length > 0) && (
         <button className={`live-pill glass${busy ? '' : ' warn'}`} onClick={() => setOpen((o) => !o)} aria-expanded={open} aria-controls="live-panel"

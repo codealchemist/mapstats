@@ -29,7 +29,9 @@
     "country:new": "node tools/cli/country-new.mjs",
     "prefill:due": "node tools/cli/prefill-due.mjs",
     "anchors": "node tools/cli/anchors.mjs",
-    "censo:download": "node countries/ARG/providers/provincial-stats/censo-download.mjs"
+    "censo:download": "node countries/ARG/providers/provincial-stats/censo-download.mjs",
+    "e2e": "playwright test",
+    "e2e:ui": "playwright test --ui"
   },
   "dependencies": {
     "@mozilla/readability": "^0.6.0",
@@ -47,6 +49,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.39.5",
+    "@playwright/test": "^1.56.1",
     "@vitejs/plugin-react": "^6.1.1",
     "cheerio": "^1.2.0",
     "esbuild": "^0.28.2",

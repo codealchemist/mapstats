@@ -52,7 +52,7 @@ Every number links back to its source, and you can switch between data sources t
 
 Argentina has the most complete data: official crime statistics by department and socio-economic baselines. The other countries are scored mainly on live environmental and natural-risk data.
 
-Live data is paced to Open-Meteo's free limits, so a large country can take a few minutes to fill in on first load. After that it is cached in your browser: climate for 30 days, air quality for 1 day, earthquakes for 7 days.
+Live data is paced to Open-Meteo's free limits, so a large country can take a few minutes to fill in on first load. The layers that feed scores (air quality, heat and cold, UV) load first, then climate. River flow and the grid points that fill the climate surfaces between cities load only on request: when you turn on their overlay, pick a river metric, open a comparison of cities, or press *Load river data* in a city report. After that it is cached in your browser: climate for 30 days, air quality for 1 day, earthquakes for 7 days.
 
 ## Running the project
 
@@ -73,6 +73,7 @@ The Vite dev server also serves `/api/news`, using the same handler as productio
 | `npm run lint` | ESLint |
 | `npm test` | Every offline test: news pipeline, live-data loading, the golden scoring snapshot and each provider's tests |
 | `npm run news:test` / `live:test` / `golden` | One of those suites |
+| `npm run e2e` | Browser tests (Playwright, desktop and phone) of the production build, with every data service mocked; run `npx playwright install chromium` once first |
 | `npm run dev:netlify` | Run in a local Netlify environment (functions + Blobs) on http://localhost:8888 |
 | `npm run deploy:preview` | Deploy a draft to Netlify with its own preview URL |
 | `npm run deploy` | Lint and test, then deploy to production on Netlify |
@@ -111,7 +112,7 @@ countries/<ISO3>/    one folder per country: manifest, places, news, providers, 
 countries/_template/ worked example country
 tools/               SDK and CLI for country developers (prefill, country:check, country:new…)
 netlify/             /api/news function and the news pipeline
-tests/               golden scoring snapshot
+tests/               golden scoring snapshot; e2e/ browser tests and their API mocks
 scripts/             Natural Earth build, news probe
 ```
 

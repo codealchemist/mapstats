@@ -15,10 +15,9 @@ import { DEFAULT_STANDARDS, STANDARDS } from './data/standards.js'
 import { familyOf, scoringFamiliesFor, isMultiSource } from './core/providers.js'
 import { useCountryData } from './hooks/useCountryData.js'
 import { useLiveData } from './hooks/useLiveData.js'
-import { adHocEntity, buildEntities, ownValue, resolveCountry } from './lib/scoring.js'
+import { adHocEntity, buildEntities, liveLayerOf, livePoints, ownValue, resolveCountry } from './lib/scoring.js'
 import { colorAt, scaleFor } from './lib/colors.js'
-import { renderSurface, surfaceSamples, surfaceVarById } from './lib/surface.js'
-import { livePoints } from './lib/scoring.js'
+import { overlayLayers, renderSurface, surfaceSamples, surfaceVarById } from './lib/surface.js'
 import { floodLevel } from './components/mapLayers.js'
 import { isNarrow } from './lib/viewport.js'
 import { warningsFor } from './lib/warnings.js'
@@ -66,7 +65,14 @@ export default function App() {
   const sourceMode = scoringFamiliesFor(country, standards).some((f) => f.id === chosenSource) ? chosenSource : 'combined'
   const metricId = !isMultiSource(sourceMode) && metricById[chosenMetric].kind === 'indicator' && familyOf(chosenMetric, standards) !== sourceMode ? 'score' : chosenMetric
   const data = useCountryData(country)
-  const live = useLiveData(data)
+  const surfaceVar = surfaceVarById[overlays.surfaceVar]
+  // The live layers in view load on demand: those of the overlays that are on and of the map metric, and river flow
+  // for the compare view's flood watch. Reports and the status panel ask with live.load().
+  const live = useLiveData(data, [
+    ...Object.entries(overlayLayers(overlays)).flatMap(([id, keys]) => (overlays[id] ? keys : [])),
+    liveLayerOf(metricId),
+    showCompare && compare.some((c) => c?.type === 'city') && 'flood',
+  ])
 
   useEffect(() => { document.documentElement.dataset.theme = theme; store.set('theme', theme) }, [theme])
   useEffect(() => store.set('country', iso3), [iso3])
@@ -158,13 +164,12 @@ export default function App() {
   }, [live.quakes])
 
   // Interpolated climate surface, rendered only while the overlay is on.
-  const surfaceVar = surfaceVarById[overlays.surfaceVar]
   const surface = useMemo(() => {
     if (!overlays.surface || !data.geo) return null
     const points = [...livePoints(data.geo, data.cities), ...live.grid]
-    return renderSurface({ samples: surfaceSamples(surfaceVar, points, { climate, uv }), fc: data.geo, bbox: data.bbox, rampName: surfaceVar.ramp })
+    return renderSurface({ samples: surfaceSamples(surfaceVar, points, live), fc: data.geo, bbox: data.bbox, rampName: surfaceVar.ramp })
     // Redrawn (≈ 50–100 ms) only when the layer this variable reads changes, not on every other chunk.
-  }, [overlays.surface, surfaceVar, data.geo, data.cities, data.bbox, live.grid, surfaceVar.id === 'uvMean' ? uv : climate]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [overlays.surface, surfaceVar, data.geo, data.cities, data.bbox, live.grid, live[surfaceVar.layer], live[`${surfaceVar.layer}Grid`]]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // River flood watch points (cities whose GloFAS cell has a significant river).
   const floodFC = useMemo(() => model && live.flood && {
@@ -305,7 +310,7 @@ export default function App() {
         />
 
         <Legend surface={overlays.surface ? surface : null} surfaceVar={surfaceVar} sourceMode={sourceMode} standards={standards} metric={metric} scale={scale} overlays={overlays} theme={theme} national={model?.national} shifted={panelOpen} />
-        <LiveStatus status={live.status} progress={live.progress} errors={live.errors} error={data.error} startedAt={live.startedAt} />
+        <LiveStatus status={live.status} progress={live.progress} errors={live.errors} error={data.error} startedAt={live.startedAt} onLoad={live.load} />
 
         {selectedEntity && model && (
           <ReportPanel

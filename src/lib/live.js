@@ -111,17 +111,21 @@ export function monthComfort({ tmax, tmin, precip, snow, sunHours }) {
   return Math.max(0, Math.min(100, s))
 }
 
-// Collapse daily ERA5 series into monthly normals (averaged over all years in range).
+// Collapse daily ERA5 series into monthly normals (averaged over all years in range), with each month's extremes over
+// the whole range: its hottest day (tmaxRecord) and coldest night (tminRecord).
 export function summariseDaily(daily) {
-  const months = Array.from({ length: 12 }, () => ({ tmax: [], tmin: [], precip: {}, snow: {}, sun: {}, wet: {} }))
+  const months = Array.from({ length: 12 }, () => ({ tmax: [], tmin: [], hi: -Infinity, lo: Infinity, precip: {}, snow: {}, sun: {}, wet: {} }))
   const years = {}
   daily.time.forEach((d, i) => {
     const y = +d.slice(0, 4)
     const m = +d.slice(5, 7) - 1
     const M = months[m]
     const key = y
-    M.tmax.push(daily.temperature_2m_max[i])
-    M.tmin.push(daily.temperature_2m_min[i])
+    const tx = daily.temperature_2m_max[i], tn = daily.temperature_2m_min[i], pr = daily.precipitation_sum[i]
+    M.tmax.push(tx)
+    M.tmin.push(tn)
+    if (tx != null) M.hi = Math.max(M.hi, tx)
+    if (tn != null) M.lo = Math.min(M.lo, tn)
     M.precip[key] = (M.precip[key] || 0) + (daily.precipitation_sum[i] || 0)
     M.snow[key] = (M.snow[key] || 0) + (daily.snowfall_sum[i] || 0)
     M.sun[key] = (M.sun[key] || 0) + (daily.sunshine_duration[i] || 0) / 3600
@@ -129,7 +133,6 @@ export function summariseDaily(daily) {
     const Y = (years[y] ||= { t: [], p: 0, hi: -Infinity, lo: Infinity, hot: 0, tropical: 0, frost: 0, heavy: 0, run: 0, dry: 0 })
     // Climate extremes (ETCCDI-style counts): very hot days, tropical nights, frost days, very heavy rain days,
     // longest run of dry days (< 1 mm).
-    const tx = daily.temperature_2m_max[i], tn = daily.temperature_2m_min[i], pr = daily.precipitation_sum[i]
     if (tx != null && tx >= 35) Y.hot++
     if (tn != null && tn >= 20) Y.tropical++
     if (tn != null && tn < 0) Y.frost++
@@ -147,6 +150,8 @@ export function summariseDaily(daily) {
     const out = {
       tmax: r(mean(M.tmax)),
       tmin: r(mean(M.tmin)),
+      tmaxRecord: Number.isFinite(M.hi) ? r(M.hi) : null,
+      tminRecord: Number.isFinite(M.lo) ? r(M.lo) : null,
       precip: r(mean(Object.values(M.precip))),
       snow: r(mean(Object.values(M.snow))),
       sunHours: r(mean(Object.values(M.sun)) / daysIn(m)),
@@ -200,7 +205,7 @@ export function fetchClimateBatch(points, opts = {}) {
 export async function fetchClimateDetail(lat, lon, { signal } = {}) {
   const end = lastFullYear()
   const start = end - 9
-  return cached(`climd3:${lat.toFixed(2)},${lon.toFixed(2)}:${end}`, 30 * DAY, async () => {
+  return cached(`climd4:${lat.toFixed(2)},${lon.toFixed(2)}:${end}`, 30 * DAY, async () => {
     const url = `https://archive-api.open-meteo.com/v1/archive?latitude=${lat}&longitude=${lon}&start_date=${start}-01-01&end_date=${end}-12-31&daily=${DAILY_VARS}&timezone=auto`
     const cost = { variables: N_DAILY, days: daysBetween(`${start}-01-01`, `${end}-12-31`) }
     const r = await meteoJSON(url, cost, { priority: PRIORITY.user, signal, timeout: 90000 })
