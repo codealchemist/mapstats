@@ -53,7 +53,7 @@ export function rankingCsv(entities, regionLabel) {
   return new Blob([toCsv([head, ...rows])], { type: 'text/csv;charset=utf-8' })
 }
 
-export function reportCsv(entity, detail, sourceGroups = [], standards) {
+export function reportCsv(entity, detail, sourceGroups = [], standards, country) {
   // `scope` says whether a value was measured for this place or is its province's figure (used only for scoring).
   const rows = [['section', 'metric', 'value', 'unit', 'source', 'scope']]
   const own = entity.type === 'city' ? 'city' : 'region'
@@ -61,7 +61,7 @@ export function reportCsv(entity, detail, sourceGroups = [], standards) {
   CATEGORIES.forEach((c) => rows.push(['score', c.label, round(entity.categories[c.id], 1), '/100', 'MapStats', own]))
   INDICATORS.forEach((i) => {
     const scope = isOwnValue(entity, i.id) ? own : entity.inherited?.has(i.id) ? `${entity.provinceName} (province, no city data)` : 'no data'
-    rows.push(['indicator', i.label, round(entity.values[i.id], 3), i.unit, providerUnder(i.id, standards)?.short, scope])
+    rows.push(['indicator', i.label, round(entity.values[i.id], 3), i.unit, providerUnder(i.id, country, standards)?.short, scope])
   })
   if (detail?.climate) {
     detail.climate.monthly.forEach((m, k) =>
@@ -112,7 +112,8 @@ const tableStyle = {
 }
 
 // charts: [{ title, dataUrl, width, height }]
-export async function reportPdf({ entity, national, charts, countryName, sourceGroups = [], standards }) {
+export async function reportPdf({ entity, national, charts, country, sourceGroups = [], standards }) {
+  const countryName = country.name
   const { jsPDF, autoTable } = await loadPdf()
   const doc = new jsPDF({ unit: 'pt', format: 'a4' })
   const W = doc.internal.pageSize.getWidth()
@@ -135,7 +136,7 @@ export async function reportPdf({ entity, national, charts, countryName, sourceG
     startY: doc.lastAutoTable.finalY + 16,
     head: [['Indicator', 'Value', 'Country avg.', 'Source']],
     body: INDICATORS.filter((i) => isOwnValue(entity, i.id)).map((i) => [
-      i.label, fmtIndicator(i.id, entity.values[i.id]), fmtIndicator(i.id, national?.values[i.id]), providerUnder(i.id, standards)?.short,
+      i.label, fmtIndicator(i.id, entity.values[i.id]), fmtIndicator(i.id, national?.values[i.id]), providerUnder(i.id, country, standards)?.short,
     ]),
   })
 

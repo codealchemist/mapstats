@@ -2,7 +2,7 @@
 // selected places at once; colour always follows the place's slot.
 // places: [{ e: entity, i: slot index, d: detail { climate, air, uv }, flood }]
 import { CATEGORIES, INDICATORS } from '../../data/metrics.js'
-import { PROVIDERS, localFirst } from '../../core/providers.js'
+import { providersFor, localFirst } from '../../core/providers.js'
 import { baseOptions, barStyle, lineStyle } from '../charts/theme.js'
 import { MONTHS } from '../../lib/format.js'
 import { isOwnValue } from '../../lib/scoring.js'
@@ -69,7 +69,8 @@ const lastYearMeasures = (provider) => (provider.report?.trends?.charts || []).f
   }
 })
 
-export function buildMeasures() {
+/** The measures for a country: its providers' yearly series, then the shared live and indicator charts. */
+export function buildMeasures(country) {
   const list = [
     {
       id: 'score', group: 'Scores', label: 'MapStats score', unit: '/100', info: { row: 'score' },
@@ -81,8 +82,8 @@ export function buildMeasures() {
       available: () => true,
       build: ({ places, tk }) => groupedBars({ places, tk, labels: CATEGORIES.map((c) => c.label), series: (p) => CATEGORIES.map((c) => r1(p.e.categories[c.id])), horizontal: true, max: 100 }),
     },
-    ...localFirst(PROVIDERS).flatMap(trendMeasures),
-    ...localFirst(PROVIDERS).flatMap(lastYearMeasures),
+    ...localFirst(providersFor(country)).flatMap(trendMeasures),
+    ...localFirst(providersFor(country)).flatMap(lastYearMeasures),
     monthly('tmax', 'Average daily maximum', '°C'),
     monthly('tmin', 'Average daily minimum', '°C'),
     monthly('precip', 'Precipitation', 'mm', 'bar'),

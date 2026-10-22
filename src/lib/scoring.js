@@ -79,8 +79,9 @@ const median = (a) => {
  * Only values measured for the place itself vote. Values borrowed from the province (`inherited`)
  * fill a category only when no source has local data for it. Region-only families (e.g. provincial
  * statistics) are region-level by nature and always count.
- * ctx: { type, details, dist, standards } — dist[type][indicator] = sorted own values (for percentiles);
- * standards: the selected standard per indicator (data/standards.js), applied to every place alike.
+ * ctx: { type, details, dist, standards, country } — dist[type][indicator] = sorted own values (for percentiles);
+ * standards: the selected standard per indicator (data/standards.js), applied to every place alike; country: whose
+ * providers stand behind the indicators (src/core/providers.js).
  */
 export function scoreValues(values, weights, mode = 'combined', inherited = null, ctx = {}) {
   const multi = isMultiSource(mode)
@@ -89,7 +90,7 @@ export function scoreValues(values, weights, mode = 'combined', inherited = null
   for (const c of CATEGORIES) {
     const own = {}, borrowed = {}
     for (const i of SCORED.filter((x) => x.category === c.id)) {
-      const f = familyOf(i.id, ctx.standards)
+      const f = familyOf(i.id, ctx.country, ctx.standards)
       if (!multi && f !== mode) continue
       possible++
       const v = values[i.id]
@@ -156,7 +157,7 @@ function distributions(entities) {
   return dist
 }
 
-const ctxOf = (e, dist, standards) => ({ type: e.type === 'national' ? 'province' : e.type, details: e.details, dist, standards })
+const ctxOf = (e, dist, standards, country) => ({ type: e.type === 'national' ? 'province' : e.type, details: e.details, dist, standards, country })
 
 export function countQuakesNear(quakes, lat, lon, km = 200) {
   if (!quakes) return null
@@ -210,6 +211,7 @@ export function liveValuesFor(id, lat, lon, live) {
 
 /**
  * Scored places of a country.
+ * @param country       the country's manifest (src/core/countries.js): which providers stand behind each indicator
  * @param provincesGeo  region boundaries (FeatureCollection, properties.id / name)
  * @param cities        places: the country's curated list or Natural Earth's ({ id, name, region, lat, lon, pop, codes })
  * @param datasets      the country's datasets (countries/<ISO3>/data), see src/core/resolve.js
@@ -217,7 +219,7 @@ export function liveValuesFor(id, lat, lon, live) {
  * @param live          live layers (useLiveData)
  * @param standards     the standard chosen per indicator (data/standards.js)
  */
-export function buildEntities({ provincesGeo, cities, datasets = [], base = resolveCountry(provincesGeo, cities, datasets), live, weights, sourceMode = 'combined', standards = DEFAULT_STANDARDS }) {
+export function buildEntities({ country, provincesGeo, cities, datasets = [], base = resolveCountry(provincesGeo, cities, datasets), live, weights, sourceMode = 'combined', standards = DEFAULT_STANDARDS }) {
   // Cities: dataset values (own or borrowed from the region) + live. Copied: `base` outlives this build.
   const cityEntities = cities.map((c) => {
     const b = base.cities[c.id]
@@ -247,7 +249,7 @@ export function buildEntities({ provincesGeo, cities, datasets = [], base = reso
   const all = [...provEntities, ...cityEntities]
   const dist = distributions(all)
   for (const e of all) {
-    const ctx = ctxOf(e, dist, standards)
+    const ctx = ctxOf(e, dist, standards, country)
     Object.assign(e, scoreValues(e.values, weights, sourceMode, e.inherited, ctx))
     // Both integration methods, always, so reports can compare them side by side.
     e.compare = {
@@ -261,7 +263,7 @@ export function buildEntities({ provincesGeo, cities, datasets = [], base = reso
   const provinceName = Object.fromEntries(provEntities.map((p) => [p.id, p.name]))
   cityEntities.forEach((c) => (c.provinceName = provinceName[c.province] || ''))
 
-  const national = nationalAverage(provEntities, weights, sourceMode, dist, standards)
+  const national = nationalAverage(provEntities, weights, sourceMode, dist, standards, country)
   national.details = base.national.details
   return { provinces: provEntities, cities: cityEntities, national, dist, ranges: valueRanges(all), datasets: base.meta }
 }
@@ -272,12 +274,12 @@ function rank(list) {
   list.forEach((e) => (e.rankOf = sorted.length))
 }
 
-function nationalAverage(provinces, weights, sourceMode, dist, standards) {
+function nationalAverage(provinces, weights, sourceMode, dist, standards, country) {
   const values = {}
   for (const ind of INDICATORS) values[ind.id] = weightedMean(provinces, ind.id)
   const totalPop = provinces.reduce((s, p) => s + (p.values.pop || 0), 0)
   values.pop = totalPop || null
-  const ctx = { type: 'province', dist, standards }
+  const ctx = { type: 'province', dist, standards, country }
   return {
     type: 'national', id: 'national', name: 'National average', values, ...scoreValues(values, weights, sourceMode, null, ctx),
     compare: { combined: scoreValues(values, weights, 'combined', null, ctx), weighted: scoreValues(values, weights, 'weighted', null, ctx) },
@@ -286,7 +288,7 @@ function nationalAverage(provinces, weights, sourceMode, dist, standards) {
 
 // For a city typed into search that isn't in our list: score it with live data
 // (and what its region's cities borrow from it, when it falls inside the current country).
-export function adHocEntity({ place, provinceId, provinceName, provinceEntity, live, weights, sourceMode = 'combined', dist = null, standards = DEFAULT_STANDARDS }) {
+export function adHocEntity({ place, provinceId, provinceName, provinceEntity, country, live, weights, sourceMode = 'combined', dist = null, standards = DEFAULT_STANDARDS }) {
   const prov = { ...provinceEntity?.inheritable }
   const inherited = new Set(Object.keys(prov).filter((k) => k !== 'pop'))
   const values = standardValues({ ...prov, pop: place.pop, ...live }, standards, inherited)
@@ -294,7 +296,7 @@ export function adHocEntity({ place, provinceId, provinceName, provinceEntity, l
     type: 'city', id: place.id, name: place.name, province: provinceId, provinceName: provinceName || place.admin1 || '',
     lat: place.lat, lon: place.lon, values, inherited, adHoc: true,
   }
-  const ctx = { type: 'city', dist, standards }
+  const ctx = { type: 'city', dist, standards, country }
   Object.assign(e, scoreValues(values, weights, sourceMode, e.inherited, ctx))
   e.compare = { combined: scoreValues(values, weights, 'combined', e.inherited, ctx), weighted: scoreValues(values, weights, 'weighted', e.inherited, ctx) }
   return e

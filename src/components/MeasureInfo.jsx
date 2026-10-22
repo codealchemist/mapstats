@@ -13,7 +13,7 @@ const ORIGIN_ICON = { score: Calculator, derived: Sigma, published: FileText }
  * "About this measure": what it is, which way is better, the selected standard's categories, how it scores, and its
  * source. `measure`: { indicator: id } for an indicator, or { row: ROW_ABOUT key, title?, sub? } for other rows.
  */
-export function MeasureInfo({ measure, standards, onClose }) {
+export function MeasureInfo({ measure, standards, country, onClose }) {
   useEffect(() => {
     // Capture phase, so Esc closes this dialog only, not the view underneath.
     const onKey = (e) => { if (e.key === 'Escape') { e.stopImmediatePropagation(); onClose() } }
@@ -31,7 +31,7 @@ export function MeasureInfo({ measure, standards, onClose }) {
   const std = ind ? standardOfMeasure(ind.id, standards) : null
   const family = std && Object.values(STANDARDS).find((s) => s.options.includes(std))
   const range = ind?.better && !STANDARDS[ind.id] ? scoreRange(ind.id) : null
-  const provider = ind ? providerUnder(ind.id, standards) : null
+  const provider = ind ? providerUnder(ind.id, country, standards) : null
   // Where the number comes from: a MapStats score, calculated from a source's data, or the source's own figure.
   const [kind, how] = (ind ? ORIGIN[ind.id] : about?.origin) || []
   const OriginIcon = ORIGIN_ICON[kind]

@@ -64,7 +64,7 @@ export default function App() {
   // sources and the score. A remembered source may no longer exist or be missing here, and a standard moves an
   // indicator between sources (UTCI: Copernicus instead of Open-Meteo); the choice comes back when it applies again.
   const sourceMode = scoringFamiliesFor(country, standards).some((f) => f.id === chosenSource) ? chosenSource : 'combined'
-  const metricId = !isMultiSource(sourceMode) && metricById[chosenMetric].kind === 'indicator' && familyOf(chosenMetric, standards) !== sourceMode ? 'score' : chosenMetric
+  const metricId = !isMultiSource(sourceMode) && metricById[chosenMetric].kind === 'indicator' && familyOf(chosenMetric, country, standards) !== sourceMode ? 'score' : chosenMetric
   const data = useCountryData(country)
   const live = useLiveData(data)
 
@@ -81,16 +81,16 @@ export default function App() {
   // Dataset values per place change only with the country; scores also change with weights, mode and live data.
   const base = useMemo(() => (data.geo ? resolveCountry(data.geo, data.cities, data.datasets) : null), [data.geo, data.cities, data.datasets])
   const model = useMemo(
-    () => (base ? buildEntities({ provincesGeo: data.geo, cities: data.cities, base, live: liveData, weights, sourceMode, standards }) : null),
-    [base, data.geo, data.cities, liveData, weights, sourceMode, standards],
+    () => (base ? buildEntities({ country, provincesGeo: data.geo, cities: data.cities, base, live: liveData, weights, sourceMode, standards }) : null),
+    [country, base, data.geo, data.cities, liveData, weights, sourceMode, standards],
   )
 
   // Ad-hoc (searched) places are rescored when weights change.
   const adHoc = useMemo(() => {
     if (selected?.type !== 'adhoc') return null
     const provinceEntity = model?.provinces.find((p) => p.id === selected.input.provinceId)
-    return adHocEntity({ ...selected.input, provinceEntity, weights, sourceMode, standards, dist: model?.dist })
-  }, [selected, model, weights, sourceMode, standards])
+    return adHocEntity({ ...selected.input, provinceEntity, country, weights, sourceMode, standards, dist: model?.dist })
+  }, [selected, model, country, weights, sourceMode, standards])
 
   const adHocPoint = useMemo(() => adHoc && { lat: adHoc.lat, lon: adHoc.lon }, [adHoc?.lat, adHoc?.lon]) // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -304,7 +304,7 @@ export default function App() {
           onSourceMode={setSourceMode}
         />
 
-        <Legend surface={overlays.surface ? surface : null} surfaceVar={surfaceVar} sourceMode={sourceMode} standards={standards} metric={metric} scale={scale} overlays={overlays} theme={theme} national={model?.national} shifted={panelOpen} />
+        <Legend surface={overlays.surface ? surface : null} surfaceVar={surfaceVar} sourceMode={sourceMode} standards={standards} country={country} metric={metric} scale={scale} overlays={overlays} theme={theme} national={model?.national} shifted={panelOpen} />
         <LiveStatus status={live.status} progress={live.progress} errors={live.errors} error={data.error} startedAt={live.startedAt} />
 
         {selectedEntity && model && (
@@ -324,7 +324,7 @@ export default function App() {
           />
         )}
 
-        {showInfo && <Methodology onClose={() => setShowInfo(false)} weights={weights} standards={standards} onSources={() => { setShowInfo(false); setShowSources(true) }} />}
+        {showInfo && <Methodology onClose={() => setShowInfo(false)} weights={weights} standards={standards} country={country} onSources={() => { setShowInfo(false); setShowSources(true) }} />}
         {showSources && <SourcesView onClose={() => setShowSources(false)} datasets={model?.datasets} />}
         {showCompare && model && (
           <CompareView

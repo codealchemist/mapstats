@@ -4,7 +4,7 @@ import { CATEGORIES, INDICATORS, scoreRange, anchorsInfo } from '../data/metrics
 import { PROVIDERS, providerUnder } from '../core/providers.js'
 import { STANDARDS, standardFor } from '../data/standards.js'
 
-export function Methodology({ onClose, weights, standards, onSources }) {
+export function Methodology({ onClose, weights, standards, country, onSources }) {
   useEffect(() => {
     const onKey = (e) => e.key === 'Escape' && onClose()
     window.addEventListener('keydown', onKey)
@@ -43,7 +43,7 @@ export function Methodology({ onClose, weights, standards, onSources }) {
                       <td className="num">{standardFor(i.id, standards)
                         ? `${standardFor(i.id, standards).short} bands (${standardFor(i.id, standards).unit})`
                         : `${(([lo, hi]) => (i.better === 'low' ? `${lo} → ${hi}` : `${hi} → ${lo}`))(scoreRange(i.id).range)} ${i.unit}`}</td>
-                      <td>{providerUnder(i.id, standards)?.short}</td>
+                      <td>{providerUnder(i.id, country, standards)?.short}</td>
                     </tr>
                   )),
                 )}
