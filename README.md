@@ -45,12 +45,12 @@ Every number links back to its source, and you can switch between data sources t
 | Kind | Sources |
 |---|---|
 | Live (fetched in the browser and cached locally) | Open-Meteo (ERA5 climate, CAMS air quality, UV, GloFAS river flow, elevation), USGS earthquakes, geocoding |
-| Curated / imported | SNIC official crime statistics (Argentina), provincial statistics |
+| Curated / imported | Argentina: SNIC official crime statistics, provincial statistics (INDEC). France: SSMSI recorded crime, ONISR road deaths, INSEE and DREES statistics, Géorisques / GASPAR risk records, ARCEP fibre eligibility |
 | Linked only | Numbeo city pages (its terms don't allow republishing its data) |
 | Map | Natural Earth boundaries and places, CARTO basemaps, terrain tiles |
 | News | Google News RSS and outlet feeds, through the `/api/news` function (never used in scores) |
 
-Argentina has the most complete data: official crime statistics by department and socio-economic baselines. The other countries are scored mainly on live environmental and natural-risk data.
+Argentina and France are curated: official crime statistics, road deaths and socio-economic baselines from their statistics offices (Argentina by department, France by département). The other countries are scored mainly on live environmental and natural-risk data.
 
 Live data is paced to Open-Meteo's free limits, so a large country can take a few minutes to fill in on first load. After that it is cached in your browser: climate for 30 days, air quality for 1 day, earthquakes for 7 days.
 
@@ -91,6 +91,7 @@ Each country lives in `countries/<ISO3>/`; the [country guide](docs/country-guid
 | `npm run country:check -- <ISO3>` | Check a country folder: datasets, coverage, score ranges, provider tests, tier |
 | `npm run prefill:due` | List datasets older than their providers' refresh period (also run monthly by CI, which opens an issue) |
 | `npm run snic:import` | Argentina: official SNIC crime statistics from the stored bases (see `countries/ARG/providers/snic/prefill.mjs`) |
+| `npm run prefill -- FRA` | France: the six official sources (see `countries/FRA/README.md`); each downloads its files once |
 | `npm run anchors` | Recompute the score ranges from all countries' data (`src/data/anchors.json`); run it when datasets change (`npm test` fails until you do) |
 
 ## Project structure

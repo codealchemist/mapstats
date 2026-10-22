@@ -48,22 +48,26 @@ export async function readWorkbook(file) {
 
 /**
  * Rows of one worksheet, as { header: value } from its first row. An .xlsx is streamed (fine for files of hundreds
- * of MB); an .xls is read whole (readWorkbook). Formula cells give their result. @param opts.sheet  0-based index
+ * of MB); an .xls is read whole (readWorkbook). Formula cells give their result, rich text its plain text.
+ * @param opts.sheet  0-based index, or the worksheet's name
  */
 export async function* readXlsx(file, { sheet = 0, lowercase = true } = {}) {
   const head = (h) => (lowercase ? String(h ?? '').trim().toLowerCase() : String(h ?? '').trim())
+  const wanted = (name, index) => (typeof sheet === 'string' ? name === sheet : index === sheet)
   if (/\.xls$/i.test(file)) {
-    const [header = [], ...rows] = (await readWorkbook(file))[sheet]?.rows || []
+    const book = await readWorkbook(file)
+    const [header = [], ...rows] = book.find((s, i) => wanted(s.name, i))?.rows || []
     for (const r of rows) yield Object.fromEntries(header.map((h, i) => [head(h), r[i] === '' ? null : r[i] ?? null]))
     return
   }
+  const cell = (x) => (x && typeof x === 'object' ? ('result' in x ? x.result : x.richText ? x.richText.map((t) => t.text).join('') : x) : x)
   const reader = new ExcelJS.stream.xlsx.WorkbookReader(file, { sharedStrings: 'cache', worksheets: 'emit' })
   let index = 0
   for await (const ws of reader) {
-    if (index++ < sheet) continue
+    if (!wanted(ws.name, index++)) continue
     let header = null
     for await (const row of ws) {
-      const v = row.values.slice(1).map((x) => (x && typeof x === 'object' && 'result' in x ? x.result : x))
+      const v = row.values.slice(1).map(cell)
       if (!header) { header = v.map(head); continue }
       yield Object.fromEntries(header.map((h, i) => [h, v[i] ?? null]))
     }
@@ -101,6 +105,15 @@ export async function readPdf(file, { gap = 6 } = {}) {
   }
   await doc.destroy()
   return pages
+}
+
+/**
+ * XML → a plain object (fast-xml-parser), for SDMX and other XML APIs: attributes become fields; `arrays` names
+ * the elements that are always lists even when there is one.
+ */
+export async function parseXml(text, { arrays = [] } = {}) {
+  const { XMLParser } = await import('fast-xml-parser')
+  return new XMLParser({ ignoreAttributes: false, attributeNamePrefix: '', isArray: (name) => arrays.includes(name) }).parse(text)
 }
 
 /** HTML → a cheerio document ($('table tr')…), for sources that publish tables only as web pages. */

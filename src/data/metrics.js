@@ -27,6 +27,9 @@ export const INDICATORS = [
   { id: 'roadDeaths', label: 'Road deaths (3-yr avg)', unit: '/100k', category: 'safety', better: 'low', domain: [0, 30], digits: 1 },
   // Natural risks
   { id: 'seismicZone', label: 'Seismic zone', unit: '/4', category: 'hazards', better: null, digits: 0 },
+  // MapStats 1–5 classes built on administrative risk records (France: GASPAR): context only, GEM scores hazards.
+  { id: 'floodExposure', label: 'Flood exposure (disaster records)', unit: '/5', category: 'hazards', better: null, digits: 1, ramp: 'red' },
+  { id: 'fireExposure', label: 'Forest-fire exposure (risk records)', unit: '/5', category: 'hazards', better: null, digits: 1, ramp: 'red' },
   // GEM seismic hazard (a complete dataset): scored on data anchors like the other statistics.
   { id: 'pga475', label: 'Seismic hazard (PGA, 10 % in 50 years)', unit: 'g', category: 'hazards', better: 'low', domain: [0, 0.5], digits: 2 },
   { id: 'pga475Max', label: 'Seismic hazard, highest in the region (GEM)', unit: 'g', category: 'hazards', better: null, digits: 2, ramp: 'red' },
@@ -60,10 +63,18 @@ export const INDICATORS = [
   { id: 'water', label: 'Running water', unit: '%', category: 'services', better: 'high', domain: [70, 100], digits: 0 },
   { id: 'sewer', label: 'Sewer network', unit: '%', category: 'services', better: 'high', domain: [20, 100], digits: 0 },
   { id: 'internet', label: 'Internet at home', unit: '% hh', category: 'services', better: 'high', domain: [40, 100], digits: 0 },
+  // Availability of fibre is not the connection rate above, and census commuting measures use, not coverage: context only.
+  { id: 'fibreCoverage', label: 'Premises eligible to fibre (FttH)', unit: '%', category: 'services', better: null, digits: 1, ramp: 'blue' },
+  { id: 'transitCommute', label: 'Commuters using public transport', unit: '%', category: 'services', better: null, digits: 1, ramp: 'blue' },
   // Economy & wellbeing
   { id: 'poverty', label: 'Poverty', unit: '%', category: 'economy', better: 'low', domain: [15, 60], digits: 0 },
+  // Relative poverty (below 60 % of the national median income) is not the basic-basket poverty above: shown, not scored.
+  { id: 'povertyRelative', label: 'Relative poverty (60 % of median income)', unit: '%', category: 'economy', better: null, digits: 1, ramp: 'red' },
   { id: 'unemployment', label: 'Unemployment', unit: '%', category: 'economy', better: 'low', domain: [2, 10], digits: 1 },
   { id: 'lifeExp', label: 'Life expectancy', unit: 'yrs', category: 'economy', better: 'high', domain: [74, 79], digits: 1 },
+  // Published separately by sex where no both-sex figure exists (France): shown next to the scored mean.
+  { id: 'lifeExpWomen', label: 'Life expectancy, women', unit: 'yrs', category: 'economy', better: null, digits: 1, ramp: 'blue' },
+  { id: 'lifeExpMen', label: 'Life expectancy, men', unit: 'yrs', category: 'economy', better: null, digits: 1, ramp: 'blue' },
   { id: 'hdi', label: 'Human development', unit: '', category: 'economy', better: 'high', domain: [0.75, 0.9], digits: 3 },
   // Descriptive (not scored)
   { id: 'meanTemp', label: 'Mean temperature', unit: '°C', category: 'climate', better: null, digits: 1, live: true },
@@ -136,11 +147,17 @@ export const MAP_METRICS = [
   { id: 'seismicZone', group: 'Terrain & risks', icon: 'Activity' },
   { id: 'floodWatch', group: 'Terrain & risks', icon: 'Waves' },
   { id: 'floodPeakPast', group: 'Terrain & risks', icon: 'Waves' },
+  { id: 'floodExposure', group: 'Terrain & risks', icon: 'Waves' },
+  { id: 'fireExposure', group: 'Terrain & risks', icon: 'Flame' },
   { id: 'doctors', group: 'Services', icon: 'HeartPulse' },
   { id: 'internet', group: 'Services', icon: 'Globe' },
+  { id: 'fibreCoverage', group: 'Services', icon: 'Globe' },
   { id: 'sewer', group: 'Services', icon: 'Droplets' },
+  { id: 'transitCommute', group: 'Services', icon: 'Bus' },
   { id: 'poverty', group: 'Economy', icon: 'Wallet' },
+  { id: 'povertyRelative', group: 'Economy', icon: 'Wallet' },
   { id: 'unemployment', group: 'Economy', icon: 'Wallet' },
+  { id: 'lifeExp', group: 'Economy', icon: 'HeartPulse' },
   { id: 'pop', group: 'Economy', icon: 'Building2' },
 ].map((m) => (m.kind ? m : { ...m, label: indicatorById[m.id].label, kind: 'indicator' }))
 

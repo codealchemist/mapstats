@@ -102,7 +102,7 @@ function diff(a, b, path = '', out = []) {
 }
 
 let failures = 0
-for (const iso3 of ['ARG', 'BOL']) {
+for (const iso3 of ['ARG', 'BOL', 'FRA']) {
   const file = new URL(`${iso3}.json`, dir)
   const got = await snapshot(iso3)
   if (UPDATE || !fs.existsSync(file)) {
