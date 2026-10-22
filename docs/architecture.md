@@ -3,7 +3,7 @@
 How MapStats is structured so that each country can be integrated by its own developers, in its own folder, without touching the rendering engine.
 
 - **Audience:** the core team, and developers who will own a country.
-- **Status:** built and in use for all 16 countries. Argentina, the only curated country, runs fully on it (migration steps 0–8, [section 8](#8-migration)). Items marked *not built yet* are the agreed direction.
+- **Status:** built and in use for all 16 countries. Argentina and France, the two curated countries, run fully on it (migration steps 0–9, [section 8](#8-migration)). Items marked *not built yet* are the agreed direction.
 - **Related:** [Country integration guide](country-guide.md) · [Dataset schema](schemas/dataset.schema.json) · [Worked example country](../countries/_template/)
 
 ---
@@ -180,7 +180,7 @@ defineProvider({
 
 | Field | Used for |
 |---|---|
-| `provides` | Which provider stands behind each indicator (`providerOf`); every indicator has exactly one today |
+| `provides` | Which provider stands behind each indicator in a country (`providerOf(id, country)`): countries may publish the same indicator through different providers (SNIC and the SSMSI both provide `homicide`), but within one country each indicator has exactly one |
 | `kind`, `family`, `levels` | Reliability weights and the single-source selector; required for scored data |
 | `access`, `cadence`, `scope`, `types`, `usedFor` | The sources view |
 | `refresh` | `prefill:due` (year · quarter · month) |
@@ -194,11 +194,11 @@ defineProvider({
 
 | `kind` | Weight | Meaning | Today |
 |---|---|---|---|
-| `register` | 1.0 | Official count of recorded cases | SNIC, Argentina's physician register (REFEPS) |
+| `register` | 1.0 | Official count of recorded cases | SNIC, Argentina's physician register (REFEPS); France's SSMSI, ONISR, DREES (RPPS), INSEE vital statistics |
 | `measurement` | 1.0 | Instrument or reanalysis | Open-Meteo, USGS |
-| `official-survey` | 0.8 | Statistics office survey with published methodology | Argentina's provincial statistics (INDEC), the template's example |
+| `official-survey` | 0.8 | Statistics office survey with published methodology | Argentina's provincial statistics (INDEC), France's INSEE unemployment and census, the template's example |
 | `crowd-survey` | 0.5 | Perception survey, self-selected respondents | none (Numbeo is links only, section 9) |
-| `estimate` | 0.3 | Modelled or derived | Argentina's provincial HDI (PNUD) |
+| `estimate` | 0.3 | Modelled or derived | Argentina's provincial HDI (PNUD); France's GASPAR exposure classes (shown, not scored) |
 | `manual` | 0.3 | Hand-entered from a publication | Argentina's INPRES zones |
 
 **Generic factors**, applied by the core to every family: a family that only publishes region-wide figures counts ×0.5 for a city; any other family's value borrowed from the region counts ×0.5. Provider-specific factors (SNIC: department ×0.9, recency) come from `weightFactors`.
@@ -372,7 +372,7 @@ write    → countries/<ISO3>/data/<id>.json                              commit
 | 6 | SDK, CLI, Argentina's importers as provider prefills, template | Done (SNIC prefill reproduces its dataset exactly) |
 | 7 | Numbeo: links only (its terms forbid collecting or republishing its data without consent) | Done (scores change: 2.9 points on average for affected places) |
 | 8 | Score anchors from the data (2nd–98th percentile of region values) | Done (scores change: 2.6–3.2 points on average; Argentina's spread widens) |
-| 9 | **Pilot:** a developer new to the codebase curates a second country with only the guide; anchors regenerated with two countries (scores change, announced); guide fixed from their feedback | Next |
+| 9 | **Pilot:** a second curated country (France: six official sources, `countries/FRA/`); anchors regenerated with two countries (scores change, announced) | Done (Argentina's scores move 1.1 points on average in the median mode; the weighted mode is unchanged) |
 
 ## 9. Open decisions
 

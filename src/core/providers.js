@@ -16,6 +16,7 @@ export const providerById = (id) => byId[id] || null
 const perCountry = (fn) => {
   const cache = new WeakMap()
   return (country) => {
+    if (!country?.iso3) throw new Error('a country (countries/index.js) is required')
     if (!cache.has(country)) cache.set(country, fn(country))
     return cache.get(country)
   }
@@ -31,27 +32,34 @@ export const providersFor = perCountry((country) => {
 /** The country's own providers first (local, usually official, data), then global ones. */
 export const localFirst = (providers) => [...providers.filter((p) => p.country), ...providers.filter((p) => !p.country)]
 
-// Indicator → the provider that supplies it. Each indicator has one provider today; when two countries
-// supply the same indicator through different providers, this becomes country-scoped.
-const indicatorProvider = {}
-for (const p of PROVIDERS) {
-  for (const id of p.provides) {
-    if (indicatorProvider[id]) throw new Error(`Indicator ${id} is provided by both ${indicatorProvider[id].id} and ${p.id}`)
-    indicatorProvider[id] = p
+// Indicator → the provider that supplies it, per country: two countries may publish the same indicator through
+// different providers (Argentina's SNIC and France's SSMSI both provide `homicide`), but within one country each
+// indicator has exactly one. Validated at load for every registered country.
+const indicatorProviders = perCountry((country) => {
+  const map = {}
+  for (const p of providersFor(country)) {
+    for (const id of p.provides) {
+      if (map[id]) throw new Error(`${country.iso3}: indicator ${id} is provided by both ${map[id].id} and ${p.id}`)
+      map[id] = p
+    }
   }
-}
-for (const i of INDICATORS) if (!indicatorProvider[i.id]) throw new Error(`No provider provides indicator ${i.id}`)
+  return map
+})
+for (const c of COUNTRIES) indicatorProviders(c)
+const provided = new Set(PROVIDERS.flatMap((p) => p.provides))
+for (const i of INDICATORS) if (!provided.has(i.id)) throw new Error(`No provider provides indicator ${i.id}`)
 
-/** The provider behind an indicator. */
-export const providerOf = (indicatorId) => indicatorProvider[indicatorId] || null
+/** The provider behind an indicator in a country (null when none of the country's providers publishes it). */
+export const providerOf = (indicatorId, country) => indicatorProviders(country)[indicatorId] || null
 
 /** The provider behind an indicator's value under a standards selection: an indicator scored by a standard shows that
  *  standard's measure (data/standards.js `input`), so the measure's provider is behind it (UTCI: Copernicus). */
-export const providerUnder = (indicatorId, standards) => providerOf(standardFor(indicatorId, standards)?.input ?? indicatorId)
+export const providerUnder = (indicatorId, country, standards) => providerOf(standardFor(indicatorId, standards)?.input ?? indicatorId, country)
 
 // ---------- Source families (the source selector's groups) ----------
 
-const familyIdOf = (p) => (p.family == null ? null : typeof p.family === 'string' ? p.family : p.family.id)
+/** Family id of a provider (null when it is not in a source family, e.g. descriptive context). */
+export const familyIdOf = (p) => (p.family == null ? null : typeof p.family === 'string' ? p.family : p.family.id)
 // Providers that declare a family; countries may share one by declaring the same id, label and short.
 const owners = []
 for (const p of PROVIDERS.filter((x) => x.family && typeof x.family === 'object')) {
@@ -77,14 +85,14 @@ export const familiesFor = perCountry((country) => {
 
 /** familiesFor, without the families that score nothing under these standards (Copernicus only scores under UTCI). */
 export const scoringFamiliesFor = (country, standards) =>
-  familiesFor(country).filter((f) => isMultiSource(f.id) || INDICATORS.some((i) => i.better && familyOf(i.id, standards) === f.id))
+  familiesFor(country).filter((f) => isMultiSource(f.id) || INDICATORS.some((i) => i.better && familyOf(i.id, country, standards) === f.id))
 
 // Modes that integrate every source (vs. a single-source view).
 export const isMultiSource = (mode) => mode === 'combined' || mode === 'weighted'
 
-/** Source family of an indicator (null for descriptive context such as population). */
-export const familyOf = (indicatorId, standards) => {
-  const p = providerUnder(indicatorId, standards)
+/** Source family of an indicator in a country (null for descriptive context such as population). */
+export const familyOf = (indicatorId, country, standards) => {
+  const p = providerUnder(indicatorId, country, standards)
   return p ? familyIdOf(p) : null
 }
 
@@ -113,11 +121,11 @@ export const isRegionOnly = (familyId) => !!families[familyId]?.regionOnly
 
 const uniq = (ids) => [...new Set(ids)].filter(Boolean)
 
-/** Provider ids behind a list of indicators (under a standards selection: see providerUnder). */
-export const sourcesForIndicators = (ids, standards) => uniq(ids.map((id) => providerUnder(id, standards)?.id))
+/** Provider ids behind a list of indicators in a country (under a standards selection: see providerUnder). */
+export const sourcesForIndicators = (ids, country, standards) => uniq(ids.map((id) => providerUnder(id, country, standards)?.id))
 
 /** The country's providers that present data in a report category (`report.category`), its own first. */
 export const reportProviders = (country, category) => localFirst(providersFor(country)).filter((p) => p.report?.category === category)
 
-/** Provider ids behind a category's indicators. */
-export const sourcesForCategory = (categoryId, standards) => sourcesForIndicators(INDICATORS.filter((i) => i.category === categoryId).map((i) => i.id), standards)
+/** Provider ids behind a category's indicators in a country. */
+export const sourcesForCategory = (categoryId, country, standards) => sourcesForIndicators(INDICATORS.filter((i) => i.category === categoryId).map((i) => i.id), country, standards)

@@ -4,7 +4,7 @@ import { CATEGORIES, INDICATORS, scoreRange, anchorsInfo } from '../data/metrics
 import { PROVIDERS, providerUnder } from '../core/providers.js'
 import { STANDARDS, standardFor } from '../data/standards.js'
 
-export function Methodology({ onClose, weights, standards, onSources }) {
+export function Methodology({ onClose, weights, standards, country, onSources }) {
   useEffect(() => {
     const onKey = (e) => e.key === 'Escape' && onClose()
     window.addEventListener('keydown', onKey)
@@ -22,11 +22,11 @@ export function Methodology({ onClose, weights, standards, onSources }) {
         <div className="modal-body">
           <ol className="steps">
             <li><b>Normalise.</b> Each indicator is mapped to 0–100 between two fixed values (below), flipped when lower is better and clamped at the ends. For statistics, they are the {anchorsInfo.method}: the few places beyond them score 0 or 100, and the rest spread over the whole scale. Live measurements use ranges set by hand. The same ranges apply to every country, so scores stay comparable; they are relative to the places MapStats covers, not absolute judgements. Charts, map layers and comparisons always show real values.</li>
-            <li><b>Combine sources.</b> Within a category, each source (official crime statistics, Open-Meteo, USGS, provincial statistics) gets its own score: the average of its normalised indicators. The category score is the median of those source scores (with two sources, their mean). Only data measured for the place votes; province figures fill a category only when no source has local data. The data-source selector shows a single source instead.</li>
+            <li><b>Combine sources.</b> Within a category, each source (official crime statistics, Open-Meteo, the statistics office, GEM) gets its own score: the average of its normalised indicators. The category score is the median of those source scores (with two sources, their mean). Only data measured for the place votes; region figures fill a category only when no source has local data. The data-source selector shows a single source instead.</li>
             <li><b>Weighted integration</b> (selectable): each source ranks the place as a percentile among the places it covers, then sources are averaged by reliability — base weight (official register or measurement 1.0, crowd survey 0.5, hand-entered estimate 0.3) × geographic match (department 0.9, province-wide figure 0.5) × recency (−15% per year beyond one). The ± shown is the weighted standard deviation between sources.</li>
             <li><b>Weight.</b> The MapStats score is the weighted average of category scores. Missing categories are left out and the remaining weights re-normalised, so absent data neither helps nor hurts. Each report shows its data coverage.</li>
             <li><b>Cities</b> inherit their province's statistics, then override them with city-level data (e.g. their crime-statistics department) and live measurements at the exact location (climate, air quality, earthquakes). <b>Provinces</b> aggregate live data from their cities, weighted by population.</li>
-            <li><b>Official crime data</b> comes from SNIC (Ministerio de Seguridad). Cities use their department (partido) — the finest level SNIC publishes — as 3-year averages per 100,000 inhabitants, using parent crime codes only so sub-categories aren't counted twice.</li>
+            <li><b>Official crime data</b> comes from each country's register as 3-year averages per 100,000 inhabitants. Argentina: SNIC (Ministerio de Seguridad), with cities using their department (partido), the finest level SNIC publishes, and parent crime codes only so sub-categories aren't counted twice. France: the SSMSI's département base (homicide victims; the seven theft and robbery categories added up) and the ONISR's accident files for road deaths; cities carry their département's figures.</li>
             <li><b>Climate comfort</b> rates each month from 0–100: ideal mean temperature 16–24 °C; penalties for heat (&gt;30 °C highs), frost, months over 100 mm of rain, snow and fewer than 4 sunshine hours a day.</li>
           </ol>
 
@@ -43,7 +43,7 @@ export function Methodology({ onClose, weights, standards, onSources }) {
                       <td className="num">{standardFor(i.id, standards)
                         ? `${standardFor(i.id, standards).short} bands (${standardFor(i.id, standards).unit})`
                         : `${(([lo, hi]) => (i.better === 'low' ? `${lo} → ${hi}` : `${hi} → ${lo}`))(scoreRange(i.id).range)} ${i.unit}`}</td>
-                      <td>{providerUnder(i.id, standards)?.short}</td>
+                      <td>{providerUnder(i.id, country, standards)?.short}</td>
                     </tr>
                   )),
                 )}

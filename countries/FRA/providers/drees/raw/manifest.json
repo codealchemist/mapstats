@@ -1,0 +1,10 @@
+{
+  "files": {
+    "medecins_rpps_2012_2026.xlsx": {
+      "url": "https://www.data.gouv.fr/fr/datasets/r/58c6b89a-e364-4867-9fdf-2f7770117cc5",
+      "retrievedAt": "2026-10-05",
+      "sha256": "16481f22ab583c6426fe3dc8d76b30021b32e2ec8f024a66d275b11999269a08",
+      "bytes": 73131775
+    }
+  }
+}

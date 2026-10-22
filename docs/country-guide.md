@@ -4,7 +4,7 @@ How to add a country to MapStats, or improve one, by working only in `countries/
 
 - **Audience:** developers who own a country's data.
 - **Before you start:** read sections 2–3 of the [architecture](architecture.md#2-structure).
-- **Worked example:** [`countries/_template/`](../countries/_template/) is a complete fictional country with one provider, a fixture and a test (run by `npm test`). Argentina (`countries/ARG/`) is the real, complete case.
+- **Worked example:** [`countries/_template/`](../countries/_template/) is a complete fictional country with one provider, a fixture and a test (run by `npm test`). Argentina (`countries/ARG/`) and France (`countries/FRA/`) are the real, complete cases.
 
 ---
 
@@ -31,9 +31,9 @@ So a country with only a config already gets a working map with **Natural risks*
 
 | Tier | Name | Requirements |
 |---|---|---|
-| 0 | **Environment** | Config + geo. Live global data only. *(All non-Argentine countries today.)* |
+| 0 | **Environment** | Config + geo. Live global data only. *(Every country but Argentina and France today.)* |
 | 1 | **News** | `news.js` with language, edition and ambiguous names. Verified outlets for at least a third of the regions, or `outletsNote` saying why there are none. |
-| 2 | **Curated** | At least one dataset for each of Safety, Services and Economy, with ≥ 90 % of regions covered. Each dataset has a prefill and a passing test. |
+| 2 | **Curated** | At least one dataset for each of Safety, Services and Economy, with ≥ 90 % of regions covered. Each dataset has a prefill and a passing test. *(France reaches this.)* |
 | 3 | **Local** | A curated city list with `codes`. Official crime statistics at subregion or city level for ≥ 75 % of listed cities. Trend `series` for at least 5 years. *(Argentina reaches this.)* |
 
 ## 3. Choosing sources

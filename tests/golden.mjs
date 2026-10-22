@@ -4,12 +4,13 @@ import fs from 'node:fs'
 import { buildEntities, adHocEntity, livePoints, resolveCountry } from '../src/lib/scoring.js'
 import { countryByIso } from '../src/core/countries.js'
 import { DEFAULT_WEIGHTS, INDICATORS } from '../src/data/metrics.js'
-import { SOURCE_FAMILIES, familyOf } from '../src/core/providers.js'
+import { SOURCE_FAMILIES, familyOf, familiesFor } from '../src/core/providers.js'
 import { loadCountry } from '../tools/cli/context.mjs'
 import { STANDARDS } from '../src/data/standards.js'
 
 const UPDATE = process.argv.includes('--update')
-const MODES = ['combined', 'weighted', 'snic', 'openmeteo', 'usgs', 'provincial']
+// Every source mode the country offers (the integration modes, then each of its families).
+const modesFor = (country) => familiesFor(country).map((f) => f.id)
 const WEIGHTS = [DEFAULT_WEIGHTS, { ...DEFAULT_WEIGHTS, safety: 60, economy: 0 }]
 const dir = new URL('./golden/', import.meta.url)
 
@@ -61,16 +62,16 @@ async function snapshot(iso3) {
   const resolved = resolveCountry(geo, cities, datasets)
   const live = fakeLive(livePoints(geo, cities))
   const out = { entities: {}, runs: {} }
-  const base = buildEntities({ provincesGeo: geo, cities, base: resolved, live, weights: DEFAULT_WEIGHTS })
+  const base = buildEntities({ country, provincesGeo: geo, cities, base: resolved, live, weights: DEFAULT_WEIGHTS })
   for (const e of [...base.provinces, ...base.cities, base.national]) {
     out.entities[e.id] = { name: e.name, province: e.province, values: present(e.values), inherited: borrowed(e), details: detailLevels(e) }
   }
   out.ranges = base.ranges
   out.families = Object.fromEntries(SOURCE_FAMILIES.map((f) => [f.id, f.label]))
-  out.indicators = Object.fromEntries(INDICATORS.map((i) => [i.id, { family: familyOf(i.id) }]))
+  out.indicators = Object.fromEntries(INDICATORS.map((i) => [i.id, { family: familyOf(i.id, country) }]))
   WEIGHTS.forEach((weights, w) => {
-    for (const mode of MODES) {
-      const m = buildEntities({ provincesGeo: geo, cities, base: resolved, live, weights, sourceMode: mode })
+    for (const mode of modesFor(country)) {
+      const m = buildEntities({ country, provincesGeo: geo, cities, base: resolved, live, weights, sourceMode: mode })
       out.runs[`w${w}:${mode}`] = [...m.provinces, ...m.cities, m.national].map(pick)
       // A searched place inside the first region, scored with the first city's live values.
       const prov = m.provinces[0], c0 = base.cities[0]
@@ -85,7 +86,7 @@ async function snapshot(iso3) {
   // Every alternative standard, default weights, median of sources: each scores every place alike.
   for (const [ind, s] of Object.entries(STANDARDS)) {
     for (const o of s.options.filter((x) => x.id !== s.default)) {
-      const m = buildEntities({ provincesGeo: geo, cities, base: resolved, live, weights: DEFAULT_WEIGHTS, standards: { [ind]: o.id } })
+      const m = buildEntities({ country, provincesGeo: geo, cities, base: resolved, live, weights: DEFAULT_WEIGHTS, standards: { [ind]: o.id } })
       out.runs[`std:${ind}=${o.id}`] = [...m.provinces, ...m.cities, m.national].map(pick)
     }
   }
@@ -101,7 +102,7 @@ function diff(a, b, path = '', out = []) {
 }
 
 let failures = 0
-for (const iso3 of ['ARG', 'BOL']) {
+for (const iso3 of ['ARG', 'BOL', 'FRA']) {
   const file = new URL(`${iso3}.json`, dir)
   const got = await snapshot(iso3)
   if (UPDATE || !fs.existsSync(file)) {

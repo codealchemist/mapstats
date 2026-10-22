@@ -168,7 +168,7 @@ export function CompareView({ slots, model, country, theme, sourceMode, standard
       </header>
 
       {mode === 'side' ? (
-        <SideBySide places={places} header={header} national={model.national} ranges={model.ranges} standards={standards} tk={t} onFocus={focus} onInfo={setInfo} query={query}
+        <SideBySide places={places} header={header} national={model.national} ranges={model.ranges} standards={standards} country={country} tk={t} onFocus={focus} onInfo={setInfo} query={query}
           scrollRef={sideScrollRef} initialScroll={sideScroll.current} flashKey={flashKey} onFlashDone={() => setFlashKey(null)} />
       ) : (
         <div className="fullview-body focus-body">
@@ -183,10 +183,10 @@ export function CompareView({ slots, model, country, theme, sourceMode, standard
               : <span key={k} className="pill static muted"><Plus size={11} /> empty slot</span>))}
             <button className="link small" onClick={() => switchMode('side')}>Add or remove places</button>
           </div>
-          <FocusChart places={filled} national={model.national} theme={theme} measureId={measureId} onMeasure={setMeasureId} query={query} standards={standards} onInfo={setInfo} />
+          <FocusChart places={filled} national={model.national} theme={theme} measureId={measureId} onMeasure={setMeasureId} query={query} standards={standards} country={country} onInfo={setInfo} />
         </div>
       )}
-      {info && <MeasureInfo measure={info} standards={standards} onClose={() => setInfo(null)} />}
+      {info && <MeasureInfo measure={info} standards={standards} country={country} onClose={() => setInfo(null)} />}
     </div>
   )
 }

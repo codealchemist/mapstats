@@ -1,0 +1,22 @@
+{
+  "files": {
+    "France_zonage_sismique.zip": {
+      "url": "https://static.data.gouv.fr/resources/zonage-sismique-de-la-france-1/20180730-100725/France_zonage_sismique.zip",
+      "retrievedAt": "2026-10-06",
+      "sha256": "2420f92e85e05922ca20709c811c529996ae3d8ba30f4c4d6fb42bd57edd180f",
+      "bytes": 129285492
+    },
+    "gaspar.zip": {
+      "url": "http://files.georisques.fr/GASPAR/gaspar.zip",
+      "retrievedAt": "2026-10-06",
+      "sha256": "5837b142c8ebe5eff136f6b4bbb8528dae3cc59c3d88eedb8f6102f34b599773",
+      "bytes": 8128526
+    },
+    "zonage-sismique-communes.json": {
+      "url": "https://www.georisques.gouv.fr/api/v1/zonage_sismique?code_insee=13001,13055,14118,21231,25056,29019,30189,31555,33063,34172,35238,37261,38185,42218,44109,45234,49007,51454,54395,57463&page_size=100",
+      "retrievedAt": "2026-10-06",
+      "sha256": "c742fa7b323637405c2cee157b0fdb3f063070cf520e83c9db028cc050e7d2b4",
+      "bytes": 3962
+    }
+  }
+}
