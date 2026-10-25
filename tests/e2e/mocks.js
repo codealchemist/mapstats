@@ -92,13 +92,17 @@ const json = (body) => ({ status: 200, contentType: 'application/json', headers:
 
 /**
  * Routes every external request to the fakes above. Returns `calls`: the Open-Meteo / USGS requests made, by host,
- * for tests that check which layers loaded.
+ * for tests that check which layers loaded. `calls.faults` makes an API fail until the entry is removed:
+ * calls.faults.set('air-quality-api', { status: 429, reason: 'Hourly API request limit exceeded…' }).
  */
 export async function mockServices(page) {
   const calls = []
+  calls.faults = new Map()
   await page.route((url) => url.hostname !== 'localhost' && url.hostname !== '127.0.0.1', (route) => {
     const url = new URL(route.request().url())
     calls.push(url)
+    const fault = [...calls.faults].find(([api]) => url.hostname.startsWith(`${api}.`))?.[1]
+    if (fault) return route.fulfill({ ...json({ error: true, reason: fault.reason }), status: fault.status })
     switch (url.hostname) {
       case 'archive-api.open-meteo.com': return route.fulfill(json(archive(url)))
       case 'historical-forecast-api.open-meteo.com':

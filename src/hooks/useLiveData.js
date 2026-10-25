@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { fetchAqiBatch, fetchClimateBatch, fetchFloodBatch, fetchQuakes, fetchThermalBatch, fetchUvBatch } from '../lib/live.js'
-import { PRIORITY, isAbort } from '../lib/meteoQueue.js'
+import { PRIORITY, isAbort, describeError } from '../lib/meteoQueue.js'
 import { gapGrid } from '../lib/geo.js'
 import { livePoints } from '../lib/scoring.js'
 
@@ -19,6 +19,7 @@ const LAYERS = [
 ]
 
 // status per layer: off (on demand, not requested) | loading | ready | partial (some points failed) | error (none loaded)
+// errors per layer: the first failure in plain words (lib/meteoQueue.js describeError), set as soon as a chunk fails.
 // progress per layer: { loaded, failed, total, since (when it started), at (time of its last update) }; startedAt: when
 // the current round of loading began. The status panel estimates time left from them.
 const EMPTY = { climate: null, aqi: null, thermal: null, quakes: null, uv: null, flood: null, climateGrid: null, uvGrid: null, grid: [], status: {}, progress: {}, errors: {}, startedAt: null }
@@ -27,11 +28,13 @@ const EMPTY = { climate: null, aqi: null, thermal: null, quakes: null, uv: null,
  * Fetches live layers for every city (and city-less province) of the loaded country. Each layer resolves
  * independently so the map fills in progressively. On-demand layers start when they appear in `wanted` (overlays,
  * the map metric) or through `live.load(key)` (a button); once started, a layer keeps loading and keeps its data
- * until the country changes.
+ * until the country changes. `live.retry(key)` runs a failed layer again: chunks that loaded come from the cache, so
+ * only the failed ones are requested, and what arrives is merged into the data already there.
  */
 export function useLiveData({ iso3, geo, cities, bbox }, wanted = []) {
   const [live, setLive] = useState(EMPTY)
   const start = useRef(null)
+  const quakes = useRef(null)
 
   useEffect(() => {
     if (!geo) return
@@ -45,22 +48,21 @@ export function useLiveData({ iso3, geo, cities, bbox }, wanted = []) {
     const now = Date.now()
     setLive({
       ...EMPTY, grid, startedAt: now,
-      status: { quakes: 'loading', ...Object.fromEntries(layers.map((l) => [l.key, l.demand ? 'off' : 'loading'])) },
-      progress: { quakes: { loaded: 0, failed: 0, total: 1, since: now, at: now } },
+      status: Object.fromEntries(layers.map((l) => [l.key, l.demand ? 'off' : 'loading'])),
     })
 
     const update = (fn) => !signal.aborted && setLive(fn)
     const finish = (key, status, error = null) =>
-      update((l) => ({ ...l, status: { ...l.status, [key]: status }, errors: { ...l.errors, [key]: error?.message || null } }))
+      update((l) => ({ ...l, status: { ...l.status, [key]: status }, errors: { ...l.errors, [key]: error ? describeError(error) : null } }))
     const fail = (key) => (err) => {
       if (isAbort(err)) return
       console.warn(`[MapStats] ${key} failed`, err)
       finish(key, 'error', err)
     }
 
-    start.current = (key) => {
+    start.current = (key, { retry = false } = {}) => {
       const layer = layers.find((l) => l.key === key)
-      if (!layer || started.has(key)) return
+      if (!layer || (started.has(key) && !retry)) return
       started.add(key)
       const pts = layer.grid ? grid : points, since = Date.now()
       // Totals are known up front, so the status panel can show what's left before the first chunk arrives. A layer
@@ -70,13 +72,16 @@ export function useLiveData({ iso3, geo, cities, bbox }, wanted = []) {
         startedAt: Object.values(l.status).includes('loading') ? l.startedAt : since,
         status: { ...l.status, [key]: 'loading' },
         progress: { ...l.progress, [key]: { loaded: 0, failed: 0, total: pts.length, since, at: since } },
+        errors: { ...l.errors, [key]: null },
       }))
       layer.fetch(pts, {
         signal, priority: layer.priority ?? PRIORITY.map,
         onProgress: ({ data, error, ...counts }) => update((l) => ({
           ...l,
-          [key]: data,
+          [key]: retry ? { ...l[key], ...data } : data,
           progress: { ...l.progress, [key]: { ...counts, since, at: Date.now() } },
+          // Shown while the rest keeps loading, not only once the layer ends.
+          ...(error && !l.errors[key] && { errors: { ...l.errors, [key]: describeError(error) } }),
         })),
       })
         .then((p) => {
@@ -86,11 +91,23 @@ export function useLiveData({ iso3, geo, cities, bbox }, wanted = []) {
         .catch(fail(key))
     }
 
-    fetchQuakes(bbox, { signal })
-      .then((quakes) => update((l) => ({ ...l, quakes, status: { ...l.status, quakes: 'ready' }, progress: { ...l.progress, quakes: { ...l.progress.quakes, loaded: 1, at: Date.now() } } })))
-      .catch(fail('quakes'))
+    // One USGS request, outside the Open-Meteo queue.
+    quakes.current = () => {
+      const since = Date.now()
+      update((l) => ({
+        ...l,
+        startedAt: Object.values(l.status).includes('loading') ? l.startedAt ?? since : since,
+        status: { ...l.status, quakes: 'loading' },
+        progress: { ...l.progress, quakes: { loaded: 0, failed: 0, total: 1, since, at: since } },
+        errors: { ...l.errors, quakes: null },
+      }))
+      fetchQuakes(bbox, { signal })
+        .then((list) => update((l) => ({ ...l, quakes: list, status: { ...l.status, quakes: 'ready' }, progress: { ...l.progress, quakes: { ...l.progress.quakes, loaded: 1, at: Date.now() } } })))
+        .catch((err) => { if (!isAbort(err)) update((l) => ({ ...l, progress: { ...l.progress, quakes: { ...l.progress.quakes, failed: 1, at: Date.now() } } })); fail('quakes')(err) })
+    }
+    quakes.current()
     for (const l of layers) if (!l.demand) start.current(l.key)
-    return () => { ctrl.abort(); start.current = null }
+    return () => { ctrl.abort(); start.current = null; quakes.current = null }
   }, [iso3, geo, cities, bbox])
 
   // Runs after the effect above on the same commit, so a new country's on-demand layers start as soon as it loads.
@@ -101,5 +118,6 @@ export function useLiveData({ iso3, geo, cities, bbox }, wanted = []) {
   }, [want, geo]) // eslint-disable-line react-hooks/exhaustive-deps -- `want` stands for `keys`
 
   const load = useCallback((key) => start.current?.(key), [])
-  return useMemo(() => ({ ...live, load }), [live, load])
+  const retry = useCallback((key) => (key === 'quakes' ? quakes.current?.() : start.current?.(key, { retry: true })), [])
+  return useMemo(() => ({ ...live, load, retry }), [live, load, retry])
 }
