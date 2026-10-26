@@ -77,7 +77,7 @@ function LayersTab({ model, live, metricId, onMetric, overlays, onOverlays, onIn
   const available = (m) => !model || m.kind === 'score' || withData.has(m.id)
   // The live layer a metric waits for: an indicator scored by a standard waits for that standard's measure (UTCI
   // comes prefilled, not live).
-  const layerOf = (m) => (m.kind === 'score' ? null : liveLayerOf(standardFor(m.id, standards)?.input ?? m.id))
+  const layerOf = (m) => (m.kind === 'score' ? null : liveLayerOf(m.id, standards))
   // The layer each overlay waits for.
   const layersOf = overlayLayers(overlays)
   const overlayPending = (id) => layersOf[id]?.some((k) => live.status[k] === 'loading')

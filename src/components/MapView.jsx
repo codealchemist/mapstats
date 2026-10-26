@@ -7,7 +7,7 @@ import workerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url'
 setWorkerUrl(workerUrl)
 import { fmtIndicator, fmtScore } from '../lib/format.js'
 import { addCustomLayers, syncAll, FLOOD_LEVELS } from './mapLayers.js'
-import { NARROW_QUERY, chromeTop, isNarrow } from '../lib/viewport.js'
+import { chromeTop, isNarrow, narrowMedia, hoverMedia } from '../lib/viewport.js'
 // Named import: Vite bundles only this field of package.json.
 import { version } from '../../package.json'
 
@@ -62,13 +62,12 @@ export const MapView = forwardRef(function MapView(
     // The attribution label also shows the app version. On narrow screens it moves to the bottom
     // left, where CSS stacks it above the legend instead of overlapping it.
     const attribution = new AttributionControl({ compact: true, customAttribution: `MapStats v${version}` })
-    const narrowMq = window.matchMedia(NARROW_QUERY)
     const placeAttribution = () => {
       if (m.hasControl(attribution)) m.removeControl(attribution)
-      m.addControl(attribution, narrowMq.matches ? 'bottom-left' : 'bottom-right')
+      m.addControl(attribution, narrowMedia.get() ? 'bottom-left' : 'bottom-right')
     }
     placeAttribution()
-    narrowMq.addEventListener('change', placeAttribution)
+    const stopPlacing = narrowMedia.subscribe(placeAttribution)
     hoverPopup.current = new Popup({ closeButton: false, closeOnClick: false, className: 'ms-popup', offset: 10, maxWidth: '260px' })
 
     m.on('style.load', () => {
@@ -107,7 +106,7 @@ export const MapView = forwardRef(function MapView(
     }
 
     // Touch screens emulate a mousemove on tap, which would leave a hover popup stuck open.
-    const canHover = window.matchMedia?.('(hover: hover)').matches ?? true
+    const canHover = hoverMedia.get()
     m.on('mousemove', (e) => {
       if (!canHover || !m.getLayer('prov-fill')) return
       const layers = ['city-circles', 'flood-circles', 'prov-fill'].filter((l) => m.getLayer(l) && m.getLayoutProperty(l, 'visibility') !== 'none')
@@ -130,7 +129,7 @@ export const MapView = forwardRef(function MapView(
       if (city) latest.current.onSelect({ type: 'city', id: city.properties.id })
       else if (prov) latest.current.onSelect({ type: 'province', id: prov.properties.id })
     })
-    return () => { narrowMq.removeEventListener('change', placeAttribution); m.remove() }
+    return () => { stopPlacing(); m.remove() }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 

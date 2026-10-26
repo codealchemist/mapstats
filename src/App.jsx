@@ -70,7 +70,7 @@ export default function App() {
   // for the compare view's flood watch. Reports and the status panel ask with live.load().
   const live = useLiveData(data, [
     ...Object.entries(overlayLayers(overlays)).flatMap(([id, keys]) => (overlays[id] ? keys : [])),
-    liveLayerOf(metricId),
+    liveLayerOf(metricId, standards),
     showCompare && compare.some((c) => c?.type === 'city') && 'flood',
   ])
 

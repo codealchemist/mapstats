@@ -17,4 +17,9 @@ export function mediaStore(query) {
   }
 }
 
+// Shared stores for the two queries the app reacts to: narrow screens (sheets instead of panels) and hover-capable
+// pointers (hover popups and tooltips). Charts and the map read the same ones, so they agree on what a device is.
+export const narrowMedia = mediaStore(NARROW_QUERY)
+export const hoverMedia = mediaStore(HOVER_QUERY)
+
 export const chromeTop = () => parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--chrome-top')) || 72

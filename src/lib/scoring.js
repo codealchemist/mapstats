@@ -27,7 +27,9 @@ const LAYER_OF = Object.fromEntries([
   ...UV_KEYS.map((k) => [k, 'uv']), ['quakes', 'quakes'], ['floodWatch', 'flood'], ['floodPeakPast', 'flood'],
 ])
 const LIVE_KEYS = Object.keys(LAYER_OF)
-export const liveLayerOf = (id) => LAYER_OF[id] || null
+/** The live layer an indicator needs, under a standards selection: an indicator scored by a standard shows that
+ *  standard's measure (data/standards.js `input`), so the measure's layer. App and the side panel both ask here. */
+export const liveLayerOf = (id, standards) => LAYER_OF[standardFor(id, standards)?.input ?? id] || LAYER_OF[id] || null
 
 // True when the entity's value for `id` was measured for the entity itself (not copied from its province).
 export const isOwnValue = (entity, id) => entity.values[id] != null && !entity.inherited?.has(id)

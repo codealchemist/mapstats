@@ -75,7 +75,9 @@ export function createQueue({ fetchJSON = getJSON, now = Date.now, wait = sleep,
       reason: t < pausedUntil ? pauseReason : null,
       blocked: Object.entries(blockedHosts).filter(([, b]) => t < b.until).map(([host, b]) => ({ host, until: b.until, limit: b.limit, reason: b.error.reason || null })),
     }
-    if (JSON.stringify(next) === JSON.stringify(snapshot)) return false
+    const same = next.pausedUntil === snapshot.pausedUntil && next.reason === snapshot.reason && next.blocked.length === snapshot.blocked.length &&
+      next.blocked.every((b, i) => b.host === snapshot.blocked[i].host && b.until === snapshot.blocked[i].until)
+    if (same) return false
     snapshot = next
     return true
   }
@@ -109,7 +111,7 @@ export function createQueue({ fetchJSON = getJSON, now = Date.now, wait = sleep,
       const stop = blockOf(waiting[i].host)
       if (stop) waiting.splice(i, 1)[0].reject(stop)
     }
-    publish() // a pause that just ended
+    if (snapshot.pausedUntil && t >= snapshot.pausedUntil) publish() // a pause that just ended (blocks expire on read)
     if (!waiting.length) return
     if (t < pausedUntil) return wakeAt(pausedUntil)
     const top = waiting[0].priority

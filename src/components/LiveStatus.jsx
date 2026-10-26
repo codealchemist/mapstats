@@ -32,15 +32,21 @@ function timeLeft(remaining, rate) {
   return ms < 60_000 ? '<1 min left' : `~${Math.round(ms / 60_000)} min left`
 }
 
-// The current time, ticking every second while `active` (a countdown is on screen); otherwise it stays put.
-function useNow(active) {
+// The current time, refreshed only when what's on screen depends on it: every second during a pause (its countdown),
+// and once when an hourly or daily block lifts (the notice then goes away). Otherwise it stays put.
+function useNow(pausedUntil, blockedUntil) {
   const [now, setNow] = useState(() => Date.now())
   useEffect(() => {
-    if (!active) return
     const tick = () => setNow(Date.now())
-    const first = setTimeout(tick, 0), id = setInterval(tick, 1000)
-    return () => { clearTimeout(first); clearInterval(id) }
-  }, [active])
+    if (pausedUntil) {
+      const first = setTimeout(tick, 0), id = setInterval(tick, 1000)
+      return () => { clearTimeout(first); clearInterval(id) }
+    }
+    if (blockedUntil) {
+      const id = setTimeout(tick, Math.max(0, blockedUntil - Date.now()) + 100)
+      return () => clearTimeout(id)
+    }
+  }, [pausedUntil, blockedUntil])
   return now
 }
 
@@ -76,10 +82,21 @@ export function summarize({ status, progress = {}, startedAt }) {
   // Time left from the overall rate, once enough has loaded for it to mean something. Only overall: layers share the
   // request queue, so one finishing speeds up the others and per-layer estimates would overstate what's left.
   const eta = busy && startedAt && overall >= 5 && lastAt - startedAt > 3000 ? timeLeft(total - done, done / (lastAt - startedAt)) : null
-  const ready = items.filter((i) => i.s === 'ready').length
+  // Ready out of every started layer, as the panel lists them (the overall % and time left are the current round's).
+  const ready = rows.filter((i) => i.s === 'ready').length
   const scoresPending = items.some((i) => i.scored && i.s === 'loading')
 
   return { items, rows, off, busy, problems, failing, failedPoints, overall, eta, ready, scoresPending }
+}
+
+/**
+ * Retrying the failed layers: those whose Open-Meteo service is blocked by an hourly or daily limit wait for it (they
+ * would fail at once). `title` says until when; `layers` is what "Retry" will load; `blocked` when nothing can be.
+ */
+export function retryPlan(problems, notice) {
+  const layers = problems.filter((i) => !stalled(i, notice))
+  const title = notice?.kind === 'blocked' ? `Open-Meteo’s limit lifts at about ${clock(notice.until)}` : undefined
+  return { layers, blocked: !layers.length, title }
 }
 
 /**
@@ -112,15 +129,15 @@ const impact = (i) => (i.s === 'loading' ? 'You can retry once the layer finishe
   : !i.scored ? '' : i.s === 'partial' ? 'Scores use the places that loaded.' : 'Scores leave this layer out.')
 
 /** Each layer's status: what it feeds, its progress, queued / loading / ready / failed, and retry. */
-export function LivePanel({ rows, off, items, busy, problems, overall, eta, ready, scoresPending, errors = {}, notice, onLoad, onRetry }) {
-  const retryTitle = notice?.kind === 'blocked' ? `Open-Meteo’s limit lifts at about ${clock(notice.until)}` : undefined
+export function LivePanel({ rows, off, busy, problems, overall, eta, ready, scoresPending, errors = {}, notice, onLoad, onRetry }) {
+  const plan = retryPlan(problems, notice), retryTitle = plan.title
   return (
     <div className="live-panel glass" id="live-panel" aria-label="Live data status">
       <div className="live-panel-head">
         <b>Live data</b>
-        <span className="muted small">{busy ? `${overall}% · ${ready} of ${items.length} ready${eta ? ` · ${eta}` : ''}` : `${ready} of ${items.length} ready`}</span>
+        <span className="muted small">{busy ? `${overall}% · ${ready} of ${rows.length} ready${eta ? ` · ${eta}` : ''}` : `${ready} of ${rows.length} ready`}</span>
         {problems.length > 0 && (
-          <button className="btn sm live-retry-all" onClick={() => problems.filter((i) => !stalled(i, notice)).forEach((i) => onRetry(i.key))} disabled={problems.every((i) => stalled(i, notice))} title={retryTitle}>
+          <button className="btn sm live-retry-all" onClick={() => plan.layers.forEach((i) => onRetry(i.key))} disabled={plan.blocked} title={retryTitle}>
             <RotateCw size={12} /> Retry failed
           </button>
         )}
@@ -169,13 +186,13 @@ export function LiveStatus({ status, progress = {}, errors = {}, error, startedA
   const ref = useRef(null)
   useDismiss(ref, open, useCallback(() => setOpen(false), []))
   const queue = useSyncExternalStore(meteo.subscribe, meteo.status)
-  const now = useNow(queue.pausedUntil > 0 || queue.blocked.length > 0)
+  const now = useNow(queue.pausedUntil, queue.blocked.length ? Math.min(...queue.blocked.map((b) => b.until)) : 0)
 
   const sum = summarize({ status, progress, startedAt })
-  const { busy, problems, failedPoints, overall, eta, ready, items, scoresPending } = sum
+  const { busy, problems, failedPoints, overall, eta, ready, rows, scoresPending } = sum
   const notice = queueNotice(queue, now)
   if (!busy && !problems.length && !error) return null
-  const blocked = problems.every((i) => stalled(i, notice))
+  const plan = retryPlan(problems, notice)
 
   return (
     <div className="live-status" ref={ref} role="status">
@@ -194,13 +211,13 @@ export function LiveStatus({ status, progress = {}, errors = {}, error, startedA
             <b>{busy ? `Live data ${overall}%` : <>Live data incomplete<span className="live-extra">: {problems.map((i) => i.label).join(', ')}</span></>}</b>
             {failedPoints > 0 && <span className="live-fail">{failedPoints} failed</span>}
             {notice ? <span className="live-wait">{notice.short}</span> : eta && <span className="live-extra">{eta}</span>}
-            {busy && <span className="live-extra">{ready} of {items.length} ready</span>}
+            {busy && <span className="live-extra">{ready} of {rows.length} ready</span>}
             {scoresPending && <span className="live-provisional live-extra">scores provisional</span>}
             {open ? <ChevronDown size={13} /> : <ChevronUp size={13} />}
           </button>
           {!busy && problems.length > 0 && (
-            <button className="btn sm live-retry" onClick={() => problems.filter((i) => !stalled(i, notice)).forEach((i) => onRetry(i.key))} disabled={blocked}
-              title={blocked ? `Open-Meteo’s limit lifts at about ${clock(notice.until)}` : 'Load the failed layers again'}>
+            <button className="btn sm live-retry" onClick={() => plan.layers.forEach((i) => onRetry(i.key))} disabled={plan.blocked}
+              title={plan.blocked ? plan.title : 'Load the failed layers again'}>
               <RotateCw size={12} /> Retry
             </button>
           )}
