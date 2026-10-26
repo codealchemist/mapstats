@@ -74,6 +74,7 @@ The Vite dev server also serves `/api/news`, using the same handler as productio
 | `npm test` | Every offline test: news pipeline, live-data loading, the golden scoring snapshot and each provider's tests |
 | `npm run news:test` / `live:test` / `golden` | One of those suites |
 | `npm run e2e` | Browser tests (Playwright, desktop and phone) of the production build, with every data service mocked; run `npx playwright install chromium` once first |
+| `npm run screenshots -- --url <app>` | Screenshots of the running app at desktop and phone size, dark theme by default (`--theme light`), with an `index.md` of captions to paste into a PR: the map, layers, reports, a comparison, methodology and sources. Options in `scripts/screenshots.mjs`; output in `screenshots/` (gitignored) |
 | `npm run dev:netlify` | Run in a local Netlify environment (functions + Blobs) on http://localhost:8888 |
 | `npm run deploy:preview` | Deploy a draft to Netlify with its own preview URL |
 | `npm run deploy` | Lint and test, then deploy to production on Netlify |

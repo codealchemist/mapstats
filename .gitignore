@@ -14,3 +14,4 @@ src/providers/*/raw/*
 !src/providers/*/raw/manifest.json
 test-results
 playwright-report
+screenshots

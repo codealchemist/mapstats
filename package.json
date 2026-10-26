@@ -31,7 +31,8 @@
     "anchors": "node tools/cli/anchors.mjs",
     "censo:download": "node countries/ARG/providers/provincial-stats/censo-download.mjs",
     "e2e": "playwright test",
-    "e2e:ui": "playwright test --ui"
+    "e2e:ui": "playwright test --ui",
+    "screenshots": "node scripts/screenshots.mjs"
   },
   "dependencies": {
     "@mozilla/readability": "^0.6.0",
