@@ -1,8 +1,8 @@
 import { useEffect, useRef } from 'react'
-import { Chart } from 'react-chartjs-2'
 import { Check, Focus, Info } from 'lucide-react'
 import { CATEGORIES, INDICATORS } from '../../data/metrics.js'
 import { baseOptions, barStyle, lineStyle } from '../charts/theme.js'
+import { InteractiveChart } from '../charts/interaction.jsx'
 import { fmtIndicator, fmtScore, MONTHS } from '../../lib/format.js'
 import { meterScale, isOwnValue } from '../../lib/scoring.js'
 import { providerUnder, PROVIDERS, localFirst } from '../../core/providers.js'
@@ -119,7 +119,7 @@ function mini(tk, { type = 'line', labels, data, color, horizontal = false, scal
 }
 
 function MiniChart({ cfg, height = 140 }) {
-  return <div className="sbs-chart" style={{ height }}><Chart type={cfg.type} data={cfg.data} options={cfg.options} /></div>
+  return <InteractiveChart cfg={cfg} className="sbs-chart" style={{ height }} />
 }
 
 // ---------- rows ----------

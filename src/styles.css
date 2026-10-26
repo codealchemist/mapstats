@@ -283,21 +283,36 @@ input[type='range']::-moz-range-thumb {
   position: absolute; bottom: 14px; left: 50%; transform: translateX(-50%); display: flex; flex-direction: column; align-items: center;
   gap: 6px; font-size: 11.5px; color: var(--muted); z-index: 3;
 }
-.live-pill {
-  display: inline-flex; align-items: center; gap: 8px; padding: 7px 12px 7px 10px; border-radius: 99px; border: 0;
-  font: inherit; font-size: 11.5px; color: var(--muted); cursor: pointer; white-space: nowrap;
+.live-pill { display: inline-flex; align-items: center; gap: 6px; padding: 3px 4px 3px 0; border-radius: 99px; font-size: 11.5px; color: var(--muted); }
+.live-pill.error { padding: 3px 4px 3px 12px; color: var(--critical); }
+.live-pill.error b { color: var(--critical); margin-right: 4px; }
+.live-pill.alert { box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--warning) 55%, transparent); }
+.live-toggle {
+  display: inline-flex; align-items: center; gap: 8px; padding: 4px 8px 4px 10px; border: 0; border-radius: 99px; background: none;
+  font: inherit; color: inherit; cursor: pointer; white-space: nowrap;
 }
-.live-pill b { color: var(--ink-2); font-weight: 600; font-variant-numeric: tabular-nums; }
-.live-pill span + span::before, .live-pill b + span::before { content: '·'; margin-right: 8px; opacity: 0.6; }
-.live-pill .live-provisional { color: var(--ink-2); }
+.live-toggle b { color: var(--ink-2); font-weight: 600; font-variant-numeric: tabular-nums; }
+.live-toggle > span + span::before, .live-toggle > b + span::before { content: '·'; margin-right: 8px; opacity: 0.6; }
+.live-toggle .live-provisional { color: var(--ink-2); }
+.live-toggle .live-fail { color: var(--critical); font-weight: 600; }
+.live-toggle .live-wait { color: var(--ink-2); font-variant-numeric: tabular-nums; }
 .live-pill.warn .warn-icon { color: var(--warning); }
-.live-pill:focus-visible { outline: 2px solid var(--accent-ink); outline-offset: 2px; }
+.live-toggle:focus-visible { outline: 2px solid var(--accent-ink); outline-offset: 2px; }
+.live-pill .btn { height: 24px; padding: 0 9px; border: 1px solid var(--line-2); border-radius: 99px; gap: 4px; }
+.live-pill .btn:hover:not(:disabled), .live-panel .btn:hover:not(:disabled) { background: var(--hover); color: var(--ink); }
+.live-panel .btn:disabled, .live-pill .btn:disabled { opacity: 0.5; cursor: not-allowed; }
 .live-ring { flex: none; transform: rotate(-90deg); }
 .live-ring circle { fill: none; stroke-width: 2.5; }
 .live-ring .track { stroke: var(--line-2); }
 .live-ring .bar { stroke: var(--accent-ink); stroke-linecap: round; transition: stroke-dashoffset 0.4s ease; }
 .live-panel { position: absolute; bottom: calc(100% + 8px); width: min(380px, calc(100vw - 24px)); padding: 12px 14px; border-radius: 14px; }
-.live-panel-head { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; margin-bottom: 8px; color: var(--ink); }
+.live-panel-head { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; color: var(--ink); }
+.live-panel-head .muted { flex: 1; }
+.live-panel-head .btn { height: 24px; border: 1px solid var(--line-2); gap: 4px; }
+.live-notice { display: flex; gap: 6px; align-items: flex-start; margin: 0 0 10px; padding: 8px 10px; border-radius: 10px; line-height: 1.45; color: var(--ink-2); background: color-mix(in srgb, var(--warning) 14%, transparent); }
+.live-notice svg { flex: none; margin-top: 2px; color: var(--warning); }
+.live-notice.blocked { background: color-mix(in srgb, var(--critical) 14%, transparent); }
+.live-notice.blocked svg { color: var(--critical); }
 .live-rows { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
 .live-row { display: grid; grid-template-columns: 16px 1fr 64px auto; align-items: center; gap: 4px 8px; }
 .live-icon { display: inline-flex; color: var(--muted); }
@@ -312,7 +327,10 @@ input[type='range']::-moz-range-thumb {
 .live-row.partial .live-bar span, .live-row.error .live-bar span { background: var(--warning); }
 .live-state { font-variant-numeric: tabular-nums; text-align: right; white-space: nowrap; }
 .live-row.queued .live-state { white-space: normal; max-width: 120px; }
-.live-error { grid-column: 2 / -1; font-size: 10.5px; color: var(--ink-2); }
+.live-row.off .live-state { grid-column: 3 / -1; }
+.live-row .btn { height: 24px; border: 1px solid var(--line-2); gap: 4px; }
+.live-error { grid-column: 2 / -1; font-size: 10.5px; color: var(--ink-2); line-height: 1.4; }
+.live-row.error .live-error, .live-row.partial .live-error { color: var(--ink); }
 .live-note { margin: 10px 0 0; line-height: 1.45; }
 .st { display: inline-flex; align-items: center; gap: 5px; }
 .st.ready { color: var(--good-ink); }
@@ -388,6 +406,14 @@ input[type='range']::-moz-range-thumb {
 .chart-card:hover .chart-actions, .chart-actions:focus-within { opacity: 1; }
 .chart-body { position: relative; }
 .chart-foot { color: var(--muted); font-size: 11px; margin-top: 6px; }
+/* Compact screens: the tapped point's values, under the chart instead of a tooltip over it. */
+.chart-readout {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 2px 12px; min-height: 22px; margin-top: 6px; padding-top: 6px;
+  border-top: 1px solid var(--line); font-size: 12px; color: var(--ink-2); font-variant-numeric: tabular-nums;
+}
+.chart-readout b { color: var(--ink); font-weight: 600; }
+.chart-readout span { display: inline-flex; align-items: center; gap: 5px; }
+.chart-readout .muted { font-size: 11px; }
 
 .table-wrap { overflow-x: auto; margin-top: 8px; }
 .data-table { width: 100%; border-collapse: collapse; font-size: 12px; font-variant-numeric: tabular-nums; }
@@ -737,7 +763,8 @@ a.src-btn:hover, button.src-btn:hover { border-color: var(--accent); color: var(
   .tiles { grid-template-columns: repeat(2, 1fr); }
   .sources li { grid-template-columns: 1fr; gap: 0; }
   .live-status { bottom: auto; top: calc(var(--chrome-top) + 4px + env(safe-area-inset-top, 0px)); max-width: calc(100% - 16px); }
-  .live-pill { white-space: normal; flex-wrap: wrap; justify-content: center; row-gap: 2px; border-radius: 14px; }
+  /* One line on phones: progress, failures and pauses stay; the rest is in the details panel. */
+  .live-extra { display: none; }
   .live-panel { bottom: auto; top: calc(100% + 8px); }
   .toasts { top: auto; bottom: calc(24px + env(safe-area-inset-bottom, 0px)); width: max-content; max-width: calc(100% - 16px); }
   .fullview-head { padding: 12px 14px; }
