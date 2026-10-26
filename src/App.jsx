@@ -66,12 +66,11 @@ export default function App() {
   const metricId = !isMultiSource(sourceMode) && metricById[chosenMetric].kind === 'indicator' && familyOf(chosenMetric, standards) !== sourceMode ? 'score' : chosenMetric
   const data = useCountryData(country)
   const surfaceVar = surfaceVarById[overlays.surfaceVar]
-  // The live layers in view load on demand: those of the overlays that are on and of the map metric, and river flow
-  // for the compare view's flood watch. Reports and the status panel ask with live.load().
+  // The live layers in view load on demand: those of the overlays that are on and of the map metric. Reports, the
+  // compare view and the status panel ask with live.load().
   const live = useLiveData(data, [
     ...Object.entries(overlayLayers(overlays)).flatMap(([id, keys]) => (overlays[id] ? keys : [])),
     liveLayerOf(metricId, standards),
-    showCompare && compare.some((c) => c?.type === 'city') && 'flood',
   ])
 
   useEffect(() => { document.documentElement.dataset.theme = theme; store.set('theme', theme) }, [theme])

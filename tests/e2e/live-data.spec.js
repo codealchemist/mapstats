@@ -16,7 +16,7 @@ test('only the scored layers, climate and earthquakes load by default', async ({
   await page.goto('/')
   await settled(page, calls)
   for (const api of ['air-quality-api', 'historical-forecast-api', 'archive-api']) expect(hits(calls, api).length, api).toBeGreaterThan(0)
-  expect(calls.some((u) => u.hostname === 'earthquake.usgs.gov')).toBe(true)
+  expect(hits(calls, 'earthquake').length).toBeGreaterThan(0)
   expect(hits(calls, 'flood-api')).toHaveLength(0)
   // No gap-filling grid points (whole-degree coordinates) on the climate or UV layers.
   expect([...hits(calls, 'archive-api'), ...hits(calls, 'historical-forecast-api')].filter(isGrid)).toHaveLength(0)

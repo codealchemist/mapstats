@@ -101,7 +101,7 @@ export async function mockServices(page) {
   await page.route((url) => url.hostname !== 'localhost' && url.hostname !== '127.0.0.1', (route) => {
     const url = new URL(route.request().url())
     calls.push(url)
-    const fault = [...calls.faults].find(([api]) => url.hostname.startsWith(`${api}.`))?.[1]
+    const fault = [...calls.faults].find(([api]) => isApi(url, api))?.[1]
     if (fault) return route.fulfill({ ...json({ error: true, reason: fault.reason }), status: fault.status })
     switch (url.hostname) {
       case 'archive-api.open-meteo.com': return route.fulfill(json(archive(url)))
@@ -120,4 +120,5 @@ export async function mockServices(page) {
 }
 
 /** Requests to an Open-Meteo API, e.g. hits(calls, 'flood-api'). */
-export const hits = (calls, api) => calls.filter((u) => u.hostname.startsWith(`${api}.`))
+export const isApi = (url, api) => url.hostname.startsWith(`${api}.`)
+export const hits = (calls, api) => calls.filter((u) => isApi(u, api))

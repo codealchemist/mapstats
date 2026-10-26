@@ -117,7 +117,7 @@ export function ReportPanel({ entity, model, country, live, theme, onClose, onSe
   const buildYearly = useCallback((t) => ({
     type: 'line',
     data: { labels: clim.yearly.map((y) => y.year), datasets: [{ label: 'Mean °C', data: clim.yearly.map((y) => y.meanTemp), ...lineStyle(t.series[1], { fill: true }), pointRadius: 3 }] },
-    options: { ...baseOptions(t), scales: { ...baseOptions(t).scales, y: { ...baseOptions(t).scales.y, beginAtZero: false } } },
+    options: baseOptions(t, { zero: false }),
   }), [clim])
 
   const air = detail.air

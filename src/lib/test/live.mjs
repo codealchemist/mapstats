@@ -144,7 +144,7 @@ section('Retries and limits')
   check('no pause before any request', q.status().pausedUntil === 0 && q.status() === q.status())
   await Promise.all([job(q, 50), clock.run()])
   const paused = seen.find((st) => st.pausedUntil)
-  check('a minutely 429 is published as a pause, with its reason', paused?.pausedUntil >= 61_000 && paused.reason === MINUTELY, JSON.stringify(paused))
+  check('a minutely 429 is published as a pause', paused?.pausedUntil >= 61_000, JSON.stringify(paused))
   check('the pause clears when requests resume', q.status().pausedUntil === 0 && seen.at(-1).pausedUntil === 0)
 }
 {

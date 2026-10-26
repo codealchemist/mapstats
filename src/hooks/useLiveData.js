@@ -1,25 +1,45 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { fetchAqiBatch, fetchClimateBatch, fetchFloodBatch, fetchQuakes, fetchThermalBatch, fetchUvBatch } from '../lib/live.js'
+import { fetchAqiBatch, fetchClimateBatch, fetchFloodBatch, fetchQuakes, fetchThermalBatch, fetchUvBatch, HOST } from '../lib/live.js'
 import { PRIORITY, isAbort, describeError } from '../lib/meteoQueue.js'
 import { gapGrid } from '../lib/geo.js'
 import { livePoints } from '../lib/scoring.js'
 
-// Point layers, in queue order. The layers that feed scores (UV, air, heat and cold) go first; climate is descriptive
-// and waits for them. `demand` layers load only once something asks for them (an overlay, a map metric, a report
-// section): river flow, and the grid points that fill the gaps between cities on the climate surfaces. Grid layers keep
-// their data apart (`<layer>Grid`): only the surfaces read it, so their chunks don't rescore the places.
-// Priorities: the grids fill in around their layer's city points, so they wait with climate (extra, first come first
-// served) rather than delay the scores. River flow keeps the scored layers' priority: it loads only when asked for (a
-// report's "Load" button, the overlay), and its one-variable requests are light, so the user doesn't wait behind the
-// climate archive.
-const LAYERS = [
-  { key: 'uv', fetch: fetchUvBatch },
-  { key: 'aqi', fetch: fetchAqiBatch },
-  { key: 'thermal', fetch: fetchThermalBatch },
-  { key: 'climate', fetch: fetchClimateBatch, priority: PRIORITY.extra },
-  { key: 'flood', fetch: fetchFloodBatch, demand: true },
-  { key: 'climateGrid', fetch: fetchClimateBatch, grid: true, demand: true, priority: PRIORITY.extra },
-  { key: 'uvGrid', fetch: fetchUvBatch, grid: true, demand: true, priority: PRIORITY.extra },
+// Earthquakes: one USGS request for the whole country, outside the Open-Meteo queue, loaded as a one-point layer so it
+// shares the others' status, progress, errors and retry. Resolves like the batch loaders ({ data, loaded, failed,
+// total, error }) and rejects only when aborted.
+async function fetchQuakesLayer(_points, { bbox, signal, onProgress }) {
+  let result
+  try {
+    result = { data: await fetchQuakes(bbox, { signal }), loaded: 1, failed: 0, total: 1, error: null }
+  } catch (error) {
+    if (isAbort(error)) throw error
+    result = { data: null, loaded: 0, failed: 1, total: 1, error }
+  }
+  onProgress?.(result)
+  return result
+}
+
+/**
+ * The live layers, in queue order: what each loads, from which service, and when. The status panel reads it too
+ * (components/LiveStatus.jsx), so it shows what's queued and which layers a service's limit holds back.
+ *  - `host`: the service it calls (lib/live.js HOST); an hourly or daily limit blocks one service, not the others.
+ *  - `priority`: the layers that feed scores (UV, air, heat and cold) go first; climate is descriptive and waits for
+ *    them (extra). The grids fill in around their layer's city points, so they wait with climate rather than delay
+ *    the scores. River flow keeps the scored layers' priority: it loads only when asked for, and its one-variable
+ *    requests are light, so a report's "Load" doesn't wait behind the climate archive.
+ *  - `demand`: loads only once something asks for it (an overlay, the map metric, a report section, the comparison).
+ *  - `grid`: the points that fill the gaps between cities on the climate surfaces, kept apart (`<layer>Grid`) so
+ *    their chunks don't rescore the places. `single`: one request for the whole country.
+ */
+export const LIVE_LAYERS = [
+  { key: 'uv', fetch: fetchUvBatch, host: HOST.historicalForecast },
+  { key: 'aqi', fetch: fetchAqiBatch, host: HOST.airQuality },
+  { key: 'thermal', fetch: fetchThermalBatch, host: HOST.archive },
+  { key: 'climate', fetch: fetchClimateBatch, host: HOST.archive, priority: PRIORITY.extra },
+  { key: 'quakes', fetch: fetchQuakesLayer, host: HOST.usgs, single: true },
+  { key: 'flood', fetch: fetchFloodBatch, host: HOST.flood, demand: true },
+  { key: 'climateGrid', fetch: fetchClimateBatch, host: HOST.archive, grid: true, demand: true, priority: PRIORITY.extra },
+  { key: 'uvGrid', fetch: fetchUvBatch, host: HOST.historicalForecast, grid: true, demand: true, priority: PRIORITY.extra },
 ]
 
 // status per layer: off (on demand, not requested) | loading | ready | partial (some points failed) | error (none loaded)
@@ -32,13 +52,12 @@ const EMPTY = { iso3: null, climate: null, aqi: null, thermal: null, quakes: nul
  * Fetches live layers for every city (and city-less province) of the loaded country. Each layer resolves
  * independently so the map fills in progressively. On-demand layers start when they appear in `wanted` (overlays,
  * the map metric) or through `live.load(key)` (a button); once started, a layer keeps loading and keeps its data
- * until the country changes. `live.retry(key)` runs a failed layer again: chunks that loaded come from the cache, so
- * only the failed ones are requested, and what arrives is merged into the data already there.
+ * until the country changes. `live.retry(key)` runs a failed layer again for the places it's still missing, and
+ * merges what arrives into the data already there.
  */
 export function useLiveData({ iso3, geo, cities, bbox }, wanted = []) {
   const [live, setLive] = useState(EMPTY)
   const start = useRef(null)
-  const quakes = useRef(null)
 
   useEffect(() => {
     if (!geo) return
@@ -47,10 +66,12 @@ export function useLiveData({ iso3, geo, cities, bbox }, wanted = []) {
     const points = livePoints(geo, cities)
     // Extra grid points fill gaps between cities for the interpolated climate surfaces.
     const grid = gapGrid(geo, points, bbox)
-    const layers = LAYERS.filter((l) => (l.grid ? grid : points).length)
+    const pointsOf = (l) => (l.single ? [null] : l.grid ? grid : points)
+    const layers = LIVE_LAYERS.filter((l) => pointsOf(l).length)
     // started: asked for at least once (on-demand layers start once); running: in flight, so a second Retry or Load
-    // while it loads does nothing instead of starting a second, interleaved fetch.
-    const started = new Set(), running = new Set()
+    // while it loads does nothing instead of starting a second, interleaved fetch; got: the places each layer has data
+    // for, so a retry asks only for the rest.
+    const started = new Set(), running = new Set(), got = {}
     const now = Date.now()
     setLive({
       ...EMPTY, iso3, grid, startedAt: now,
@@ -58,67 +79,53 @@ export function useLiveData({ iso3, geo, cities, bbox }, wanted = []) {
     })
 
     const update = (fn) => !signal.aborted && setLive(fn)
-    const finish = (key, status, error = null) =>
-      update((l) => ({ ...l, status: { ...l.status, [key]: status }, errors: { ...l.errors, [key]: error ? describeError(error) : null } }))
-    const fail = (key) => (err) => {
-      if (isAbort(err)) return
-      console.warn(`[MapStats] ${key} failed`, err)
-      finish(key, 'error', err)
-    }
 
     start.current = (key, { retry = false } = {}) => {
       const layer = layers.find((l) => l.key === key)
       if (!layer || running.has(key) || (started.has(key) && !retry)) return
       started.add(key)
       running.add(key)
-      const pts = layer.grid ? grid : points, since = Date.now()
-      // Totals are known up front, so the status panel can show what's left before the first chunk arrives. A layer
-      // asked for once everything else has finished starts a new round, so its time left isn't averaged with the last.
+      const all = pointsOf(layer), have = got[key] ||= new Set()
+      const pts = retry && !layer.single ? all.filter((p) => !have.has(String(p.id))) : all
+      const merge = retry && !layer.single, offset = all.length - pts.length, since = Date.now()
+      // Totals are known up front, so the status panel can show what's left before the first chunk arrives; a retry
+      // counts what already loaded. A layer asked for once everything else has finished starts a new round, so its
+      // time left isn't averaged with the last.
       update((l) => ({
         ...l,
-        startedAt: Object.values(l.status).includes('loading') ? l.startedAt : since,
+        startedAt: Object.values(l.status).includes('loading') && l.startedAt ? l.startedAt : since,
         status: { ...l.status, [key]: 'loading' },
-        progress: { ...l.progress, [key]: { loaded: 0, failed: 0, total: pts.length, since, at: since } },
+        progress: { ...l.progress, [key]: { loaded: offset, failed: 0, total: all.length, since, at: since } },
         errors: { ...l.errors, [key]: null },
       }))
       layer.fetch(pts, {
-        signal, priority: layer.priority ?? PRIORITY.map,
-        onProgress: ({ data, error, ...counts }) => update((l) => ({
-          ...l,
-          [key]: retry ? { ...l[key], ...data } : data,
-          progress: { ...l.progress, [key]: { ...counts, since, at: Date.now() } },
-          // Shown while the rest keeps loading, not only once the layer ends.
-          ...(error && !l.errors[key] && { errors: { ...l.errors, [key]: describeError(error) } }),
-        })),
+        signal, bbox, priority: layer.priority ?? PRIORITY.map,
+        onProgress: ({ data, error, loaded, failed }) => {
+          if (!layer.single) for (const id in data) have.add(id)
+          update((l) => ({
+            ...l,
+            [key]: merge ? { ...l[key], ...data } : data,
+            progress: { ...l.progress, [key]: { loaded: offset + loaded, failed, total: all.length, since, at: Date.now() } },
+            // Shown while the rest keeps loading, not only once the layer ends.
+            ...(error && !l.errors[key] && { errors: { ...l.errors, [key]: describeError(error) } }),
+          }))
+        },
       })
         .then((p) => {
           if (p.failed) console.warn(`[MapStats] ${key}: ${p.failed} of ${p.total} points failed`, p.error)
-          finish(key, !p.failed ? 'ready' : p.loaded ? 'partial' : 'error', p.error)
+          const status = !p.failed ? 'ready' : p.loaded || offset ? 'partial' : 'error'
+          update((l) => ({ ...l, status: { ...l.status, [key]: status }, errors: { ...l.errors, [key]: p.error ? describeError(p.error) : null } }))
         })
-        .catch(fail(key))
+        .catch((err) => {
+          if (isAbort(err)) return
+          console.warn(`[MapStats] ${key} failed`, err)
+          update((l) => ({ ...l, status: { ...l.status, [key]: 'error' }, errors: { ...l.errors, [key]: describeError(err) } }))
+        })
         .finally(() => running.delete(key))
     }
 
-    // One USGS request, outside the Open-Meteo queue.
-    quakes.current = () => {
-      if (running.has('quakes')) return
-      running.add('quakes')
-      const since = Date.now()
-      update((l) => ({
-        ...l,
-        startedAt: Object.values(l.status).includes('loading') ? l.startedAt ?? since : since,
-        status: { ...l.status, quakes: 'loading' },
-        progress: { ...l.progress, quakes: { loaded: 0, failed: 0, total: 1, since, at: since } },
-        errors: { ...l.errors, quakes: null },
-      }))
-      fetchQuakes(bbox, { signal })
-        .then((list) => update((l) => ({ ...l, quakes: list, status: { ...l.status, quakes: 'ready' }, progress: { ...l.progress, quakes: { ...l.progress.quakes, loaded: 1, at: Date.now() } } })))
-        .catch((err) => { if (!isAbort(err)) update((l) => ({ ...l, progress: { ...l.progress, quakes: { ...l.progress.quakes, failed: 1, at: Date.now() } } })); fail('quakes')(err) })
-        .finally(() => running.delete('quakes'))
-    }
-    quakes.current()
     for (const l of layers) if (!l.demand) start.current(l.key)
-    return () => { ctrl.abort(); start.current = null; quakes.current = null }
+    return () => { ctrl.abort(); start.current = null }
   }, [iso3, geo, cities, bbox])
 
   // Runs after the effect above on the same commit, so a new country's on-demand layers start as soon as it loads.
@@ -129,7 +136,7 @@ export function useLiveData({ iso3, geo, cities, bbox }, wanted = []) {
   }, [want, geo]) // eslint-disable-line react-hooks/exhaustive-deps -- `want` stands for `keys`
 
   const load = useCallback((key) => start.current?.(key), [])
-  const retry = useCallback((key) => (key === 'quakes' ? quakes.current?.() : start.current?.(key, { retry: true })), [])
+  const retry = useCallback((key) => start.current?.(key, { retry: true }), [])
   // While a country switch is under way (its boundaries not loaded yet), the previous country's state would show
   // progress and buttons whose loaders are gone: show nothing until the new country starts.
   const current = geo && live.iso3 === iso3 ? live : EMPTY

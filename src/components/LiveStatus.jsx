@@ -1,27 +1,37 @@
 import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from 'react'
 import { LoaderCircle, Check, CircleAlert, Clock, ChevronUp, ChevronDown, CloudDownload, RotateCw, PauseCircle } from 'lucide-react'
 import { useDismiss } from '../hooks/useDismiss.js'
-import { meteo } from '../lib/meteoQueue.js'
+import { PRIORITY, limitText, meteo } from '../lib/meteoQueue.js'
+import { LIVE_LAYERS } from '../hooks/useLiveData.js'
+import { INDICATORS } from '../data/metrics.js'
+import { liveLayerOf } from '../lib/scoring.js'
 
-// Live layers, in panel order, with what each one feeds. `scored`: scores stay provisional until it finishes.
-// `after`: it waits in the request queue for the others (lower priority). `single`: one request, outside the queue.
-// `trigger`: what asks for a layer that loads on demand (hooks/useLiveData.js; its status is `off` until then).
-// `host`: the Open-Meteo API it calls (lib/live.js): an hourly or daily limit blocks one host, not the others.
-const LAYERS = [
-  { key: 'aqi', label: 'Air quality', role: 'Environment score', scored: true, host: 'air-quality-api.open-meteo.com' },
-  { key: 'thermal', label: 'Heat & cold', role: 'Environment score', scored: true, host: 'archive-api.open-meteo.com' },
-  { key: 'uv', label: 'UV', role: 'Environment score', scored: true, host: 'historical-forecast-api.open-meteo.com' },
-  { key: 'climate', label: 'Climate', role: 'Climate map layers, extremes and warnings', after: 'starts after the scored layers', host: 'archive-api.open-meteo.com' },
-  { key: 'quakes', label: 'Earthquakes', role: 'Earthquake count nearby', single: true }, // one USGS request, not queued
-  { key: 'flood', label: 'Rivers', role: 'River flood watch', trigger: 'loads with the river flood watch', host: 'flood-api.open-meteo.com' },
-  { key: 'climateGrid', label: 'Climate surface', role: 'Fills the gaps between cities', trigger: 'loads with the climate surface', host: 'archive-api.open-meteo.com' },
-  { key: 'uvGrid', label: 'UV surface', role: 'Fills the gaps between cities', trigger: 'loads with the UV surface', host: 'historical-forecast-api.open-meteo.com' },
-]
+// The live layers in words, in panel order: what each feeds (`role`) and, for an on-demand layer, what asks for it
+// (`trigger`; its status is `off` until then). What it loads, from which service and when comes from the hook's registry
+// (hooks/useLiveData.js LIVE_LAYERS): `single` (one request), `host` (an hourly or daily limit on that service holds it
+// back), and `after` when it waits in the queue behind the scored layers.
+const COPY = {
+  aqi: { label: 'Air quality', role: 'Environment score' },
+  thermal: { label: 'Heat & cold', role: 'Environment score' },
+  uv: { label: 'UV', role: 'Environment score' },
+  climate: { label: 'Climate', role: 'Climate map layers, extremes and warnings' },
+  quakes: { label: 'Earthquakes', role: 'Earthquake count nearby' },
+  flood: { label: 'Rivers', role: 'River flood watch', trigger: 'loads with the river flood watch' },
+  climateGrid: { label: 'Climate surface', role: 'Fills the gaps between cities', trigger: 'loads with the climate surface' },
+  uvGrid: { label: 'UV surface', role: 'Fills the gaps between cities', trigger: 'loads with the UV surface' },
+}
+// A layer feeds scores when a scored indicator's value comes from it: scores stay provisional until it finishes.
+const SCORED_LAYERS = new Set(INDICATORS.filter((i) => i.better).map((i) => liveLayerOf(i.id)).filter(Boolean))
+const LAYERS = Object.entries(COPY).map(([key, copy]) => {
+  const l = LIVE_LAYERS.find((x) => x.key === key)
+  return { key, ...copy, host: l.host, single: !!l.single, scored: SCORED_LAYERS.has(key), after: l.priority === PRIORITY.extra ? 'starts after the scored layers' : null }
+})
 const SCORED = LAYERS.filter((l) => l.scored).map((l) => l.label)
+const HOSTS = new Set(LAYERS.map((l) => l.host))
 
 const failed = (s) => s === 'error' || s === 'partial'
-// A layer whose Open-Meteo host is blocked by an hourly or daily limit: retrying it would fail at once.
-const stalled = (i, notice) => !!i.host && !!notice?.hosts?.has(i.host)
+// A layer whose service is blocked by an hourly or daily limit: retrying it would fail at once.
+const stalled = (i, notice) => !!notice?.hosts?.has(i.host)
 const pct = (done, total) => (total ? Math.floor((done / total) * 100) : 0)
 const clock = (t) => new Date(t).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
 
@@ -32,21 +42,16 @@ function timeLeft(remaining, rate) {
   return ms < 60_000 ? '<1 min left' : `~${Math.round(ms / 60_000)} min left`
 }
 
-// The current time, refreshed only when what's on screen depends on it: every second during a pause (its countdown),
-// and once when an hourly or daily block lifts (the notice then goes away). Otherwise it stays put.
-function useNow(pausedUntil, blockedUntil) {
+// The current time, ticking every second during a pause, for its countdown. (The queue itself announces when a pause
+// ends or a block lifts.)
+function useNow(pausedUntil) {
   const [now, setNow] = useState(() => Date.now())
   useEffect(() => {
+    if (!pausedUntil) return
     const tick = () => setNow(Date.now())
-    if (pausedUntil) {
-      const first = setTimeout(tick, 0), id = setInterval(tick, 1000)
-      return () => { clearTimeout(first); clearInterval(id) }
-    }
-    if (blockedUntil) {
-      const id = setTimeout(tick, Math.max(0, blockedUntil - Date.now()) + 100)
-      return () => clearTimeout(id)
-    }
-  }, [pausedUntil, blockedUntil])
+    const first = setTimeout(tick, 0), id = setInterval(tick, 1000)
+    return () => { clearTimeout(first); clearInterval(id) }
+  }, [pausedUntil])
   return now
 }
 
@@ -71,10 +76,9 @@ export function summarize({ status, progress = {}, startedAt }) {
   // The current round: layers started since it began (an on-demand layer asked for later starts a new one).
   const items = rows.filter((i) => (i.p.since ?? 0) >= (startedAt || 0))
   const busy = items.some((i) => i.s === 'loading')
-  // Layers that finished with failures (retryable), and failures so far among those still loading.
+  // Layers that finished with failures (retryable); failed places, counting those still loading.
   const problems = all.filter((i) => failed(i.s))
-  const failing = rows.filter((i) => i.s === 'loading' && i.p.failed > 0)
-  const failedPoints = [...problems, ...failing].reduce((n, i) => n + i.p.failed, 0)
+  const failedPoints = rows.reduce((n, i) => n + i.p.failed, 0)
   // Overall: points done over all points (the earthquake request counts as one).
   const total = items.reduce((n, i) => n + i.p.total, 0), done = items.reduce((n, i) => n + i.done, 0)
   const lastAt = Math.max(startedAt || 0, ...items.map((i) => i.p.at || 0))
@@ -86,17 +90,17 @@ export function summarize({ status, progress = {}, startedAt }) {
   const ready = rows.filter((i) => i.s === 'ready').length
   const scoresPending = items.some((i) => i.scored && i.s === 'loading')
 
-  return { items, rows, off, busy, problems, failing, failedPoints, overall, eta, ready, scoresPending }
+  return { items, rows, off, busy, problems, failedPoints, overall, eta, ready, scoresPending }
 }
 
 /**
- * Retrying the failed layers: those whose Open-Meteo service is blocked by an hourly or daily limit wait for it (they
- * would fail at once). `title` says until when; `layers` is what "Retry" will load; `blocked` when nothing can be.
+ * Retrying the failed layers, for the pill and the panel alike: those whose service is blocked by an hourly or daily
+ * limit wait for it (they would fail at once). `run` retries the rest; `blocked` when none can be; `title` says until when.
  */
-export function retryPlan(problems, notice) {
+export function retryPlan(problems, notice, onRetry) {
   const layers = problems.filter((i) => !stalled(i, notice))
   const title = notice?.kind === 'blocked' ? `Open-Meteo’s limit lifts at about ${clock(notice.until)}` : undefined
-  return { layers, blocked: !layers.length, title }
+  return { any: problems.length > 0, blocked: !layers.length, title, run: () => layers.forEach((i) => onRetry(i.key)) }
 }
 
 /**
@@ -104,12 +108,12 @@ export function retryPlan(problems, notice) {
  * and retry on their own) or an hourly / daily block (requests fail until it lifts). Null when neither.
  */
 export function queueNotice(queue, now) {
-  const blocks = queue.blocked.filter((b) => b.host.endsWith('open-meteo.com'))
+  const blocks = queue.blocked.filter((b) => HOSTS.has(b.host))
   if (blocks.length) {
     const hosts = new Set(blocks.map((b) => b.host)), until = Math.max(...blocks.map((b) => b.until))
     const limit = blocks.some((b) => b.limit === 'daily') ? 'daily' : 'hourly'
     const layers = LAYERS.filter((l) => hosts.has(l.host)).map((l) => l.label).join(', ')
-    return { kind: 'blocked', hosts, until, short: `Open-Meteo limit until ${clock(until)}`, text: `Open-Meteo’s ${limit} limit for this connection was reached (${layers}). Those layers can’t load until about ${clock(until)}; what already loaded stays. Retry then.` }
+    return { kind: 'blocked', hosts, until, short: `Open-Meteo limit until ${clock(until)}`, text: `${limitText(limit)} (${layers}). Those layers can’t load until about ${clock(until)}; what already loaded stays. Retry then.` }
   }
   if (queue.pausedUntil > now) {
     const s = Math.max(1, Math.ceil((queue.pausedUntil - now) / 1000))
@@ -129,22 +133,21 @@ const impact = (i) => (i.s === 'loading' ? 'You can retry once the layer finishe
   : !i.scored ? '' : i.s === 'partial' ? 'Scores use the places that loaded.' : 'Scores leave this layer out.')
 
 /** Each layer's status: what it feeds, its progress, queued / loading / ready / failed, and retry. */
-export function LivePanel({ rows, off, busy, problems, overall, eta, ready, scoresPending, errors = {}, notice, onLoad, onRetry }) {
-  const plan = retryPlan(problems, notice), retryTitle = plan.title
+export function LivePanel({ rows, off, busy, overall, eta, ready, scoresPending, errors = {}, notice, plan, onLoad, onRetry }) {
   return (
     <div className="live-panel glass" id="live-panel" aria-label="Live data status">
       <div className="live-panel-head">
         <b>Live data</b>
         <span className="muted small">{busy ? `${overall}% · ${ready} of ${rows.length} ready${eta ? ` · ${eta}` : ''}` : `${ready} of ${rows.length} ready`}</span>
-        {problems.length > 0 && (
-          <button className="btn sm live-retry-all" onClick={() => plan.layers.forEach((i) => onRetry(i.key))} disabled={plan.blocked} title={retryTitle}>
+        {plan.any && (
+          <button className="btn sm" onClick={plan.run} disabled={plan.blocked} title={plan.title}>
             <RotateCw size={12} /> Retry failed
           </button>
         )}
       </div>
       {notice && <p className={`live-notice ${notice.kind}`} role="alert"><PauseCircle size={13} /> {notice.text}</p>}
       <ul className="live-rows">
-        {rows.map((i) => (
+        {rows.map((i) => { const stuck = stalled(i, notice); return (
           <li key={i.key} className={`live-row ${i.queued ? 'queued' : i.s}`}>
             <span className="live-icon">
               {i.queued ? <Clock size={13} /> : i.s === 'loading' ? <LoaderCircle size={13} className="spin" /> : failed(i.s) ? <CircleAlert size={13} /> : <Check size={13} />}
@@ -153,14 +156,14 @@ export function LivePanel({ rows, off, busy, problems, overall, eta, ready, scor
             <span className="live-bar" aria-hidden="true"><span style={{ width: `${pct(i.done, i.p.total)}%` }} /></span>
             <span className="live-state">
               {failed(i.s)
-                ? <button className="btn sm" onClick={() => onRetry(i.key)} disabled={stalled(i, notice)} title={stalled(i, notice) ? retryTitle : undefined} aria-label={`Retry ${i.label}`}><RotateCw size={12} /> Retry</button>
+                ? <button className="btn sm" onClick={() => onRetry(i.key)} disabled={stuck} title={stuck ? plan.title : undefined} aria-label={`Retry ${i.label}`}><RotateCw size={12} /> Retry</button>
                 : stateText(i)}
             </span>
             {(failed(i.s) || i.p.failed > 0) && errors[i.key] && (
               <span className="live-error">{failed(i.s) && `${stateText(i)}: `}{errors[i.key]}. {impact(i)}</span>
             )}
           </li>
-        ))}
+        ) })}
         {off.map((i) => (
           <li key={i.key} className="live-row off">
             <span className="live-icon"><CloudDownload size={13} /></span>
@@ -186,17 +189,17 @@ export function LiveStatus({ status, progress = {}, errors = {}, error, startedA
   const ref = useRef(null)
   useDismiss(ref, open, useCallback(() => setOpen(false), []))
   const queue = useSyncExternalStore(meteo.subscribe, meteo.status)
-  const now = useNow(queue.pausedUntil, queue.blocked.length ? Math.min(...queue.blocked.map((b) => b.until)) : 0)
+  const now = useNow(queue.pausedUntil)
 
   const sum = summarize({ status, progress, startedAt })
   const { busy, problems, failedPoints, overall, eta, ready, rows, scoresPending } = sum
   const notice = queueNotice(queue, now)
   if (!busy && !problems.length && !error) return null
-  const plan = retryPlan(problems, notice)
+  const plan = retryPlan(problems, notice, onRetry)
 
   return (
     <div className="live-status" ref={ref} role="status">
-      {open && <LivePanel {...sum} errors={errors} notice={notice} onLoad={onLoad} onRetry={onRetry} />}
+      {open && <LivePanel {...sum} errors={errors} notice={notice} plan={plan} onLoad={onLoad} onRetry={onRetry} />}
       {error && (
         <span className="live-pill glass error">
           <CircleAlert size={13} /> <b>Map data failed to load</b>
@@ -216,7 +219,7 @@ export function LiveStatus({ status, progress = {}, errors = {}, error, startedA
             {open ? <ChevronDown size={13} /> : <ChevronUp size={13} />}
           </button>
           {!busy && problems.length > 0 && (
-            <button className="btn sm live-retry" onClick={() => plan.layers.forEach((i) => onRetry(i.key))} disabled={plan.blocked}
+            <button className="btn sm" onClick={plan.run} disabled={plan.blocked}
               title={plan.blocked ? plan.title : 'Load the failed layers again'}>
               <RotateCw size={12} /> Retry
             </button>

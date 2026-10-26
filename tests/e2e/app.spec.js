@@ -1,4 +1,5 @@
 import { test, expect, openReport } from './fixtures.js'
+import { hits } from './mocks.js'
 
 test('loads the map and the selected country', async ({ page, calls }) => {
   await page.goto('/')
@@ -23,5 +24,5 @@ test('a report shows the monthly temperature chart with record highs and lows', 
     expect(hi).toBeGreaterThanOrEqual(max)
     expect(lo).toBeLessThanOrEqual(min)
   }
-  expect(calls.some((u) => u.hostname === 'archive-api.open-meteo.com' && u.searchParams.get('latitude')?.split(',').length === 1)).toBe(true)
+  expect(hits(calls, 'archive-api').some((u) => u.searchParams.get('latitude')?.split(',').length === 1)).toBe(true)
 })

@@ -47,6 +47,18 @@ const chunk = (arr, n) => Array.from({ length: Math.ceil(arr.length / n) }, (_, 
 const coordParams = (pts) =>
   `latitude=${pts.map((p) => p.lat.toFixed(3)).join(',')}&longitude=${pts.map((p) => p.lon.toFixed(3)).join(',')}`
 const asArray = (r) => (Array.isArray(r) ? r : [r])
+// The services this module calls. Live layers declare theirs (hooks/useLiveData.js), so an hourly or daily limit on one
+// service holds back only the layers that call it.
+export const HOST = {
+  archive: 'archive-api.open-meteo.com',
+  historicalForecast: 'historical-forecast-api.open-meteo.com',
+  forecast: 'api.open-meteo.com',
+  airQuality: 'air-quality-api.open-meteo.com',
+  flood: 'flood-api.open-meteo.com',
+  geocoding: 'geocoding-api.open-meteo.com',
+  usgs: 'earthquake.usgs.gov',
+}
+
 const ids = (group) => group.map((p) => p.id).join('|')
 const daysBetween = (a, b) => Math.round((Date.parse(b) - Date.parse(a)) / DAY) + 1
 
@@ -193,7 +205,7 @@ export function fetchClimateBatch(points, opts = {}) {
   const { start, end, days } = yearRange(year)
   return batch(points, {
     size: 40, key: `clim3:${year}`, ttl: 30 * DAY, timeout: 60000, cost: { variables: N_DAILY, days },
-    url: (group) => `https://archive-api.open-meteo.com/v1/archive?${coordParams(group)}&start_date=${start}&end_date=${end}&daily=${DAILY_VARS}&timezone=auto`,
+    url: (group) => `https://${HOST.archive}/v1/archive?${coordParams(group)}&start_date=${start}&end_date=${end}&daily=${DAILY_VARS}&timezone=auto`,
     row: (r, point) => {
       const { monthly, yearly, ...rest } = summariseDaily(r.daily)
       return { id: point.id, elevation: r.elevation, ...rest }
@@ -206,7 +218,7 @@ export async function fetchClimateDetail(lat, lon, { signal } = {}) {
   const end = lastFullYear()
   const start = end - 9
   return cached(`climd4:${lat.toFixed(2)},${lon.toFixed(2)}:${end}`, 30 * DAY, async () => {
-    const url = `https://archive-api.open-meteo.com/v1/archive?latitude=${lat}&longitude=${lon}&start_date=${start}-01-01&end_date=${end}-12-31&daily=${DAILY_VARS}&timezone=auto`
+    const url = `https://${HOST.archive}/v1/archive?latitude=${lat}&longitude=${lon}&start_date=${start}-01-01&end_date=${end}-12-31&daily=${DAILY_VARS}&timezone=auto`
     const cost = { variables: N_DAILY, days: daysBetween(`${start}-01-01`, `${end}-12-31`) }
     const r = await meteoJSON(url, cost, { priority: PRIORITY.user, signal, timeout: 90000 })
     return { elevation: r.elevation, period: `${start}–${end}`, ...summariseDaily(r.daily) }
@@ -237,7 +249,7 @@ export function fetchUvBatch(points, opts = {}) {
   const { start, end, days } = yearRange(year)
   return batch(points, {
     size: 40, key: `uvy2:${year}`, ttl: 30 * DAY, timeout: 60000, cost: { variables: 1, days },
-    url: (group) => `https://historical-forecast-api.open-meteo.com/v1/forecast?${coordParams(group)}&start_date=${start}&end_date=${end}&daily=uv_index_max&timezone=auto`,
+    url: (group) => `https://${HOST.historicalForecast}/v1/forecast?${coordParams(group)}&start_date=${start}&end_date=${end}&daily=uv_index_max&timezone=auto`,
     row: (r, point) => ({ id: point.id, ...summariseUv(r.daily) }),
   }, opts)
 }
@@ -255,7 +267,7 @@ export function fetchFloodBatch(points, opts = {}) {
   const start = iso(new Date(today - 365 * DAY)), end = iso(new Date(+today + 30 * DAY)), now = iso(today)
   return batch(points, {
     size: 40, key: `flood:${now}`, ttl: DAY / 2, timeout: 60000, cost: { variables: 1, days: daysBetween(start, end) },
-    url: (group) => `https://flood-api.open-meteo.com/v1/flood?${coordParams(group)}&daily=river_discharge&start_date=${start}&end_date=${end}`,
+    url: (group) => `https://${HOST.flood}/v1/flood?${coordParams(group)}&daily=river_discharge&start_date=${start}&end_date=${end}`,
     row: (r, point) => summariseFlood(point.id, r.daily, now),
   }, opts)
 }
@@ -326,7 +338,7 @@ export function fetchAqiBatch(points, opts = {}) {
   const end = new Date(Date.now() - DAY), start = new Date(Date.now() - 365 * DAY)
   return batch(points, {
     size: 5, key: `airy:${Math.floor(Date.now() / (7 * DAY))}`, ttl: 7 * DAY, timeout: 60000, cost: { variables: AIR_BATCH.length, days: 366 },
-    url: (group) => `https://air-quality-api.open-meteo.com/v1/air-quality?${coordParams(group)}&hourly=${AIR_BATCH.join(',')}&start_date=${iso(start)}&end_date=${iso(end)}`,
+    url: (group) => `https://${HOST.airQuality}/v1/air-quality?${coordParams(group)}&hourly=${AIR_BATCH.join(',')}&start_date=${iso(start)}&end_date=${iso(end)}`,
     row: (r, point) => ({ id: point.id, ...summariseAir(r.hourly || {}) }),
     value: ({ id, ...air }) => air,
   }, opts)
@@ -370,7 +382,7 @@ export function fetchThermalBatch(points, opts = {}) {
   const { start, end, days } = yearRange(year)
   return batch(points, {
     size: 5, key: `thermal:${year}`, ttl: 30 * DAY, timeout: 60000, cost: { variables: THERMAL_HOURLY.length, days },
-    url: (group) => `https://archive-api.open-meteo.com/v1/archive?${coordParams(group)}&start_date=${start}&end_date=${end}&hourly=${THERMAL_HOURLY.join(',')}&timezone=auto`,
+    url: (group) => `https://${HOST.archive}/v1/archive?${coordParams(group)}&start_date=${start}&end_date=${end}&hourly=${THERMAL_HOURLY.join(',')}&timezone=auto`,
     row: (r, point) => ({ id: point.id, ...summariseThermal(r.hourly || {}) }),
     value: ({ id, ...v }) => v,
   }, opts)
@@ -382,7 +394,7 @@ const AIR_CURRENT = ['european_aqi', 'us_aqi', ...POLLUTANTS]
 
 export async function fetchAirDetail(lat, lon, { signal } = {}) {
   return cached(`aird:${lat.toFixed(2)},${lon.toFixed(2)}:${new Date().toISOString().slice(0, 13)}`, DAY / 4, async () => {
-    const url = `https://air-quality-api.open-meteo.com/v1/air-quality?latitude=${lat}&longitude=${lon}&hourly=${AIR_HOURLY.join(',')}&current=${AIR_CURRENT.join(',')}&past_days=92&forecast_days=3&timezone=auto`
+    const url = `https://${HOST.airQuality}/v1/air-quality?latitude=${lat}&longitude=${lon}&hourly=${AIR_HOURLY.join(',')}&current=${AIR_CURRENT.join(',')}&past_days=92&forecast_days=3&timezone=auto`
     const r = await meteoJSON(url, { variables: AIR_HOURLY.length + AIR_CURRENT.length, days: 92 + 3 }, { priority: PRIORITY.user, signal })
     const byDay = {}
     r.hourly.time.forEach((t, i) => {
@@ -401,7 +413,7 @@ export async function fetchAirDetail(lat, lon, { signal } = {}) {
 
 export async function fetchUv(lat, lon, { signal } = {}) {
   return cached(`uv:${lat.toFixed(2)},${lon.toFixed(2)}:${new Date().toISOString().slice(0, 10)}`, DAY / 2, async () => {
-    const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&daily=uv_index_max&past_days=92&forecast_days=7&timezone=auto`
+    const url = `https://${HOST.forecast}/v1/forecast?latitude=${lat}&longitude=${lon}&daily=uv_index_max&past_days=92&forecast_days=7&timezone=auto`
     const r = await meteoJSON(url, { variables: 1, days: 99 }, { priority: PRIORITY.user, signal })
     return r.daily.time.map((date, i) => ({ date, uv: r.daily.uv_index_max[i] }))
   })
@@ -413,7 +425,7 @@ export async function fetchUv(lat, lon, { signal } = {}) {
 export async function fetchQuakes([minX, minY, maxX, maxY], { pad = 3, signal } = {}) {
   const b = [minX - pad, Math.max(-90, minY - pad), maxX + pad, Math.min(90, maxY + pad)].map((v) => v.toFixed(1))
   return cached(`eq:${b.join(',')}`, 7 * DAY, async () => {
-    const url = `https://earthquake.usgs.gov/fdsnws/event/1/query?format=csv&starttime=1980-01-01&minmagnitude=5&minlongitude=${b[0]}&minlatitude=${b[1]}&maxlongitude=${b[2]}&maxlatitude=${b[3]}&orderby=time&limit=20000`
+    const url = `https://${HOST.usgs}/fdsnws/event/1/query?format=csv&starttime=1980-01-01&minmagnitude=5&minlongitude=${b[0]}&minlatitude=${b[1]}&maxlongitude=${b[2]}&maxlatitude=${b[3]}&orderby=time&limit=20000`
     const csv = await getJSON(url, { timeout: 60000, signal })
     const lines = csv.trim().split('\n')
     const head = lines.shift().split(',')
@@ -430,7 +442,7 @@ export async function fetchQuakes([minX, minY, maxX, maxY], { pad = 3, signal } 
 
 export async function geocode(query, language = 'es') {
   if (query.trim().length < 2) return []
-  const url = `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(query)}&count=8&language=${language}&format=json`
+  const url = `https://${HOST.geocoding}/v1/search?name=${encodeURIComponent(query)}&count=8&language=${language}&format=json`
   // Not queued: search must stay instant, and geocoding calls are light.
   const r = await getJSON(url, { timeout: 10000 })
   return (r.results || []).map((g) => ({
