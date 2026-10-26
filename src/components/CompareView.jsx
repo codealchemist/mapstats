@@ -42,6 +42,10 @@ export function CompareView({ slots, model, country, theme, sourceMode, standard
   const details = [d0, d1, d2]
   const t = TOKENS[theme]
   const places = slots.map((e, i) => (e ? { e, i, d: details[i], flood: live?.flood?.[e.id] || null } : null))
+  // Cities get a river flood watch row: ask for river data, as a report does (it loads once).
+  const hasCity = slots.some((e) => e?.type === 'city')
+  const load = live?.load
+  useEffect(() => { if (hasCity) load?.('flood') }, [hasCity, load])
   const filled = places.filter(Boolean)
 
   useEffect(() => {

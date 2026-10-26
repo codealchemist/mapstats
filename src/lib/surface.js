@@ -6,12 +6,13 @@
 // sharp elevation-driven changes, which the legend notes.
 import { colorAt, rampFor } from './colors.js'
 
+// `layer`: the live layer (hooks/useLiveData.js) a variable is read from, by its id; its grid points load as `<layer>Grid`.
 export const SURFACE_VARS = [
-  { id: 'tempMaxAnnual', label: 'Hottest day (annual max)', unit: '°C', ramp: 'red', pick: (l, id) => l.climate?.[id]?.tempMaxAnnual },
-  { id: 'tempMinAnnual', label: 'Coldest night (annual min)', unit: '°C', ramp: 'blue-rev', pick: (l, id) => l.climate?.[id]?.tempMinAnnual },
-  { id: 'annualPrecip', label: 'Annual rain', unit: 'mm', ramp: 'blue', pick: (l, id) => l.climate?.[id]?.annualPrecip },
-  { id: 'snowfall', label: 'Annual snow', unit: 'cm', ramp: 'violet', pick: (l, id) => l.climate?.[id]?.snowfall },
-  { id: 'uvMean', label: 'UV index (mean daily max)', unit: '', ramp: 'orange', pick: (l, id) => l.uv?.[id]?.uvMean },
+  { id: 'tempMaxAnnual', label: 'Hottest day (annual max)', unit: '°C', ramp: 'red', layer: 'climate' },
+  { id: 'tempMinAnnual', label: 'Coldest night (annual min)', unit: '°C', ramp: 'blue-rev', layer: 'climate' },
+  { id: 'annualPrecip', label: 'Annual rain', unit: 'mm', ramp: 'blue', layer: 'climate' },
+  { id: 'snowfall', label: 'Annual snow', unit: 'cm', ramp: 'violet', layer: 'climate' },
+  { id: 'uvMean', label: 'UV index (mean daily max)', unit: '', ramp: 'orange', layer: 'uv' },
 ]
 export const surfaceVarById = Object.fromEntries(SURFACE_VARS.map((v) => [v.id, v]))
 
@@ -20,9 +21,16 @@ const SMOOTH2 = 0.6 ** 2 // ≈ 65 km smoothing radius, in degrees²
 const mercY = (lat) => Math.log(Math.tan(Math.PI / 4 + (lat * R) / 2))
 const latOf = (y) => (2 * Math.atan(Math.exp(y)) - Math.PI / 2) / R
 
-/** Collect { lat, lon, v } samples for a surface variable from live data. */
+/** The live layers each map overlay shows, for useLiveData's on-demand loading and the overlays' spinners. */
+export function overlayLayers(overlays) {
+  const { layer } = surfaceVarById[overlays.surfaceVar]
+  return { quakes: ['quakes'], flood: ['flood'], surface: [layer, `${layer}Grid`] }
+}
+
+/** Collect { lat, lon, v } samples for a surface variable from live data (its layer and that layer's grid points). */
 export function surfaceSamples(variable, points, live) {
-  return points.map((p) => ({ lat: p.lat, lon: p.lon, v: variable.pick(live, p.id) })).filter((p) => p.v != null && Number.isFinite(p.v))
+  const rows = { ...live[variable.layer], ...live[`${variable.layer}Grid`] }
+  return points.map((p) => ({ lat: p.lat, lon: p.lon, v: rows[p.id]?.[variable.id] })).filter((p) => p.v != null && Number.isFinite(p.v))
 }
 
 /**

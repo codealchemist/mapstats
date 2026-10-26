@@ -1,5 +1,5 @@
 // npm run live:test — offline checks of the Open-Meteo queue against a fake rate-limited API, on a virtual clock.
-import { abortError, callWeight, createQueue, isAbort, PRIORITY } from '../meteoQueue.js'
+import { abortError, callWeight, createQueue, describeError, isAbort, PRIORITY } from '../meteoQueue.js'
 import { fetchAqiBatch, fetchClimateBatch, fetchUvBatch } from '../live.js'
 
 let failures = 0
@@ -135,6 +135,19 @@ section('Retries and limits')
   check('a minutely 429 pauses for a minute, then the retry succeeds', r[0]?.ok && calls === 2 && api.log[1].at >= 61_000, `${calls} calls, retry at ${api.log[1]?.at / 1000} s`)
 }
 {
+  // The UI shows the pause: status() reports it with the server's reason, and it clears when requests resume.
+  const clock = virtualClock()
+  const api = fakeApi(clock, { alreadyUsed: 600 })
+  const q = createQueue({ fetchJSON: api.fetchJSON, now: clock.now, wait: clock.wait })
+  const seen = []
+  q.subscribe(() => seen.push(q.status()))
+  check('no pause before any request', q.status().pausedUntil === 0 && q.status() === q.status())
+  await Promise.all([job(q, 50), clock.run()])
+  const paused = seen.find((st) => st.pausedUntil)
+  check('a minutely 429 is published as a pause', paused?.pausedUntil >= 61_000, JSON.stringify(paused))
+  check('the pause clears when requests resume', q.status().pausedUntil === 0 && seen.at(-1).pausedUntil === 0)
+}
+{
   const clock = virtualClock()
   let first = true
   const api = fakeApi(clock, { fault: (url) => url.includes('example.test') && first && !(first = false) && httpError(503, 'The service is overloaded') })
@@ -163,6 +176,9 @@ section('Retries and limits')
   const before = api.log.length
   const later = await q.request('https://example.test/x?id=later').catch((e) => e)
   check('that host then fails fast until the hour is over', later.reason === HOURLY && api.log.length === before)
+  const blocked = q.status().blocked
+  check('the blocked host is published with its limit and when it lifts', blocked.length === 1 && blocked[0].host === 'example.test' && blocked[0].limit === 'hourly' && blocked[0].until % 3_600_000 === 0, JSON.stringify(blocked))
+  check('describeError names the limit', describeError(eHourly) === 'Open-Meteo’s hourly limit for this connection was reached' && describeError(eBad) === 'The service answered 400: Invalid parameter', `${describeError(eHourly)} / ${describeError(eBad)}`)
   const other = q.request('https://air-quality-api.open-meteo.com/v1/air-quality?latitude=1&longitude=1&hourly=european_aqi&past_days=30&forecast_days=1')
   await clock.run()
   check('other hosts keep working', (await other.catch(() => null))?.hourly != null)

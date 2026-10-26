@@ -45,6 +45,20 @@ function limitOf(e) {
   return m ? m[0].toLowerCase() : 'minutely'
 }
 
+/** An hourly or daily limit in plain words: one phrasing for errors and for the status panel's notice. */
+export const limitText = (limit) => `Open-Meteo’s ${limit} limit for this connection was reached`
+
+/** A failed request in plain words, for the UI: which limit was hit, or what went wrong. */
+export function describeError(e) {
+  const limit = limitOf(e)
+  if (limit === 'hourly' || limit === 'daily') return limitText(limit)
+  if (limit) return 'Rate limit: the service kept refusing requests' // after the queue's retries (Open-Meteo)
+  if (e?.timeout) return e.message
+  if (e?.status) return `The service answered ${e.status}${e.reason ? `: ${e.reason}` : e.message && !e.message.startsWith(String(e.status)) ? `: ${e.message}` : ''}`
+  if (e instanceof TypeError) return 'Network error: no connection, or the request was blocked'
+  return e?.message || 'Unknown error'
+}
+
 const retryable = (e, limit) => limit === 'minutely' || limit === 'concurrent' || e.timeout || e.status == null || e.status >= 500
 
 export function createQueue({ fetchJSON = getJSON, now = Date.now, wait = sleep, budget = BUDGET, windowMs = WINDOW, concurrency = CONCURRENCY } = {}) {
@@ -52,6 +66,25 @@ export function createQueue({ fetchJSON = getJSON, now = Date.now, wait = sleep,
   const sent = []
   const blockedHosts = {}
   let active = 0, pausedUntil = 0, seq = 0, wakeTime = Infinity
+
+  // What the UI shows about the queue: a pause after a minutely 429 (until when) and hosts blocked by an hourly or daily
+  // limit. `status()` returns the same object until something changes; subscribers hear when a pause starts or ends
+  // and when a block starts or lifts.
+  const listeners = new Set()
+  let snapshot = { pausedUntil: 0, blocked: [] }
+  const refresh = () => {
+    const t = now()
+    const next = {
+      pausedUntil: t < pausedUntil ? pausedUntil : 0,
+      blocked: Object.entries(blockedHosts).filter(([, b]) => t < b.until).map(([host, b]) => ({ host, until: b.until, limit: b.limit })),
+    }
+    const same = next.pausedUntil === snapshot.pausedUntil && next.blocked.length === snapshot.blocked.length &&
+      next.blocked.every((b, i) => b.host === snapshot.blocked[i].host && b.until === snapshot.blocked[i].until)
+    if (same) return false
+    snapshot = next
+    return true
+  }
+  const publish = () => refresh() && listeners.forEach((fn) => fn())
 
   const blockOf = (host) => (blockedHosts[host] && now() < blockedHosts[host].until ? blockedHosts[host].error : null)
 
@@ -81,6 +114,7 @@ export function createQueue({ fetchJSON = getJSON, now = Date.now, wait = sleep,
       const stop = blockOf(waiting[i].host)
       if (stop) waiting.splice(i, 1)[0].reject(stop)
     }
+    if (snapshot.pausedUntil && t >= snapshot.pausedUntil) publish() // a pause that just ended (blocks expire on read)
     if (!waiting.length) return
     if (t < pausedUntil) return wakeAt(pausedUntil)
     const top = waiting[0].priority
@@ -124,11 +158,19 @@ export function createQueue({ fetchJSON = getJSON, now = Date.now, wait = sleep,
     const limit = limitOf(e)
     if (limit === 'hourly' || limit === 'daily') {
       const t = now(), span = limit === 'hourly' ? HOUR : DAY
-      blockedHosts[job.host] = { until: (Math.floor(t / span) + 1) * span, error: e }
+      const until = (Math.floor(t / span) + 1) * span
+      blockedHosts[job.host] = { until, error: e, limit }
+      publish()
+      // Announce the lift too. A plain timer, not `wait`: test clocks run every pending wait, which would end the block
+      // at once; unref'd in Node so a pending lift never keeps a process alive.
+      setTimeout(publish, Math.max(0, until - t) + 50)?.unref?.()
       return job.reject(e)
     }
     if (!retryable(e, limit) || job.attempts >= BACKOFF_MS.length) return job.reject(e)
-    if (limit === 'minutely') pausedUntil = Math.max(pausedUntil, now() + windowMs + 1000)
+    if (limit === 'minutely') {
+      pausedUntil = Math.max(pausedUntil, now() + windowMs + 1000)
+      publish()
+    }
     else job.notBefore = now() + BACKOFF_MS[job.attempts]
     job.attempts++
     enqueue(job)
@@ -154,7 +196,13 @@ export function createQueue({ fetchJSON = getJSON, now = Date.now, wait = sleep,
     })
   }
 
-  return { request }
+  return {
+    request,
+    /** { pausedUntil (0 when not paused), reason, blocked: [{ host, until, limit, reason }] } */
+    status: () => { refresh(); return snapshot },
+    /** Calls `fn` when the status changes; returns the unsubscribe function (useSyncExternalStore). */
+    subscribe: (fn) => { listeners.add(fn); return () => listeners.delete(fn) },
+  }
 }
 
 export const meteo = createQueue()

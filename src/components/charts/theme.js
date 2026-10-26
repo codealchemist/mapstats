@@ -20,10 +20,11 @@ export const TOKENS = {
 
 export const alpha = (hex, a) => hex + Math.round(a * 255).toString(16).padStart(2, '0')
 
-// Shared options: recessive hairline grid, muted ticks, legend only for 2+ series, index tooltips.
-export function baseOptions(t, { legend = false, horizontal = false, yTitle, stacked = false, suggestedMax } = {}) {
+// Shared options: recessive hairline grid, muted ticks, legend only for 2+ series, index tooltips. `zero`: the value
+// axis starts at zero. `lineLegend`: legend entries drawn as lines (so dashed series read as dashed).
+export function baseOptions(t, { legend = false, horizontal = false, yTitle, stacked = false, suggestedMax, zero = true, lineLegend = false } = {}) {
   const valueAxis = {
-    beginAtZero: true,
+    beginAtZero: zero,
     suggestedMax,
     stacked,
     border: { display: false },
@@ -46,11 +47,13 @@ export function baseOptions(t, { legend = false, horizontal = false, yTitle, sta
     layout: { padding: { top: 4, right: 8 } },
     scales: horizontal ? { x: valueAxis, y: catAxis } : { x: catAxis, y: valueAxis },
     plugins: {
+      // Drawn on compact screens only (charts/interaction.jsx), where it stands in for the tooltip.
+      refLine: { color: t.muted },
       legend: {
         display: legend,
         position: 'top',
         align: 'start',
-        labels: { color: t.secondary, font: { family: FONT, size: 11 }, boxWidth: 10, boxHeight: 10, useBorderRadius: true, borderRadius: 2, padding: 12 },
+        labels: { color: t.secondary, font: { family: FONT, size: 11 }, boxWidth: 10, boxHeight: 10, useBorderRadius: true, borderRadius: 2, padding: 12, ...(lineLegend && { usePointStyle: true, pointStyle: 'line', pointStyleWidth: 18 }) },
       },
       tooltip: {
         backgroundColor: t.surface === '#fcfcfb' ? '#ffffff' : '#262624',
@@ -67,8 +70,9 @@ export const barStyle = (color) => ({
   categoryPercentage: 0.8, barPercentage: 0.9,
 })
 
-export const lineStyle = (color, { fill = false } = {}) => ({
-  borderColor: color, backgroundColor: fill ? alpha(color, 0.1) : color, borderWidth: 2, fill,
+// `dashed`: a thinner dashed line, for secondary series (e.g. records next to averages).
+export const lineStyle = (color, { fill = false, dashed = false } = {}) => ({
+  borderColor: color, backgroundColor: fill ? alpha(color, 0.1) : color, borderWidth: dashed ? 1.5 : 2, borderDash: dashed ? [4, 3] : [], fill,
   pointRadius: 0, pointHoverRadius: 5, pointHoverBorderWidth: 2, pointHoverBorderColor: '#fff', pointBackgroundColor: color,
   tension: 0.3, borderCapStyle: 'round', borderJoinStyle: 'round',
 })

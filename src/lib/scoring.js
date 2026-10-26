@@ -21,7 +21,15 @@ const CLIMATE_KEYS = ['climateComfort', 'meanTemp', 'annualPrecip', 'snowfall', 
 const AIR_KEYS = ['aqi', 'usAqi', 'pm25', 'aqiRecent', 'pm25WorstDay', 'aqiPoorDays', 'usAqiUnhealthyDays', 'pm25HighDays']
 const THERMAL_KEYS = ['thermalNws', 'thermalEccc', 'heatDangerDays', 'humidexDangerDays', 'frostbiteDays']
 const UV_KEYS = ['uvMean', 'uvScore', 'uvVeryHighDays', 'uvExtremeDays']
-const LIVE_KEYS = [...CLIMATE_KEYS, ...AIR_KEYS, ...THERMAL_KEYS, ...UV_KEYS, 'quakes', 'floodWatch', 'floodPeakPast']
+// The live layer (hooks/useLiveData.js) an indicator's value comes from, or null for non-live indicators.
+const LAYER_OF = Object.fromEntries([
+  ...CLIMATE_KEYS.map((k) => [k, 'climate']), ...AIR_KEYS.map((k) => [k, 'aqi']), ...THERMAL_KEYS.map((k) => [k, 'thermal']),
+  ...UV_KEYS.map((k) => [k, 'uv']), ['quakes', 'quakes'], ['floodWatch', 'flood'], ['floodPeakPast', 'flood'],
+])
+const LIVE_KEYS = Object.keys(LAYER_OF)
+/** The live layer an indicator needs, under a standards selection: an indicator scored by a standard shows that
+ *  standard's measure (data/standards.js `input`), so the measure's layer. App and the side panel both ask here. */
+export const liveLayerOf = (id, standards) => LAYER_OF[standardFor(id, standards)?.input ?? id] || LAYER_OF[id] || null
 
 // True when the entity's value for `id` was measured for the entity itself (not copied from its province).
 export const isOwnValue = (entity, id) => entity.values[id] != null && !entity.inherited?.has(id)

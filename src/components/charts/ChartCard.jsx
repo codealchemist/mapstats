@@ -1,8 +1,8 @@
 import { createContext, useContext, useEffect, useMemo, useRef, useState } from 'react'
-import { Chart } from 'react-chartjs-2'
 import { Chart as ChartJS } from 'chart.js'
 import { Copy, Download, Check, Table2 } from 'lucide-react'
 import { TOKENS } from './theme.js'
+import { InteractiveChart } from './interaction.jsx'
 import { canvasToBlob, copyImage, downloadBlob } from '../../lib/export.js'
 import { slug } from '../../lib/format.js'
 import { useToast } from '../Toast.jsx'
@@ -93,9 +93,7 @@ export function ChartCard({ id, title, subtitle, theme, build, height = 200, tab
           </button>
         </div>
       </figcaption>
-      <div className="chart-body" style={height === 'fill' ? undefined : { height }}>
-        <Chart ref={ref} type={cfg.type} data={cfg.data} options={cfg.options} />
-      </div>
+      <InteractiveChart cfg={cfg} chartRef={ref} className="chart-body" style={height === 'fill' ? undefined : { height }} />
       {showTable && table && (
         <div className="table-wrap">
           <table className="data-table">

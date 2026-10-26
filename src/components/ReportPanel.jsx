@@ -2,7 +2,7 @@ import { useCallback, useMemo, useRef, useState } from 'react'
 import {
   X, FileText, FileSpreadsheet, ExternalLink, MapPin, Building2, Users, Mountain, Thermometer, CloudRain,
   Wind, Sun, LoaderCircle, ShieldAlert, Database, Columns3, CircleAlert, Activity, ChevronRight, Smile, Meh, Frown, Info,
-  TriangleAlert,
+  TriangleAlert, CloudDownload,
 } from 'lucide-react'
 import { CATEGORIES, INDICATORS, indicatorById } from '../data/metrics.js'
 import { ICONS } from './icons.js'
@@ -93,11 +93,13 @@ export function ReportPanel({ entity, model, country, live, theme, onClose, onSe
     data: {
       labels: MONTHS,
       datasets: [
+        { label: 'Record high °C', data: clim.monthly.map((m) => m.tmaxRecord), ...lineStyle(t.series[1], { dashed: true }) },
         { label: 'Avg. max °C', data: clim.monthly.map((m) => m.tmax), ...lineStyle(t.series[1]) },
         { label: 'Avg. min °C', data: clim.monthly.map((m) => m.tmin), ...lineStyle(t.series[0]) },
+        { label: 'Record low °C', data: clim.monthly.map((m) => m.tminRecord), ...lineStyle(t.series[0], { dashed: true }) },
       ],
     },
-    options: { ...baseOptions(t, { legend: true }), scales: { ...baseOptions(t).scales, y: { ...baseOptions(t).scales.y, beginAtZero: false } } },
+    options: baseOptions(t, { legend: true, zero: false, lineLegend: true }),
   }), [clim])
   const monthlyBar = (key, color, yTitle) => (t) => ({
     type: 'bar',
@@ -115,7 +117,7 @@ export function ReportPanel({ entity, model, country, live, theme, onClose, onSe
   const buildYearly = useCallback((t) => ({
     type: 'line',
     data: { labels: clim.yearly.map((y) => y.year), datasets: [{ label: 'Mean °C', data: clim.yearly.map((y) => y.meanTemp), ...lineStyle(t.series[1], { fill: true }), pointRadius: 3 }] },
-    options: { ...baseOptions(t), scales: { ...baseOptions(t).scales, y: { ...baseOptions(t).scales.y, beginAtZero: false } } },
+    options: baseOptions(t, { zero: false }),
   }), [clim])
 
   const air = detail.air
@@ -317,8 +319,8 @@ export function ReportPanel({ entity, model, country, live, theme, onClose, onSe
                   {clim.tempMinAnnual != null && <span>Coldest night <b>{fmtNum(clim.tempMinAnnual, 1)}°C</b></span>}
                   {live.uv?.[entity.id]?.uvMean != null && <span>UV (mean daily max) <b>{fmtNum(live.uv[entity.id].uvMean, 1)}</b></span>}
                 </div>
-                <ChartCard id="temp" title="Temperature by month" subtitle="Average daily max & min, °C" theme={theme} build={buildTemp}
-                  table={{ columns: ['Month', 'Max °C', 'Min °C'], rows: clim.monthly.map((m, i) => [MONTHS[i], m.tmax, m.tmin]) }} />
+                <ChartCard id="temp" title="Temperature by month" subtitle={`Record high and low, average daily max & min, °C · ${clim.period}`} theme={theme} build={buildTemp} height={230}
+                  table={{ columns: ['Month', 'Record high °C', 'Avg. max °C', 'Avg. min °C', 'Record low °C'], rows: clim.monthly.map((m, i) => [MONTHS[i], m.tmaxRecord, m.tmax, m.tmin, m.tminRecord]) }} />
                 <ChartCard id="precip" title="Precipitation by month" subtitle="Average monthly total, mm" theme={theme} build={buildPrecip}
                   table={{ columns: ['Month', 'mm', 'Wet days'], rows: clim.monthly.map((m, i) => [MONTHS[i], m.precip, m.wetDays]) }} />
                 <ChartCard id="wet" title="Rainy days by month" subtitle="Days with ≥ 1 mm" theme={theme} build={buildWet} height={170} />
@@ -364,7 +366,7 @@ export function ReportPanel({ entity, model, country, live, theme, onClose, onSe
               </div>
             )}
             <MissingStats entity={entity} ids={HAZARD_KEYS.filter((k) => !isOwnValue(entity, k))} />
-            <FloodWatch flood={live.flood?.[entity.id]} status={live.status.flood} isCity={isCity} />
+            <FloodWatch flood={live.flood?.[entity.id]} status={live.status.flood} isCity={isCity} onLoad={() => live.load('flood')} />
             {quakes && (
               <>
                 <div className="kv">
@@ -639,8 +641,17 @@ function WeightDetails({ weighted }) {
   )
 }
 
-function FloodWatch({ flood, status, isCity }) {
+function FloodWatch({ flood, status, isCity, onLoad }) {
   if (!isCity) return null
+  // River flow loads on demand (hooks/useLiveData.js): one request for the whole country's cities.
+  if (status === 'off') {
+    return (
+      <div className="kv flood-load">
+        <span>River flood watch <span className="muted small">· Copernicus GloFAS 30-day forecast</span></span>
+        <button className="btn ghost" onClick={onLoad}><CloudDownload size={13} /> Load river data</button>
+      </div>
+    )
+  }
   // Flood data arrives in chunks: show this place's data as soon as its chunk is in, even while
   // the rest of the country is still loading.
   if (!flood) return status === 'loading' ? <div className="kv"><span>River flood watch <LoaderCircle size={12} className="spin muted inline" /></span></div> : null

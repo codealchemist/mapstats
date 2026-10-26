@@ -9,7 +9,8 @@ import { useToast } from './Toast.jsx'
 import { SourceButtons } from './SourceButtons.jsx'
 import { sourcesForIndicators, scoringFamiliesFor, familyOf, familyById, isMultiSource } from '../core/providers.js'
 import { INDICATORS } from '../data/metrics.js'
-import { SURFACE_VARS } from '../lib/surface.js'
+import { SURFACE_VARS, overlayLayers } from '../lib/surface.js'
+import { liveLayerOf } from '../lib/scoring.js'
 import { isCurated } from '../core/countries.js'
 import { STANDARDS, standardFor } from '../data/standards.js'
 
@@ -50,8 +51,8 @@ const OVERLAYS = [
   { id: 'heat', label: 'Livability heat map', hint: 'Hot spots of high MapStats score' },
   { id: 'quakes', label: 'Earthquakes M5+', hint: 'USGS catalogue since 1980' },
   { id: 'relief', label: 'Terrain & elevation', hint: 'Hillshade + elevation colour relief' },
-  { id: 'flood', label: 'River flood watch', hint: 'GloFAS 30-day forecast peak vs each river’s usual high water', status: 'flood' },
-  { id: 'surface', label: 'Climate surface', hint: 'Interpolated map of a climate variable', status: 'climate' },
+  { id: 'flood', label: 'River flood watch', hint: 'GloFAS 30-day forecast peak vs each river’s usual high water' },
+  { id: 'surface', label: 'Climate surface', hint: 'Interpolated map of a climate variable' },
 ]
 
 function LayersTab({ model, live, metricId, onMetric, overlays, onOverlays, onInfo, sourceMode, standards }) {
@@ -74,14 +75,12 @@ function LayersTab({ model, live, metricId, onMetric, overlays, onOverlays, onIn
     return ids
   }, [model])
   const available = (m) => !model || m.kind === 'score' || withData.has(m.id)
-  const pending = (m) => {
-    if (m.kind === 'score') return false
-    // An indicator scored by a standard waits for that standard's measure (UTCI comes prefilled, not live).
-    const ind = indicatorById[standardFor(m.id, standards)?.input ?? m.id]
-    if (!ind?.live) return false
-    const src = m.id === 'aqi' ? 'aqi' : m.id === 'quakes' ? 'quakes' : 'climate'
-    return live.status[src] === 'loading'
-  }
+  // The live layer a metric waits for: an indicator scored by a standard waits for that standard's measure (UTCI
+  // comes prefilled, not live).
+  const layerOf = (m) => (m.kind === 'score' ? null : liveLayerOf(m.id, standards))
+  // The layer each overlay waits for.
+  const layersOf = overlayLayers(overlays)
+  const overlayPending = (id) => layersOf[id]?.some((k) => live.status[k] === 'loading')
 
   return (
     <>
@@ -92,7 +91,7 @@ function LayersTab({ model, live, metricId, onMetric, overlays, onOverlays, onIn
             <label key={o.id} className="toggle-row" title={o.hint}>
               <span>
                 {o.label}
-                {((o.id === 'quakes' && live.status.quakes === 'loading') || (o.status && live.status[o.status] === 'loading') || (o.id === 'surface' && overlays.surfaceVar === 'uvMean' && live.status.uv === 'loading')) && <LoaderCircle size={12} className="spin muted inline" />}
+                {overlayPending(o.id) && <LoaderCircle size={12} className="spin muted inline" />}
               </span>
               <input type="checkbox" className="switch" checked={overlays[o.id]} onChange={(e) => onOverlays((s) => ({ ...s, [o.id]: e.target.checked }))} />
             </label>
@@ -114,14 +113,17 @@ function LayersTab({ model, live, metricId, onMetric, overlays, onOverlays, onIn
             {metrics.map((m) => {
               const Icon = ICONS[m.icon] || Layers
               const ok = available(m)
-              const wait = pending(m)
+              // Waiting for its live layer, or for one that loads on demand (rivers) when the metric is chosen.
+              const layerStatus = live.status[layerOf(m)]
+              const wait = layerStatus === 'loading'
+              const later = layerStatus === 'off'
               return (
                 <button
                   key={m.id}
                   className={`metric ${metricId === m.id ? 'active' : ''}`}
-                  disabled={!ok && !wait}
+                  disabled={!ok && !wait && !later}
                   onClick={() => onMetric(m.id)}
-                  title={ok ? m.label : wait ? 'Loading live data…' : 'No data for this country'}
+                  title={ok ? m.label : wait ? 'Loading live data…' : later ? `${m.label}: loads its live data when selected` : 'No data for this country'}
                 >
                   <Icon size={15} />
                   <span>{m.label}</span>

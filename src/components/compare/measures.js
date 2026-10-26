@@ -24,8 +24,7 @@ function barPerPlace({ places, tk, national, value, unit, nationalValue, inherit
 }
 
 function linePerPlace({ places, tk, labels, series, yTitle, zero = false, pointRadius = 0 }) {
-  const opts = baseOptions(tk, { legend: true, yTitle })
-  if (!zero) opts.scales.y.beginAtZero = false
+  const opts = baseOptions(tk, { legend: true, yTitle, zero })
   return {
     type: 'line',
     data: { labels, datasets: places.map((p) => { const s = series(p); return s && { label: placeLabel(p.e), data: s, ...lineStyle(tk.series[p.i]), pointRadius } }).filter(Boolean) },
