@@ -311,12 +311,21 @@ Node only, used by prefills and tests.
 
 | Module | Provides |
 |---|---|
-| `http` | `rawStore(iso3, id)`: `fetchOnce(url)` downloads each file once into the provider's `raw/` folder, honours robots.txt, identifies MapStats, spaces requests (5 s), stops at the first 403/429, and records URL, date and SHA-256 in `manifest.json`. `add(name, { note })` registers a file downloaded by hand. `read`, `list`. |
-| `parse` | `parseCsv` (quoted fields, delimiter detection, BOM), `readXlsx` (streamed, for 100 MB+ workbooks; `.xls` too), `readWorkbook` (every sheet as rows of cells, for statistics tables; SheetJS), `readPdf` (a PDF's text as pages of lines of cells; pdf.js), `loadHtml` (cheerio), `num` (decimal commas, blanks and dashes → `null`) |
+| `http` | `rawStore(iso3, id)`: `fetchOnce(url)` downloads each file once into the provider's `raw/` folder, honours robots.txt, identifies MapStats, spaces requests (5 s), stops at the first 403/429, gives up on a server that sends nothing for 60 s, and records URL, date and SHA-256 in `manifest.json`. `fetchPagesOnce(url, { name, items, next })` does the same for a paged JSON API: one request per page (`next(page)` gives the next URL, or pass the list of URLs) and one stored file with every page's `items`. `fetchOnce(url, { byHand: true, note })` registers a file put in `raw/` by hand (e.g. where robots.txt forbids scripts) with its URL instead of downloading it; `add(name, { note })` registers one that has no URL. `read`, `list`. |
+| `parse` | `parseCsv` (quoted fields, delimiter detection, BOM), `readXlsx(path, { sheet })` (one sheet, by 0-based index or name, as rows keyed by its header; streamed, for 100 MB+ workbooks; `.xls` too; rich text and formula cells give their text and result), `readWorkbook` (every sheet as rows of cells, for statistics tables; SheetJS), `readPdf` (a PDF's text as pages of lines of cells; pdf.js), `parseXml(text, { arrays })` (XML → object, attributes as fields, `arrays` naming the elements that are always lists; for SDMX and other XML APIs), `loadHtml` (cheerio), `num` (decimal commas, blanks and dashes → `null`) |
 | `places` | `fold`, `matcher(entries, { strip })` that reports unmatched names instead of guessing, `featureAt(lat, lon, featureCollection)` |
 | `stats` | `round`, `per100k`, `share`, `meanOfLast`, `lifeExpBothSexes` (men's and women's life expectancy weighted by births) |
 | `dataset` | `checkDataset` (schema, ids, providers, domains, coverage), `writeDataset` |
 | `test` | `check`, `section`, `fixture`, `done` |
+
+The SDK's own tests are `tools/sdk/*.test.mjs` (the raw store against a local server, the readers on small files).
+
+**Country helpers you can reuse.** Written for one country and not in the SDK yet: with a single user, their interface would be shaped by one case. A country can't import another's folder, so when you need one, move it into `tools/sdk` with your case in its test instead of copying it. All four live in [`countries/FRA/lib/fr.mjs`](../countries/FRA/lib/fr.mjs) (France's Géorisques prefill uses them):
+
+- `zipEntryNames(file)`: the names of a zip archive's entries, without inflating anything.
+- `zipEntry(file, /pattern/)`: one entry of a zip archive, inflated on its own (`{ name, data, text() }`), for archives too large to inflate whole.
+- `dbfRows(buffer)`: a dBase III table (the `.dbf` attribute table of a shapefile) as rows keyed by field name. It reads text as UTF-8; other `.dbf` files declare their encoding (the header's code page, or a `.cpg` file), which it ignores.
+- `looseCsv(text, { fromStart })`: a semicolon CSV whose free-text fields contain the separator unquoted (GASPAR). The first `fromStart` columns are read from the start of the row and the others from its end, so an over-long row still aligns; short rows are dropped. Returns `{ rows, realigned, dropped }`.
 
 **CLI** (`npm run …`):
 
@@ -328,7 +337,7 @@ Node only, used by prefills and tests.
 | `country:check -- <ISO3>` | Config, geo, places, datasets (coverage, domain warnings), provider tests, the tier reached |
 | `prefill:due` | Datasets older than their providers' `refresh` |
 | `anchors` | Recompute the score anchors from every country's datasets (`src/data/anchors.json`) |
-| `test` | Every offline suite: news, live, golden, anchors up to date, every `provider.test.mjs` (template included) |
+| `test` | Every offline suite: news, live, golden, anchors up to date, the SDK's `tools/sdk/*.test.mjs`, every `provider.test.mjs` (template included) |
 
 Argentina's `snic:import` is `prefill -- ARG --provider snic`.
 

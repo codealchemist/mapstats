@@ -50,7 +50,7 @@ Cities inherit their département's scored figures (the SSMSI, ONISR, INSEE and 
 | `country.data.js` | Browser entry (lazy): places and the seven datasets |
 | `places.js` | The 40 cities with their INSEE commune codes and 2023 municipal populations |
 | `news.js` | News language, edition, ambiguous names, outlet candidates |
-| `lib/fr.mjs` | Shared prefill helpers: département codes, zip / dBase readers, GASPAR CSVs, INSEE reference populations |
+| `lib/fr.mjs` | Shared prefill helpers: département codes, zip / dBase readers, GASPAR CSVs, INSEE reference populations. The generic readers are listed for other countries in [the architecture](../../docs/architecture.md#5-the-country-developer-toolkit-toolssdk-sdk). |
 | `providers/<id>/` | One folder per source: metadata, prefill, parser, fixtures, test, README, `raw/manifest.json` |
 | `data/` | Generated datasets (committed). Do not edit by hand: re-run `npm run prefill -- FRA`. |
 | `geo/` | Generated boundaries and cities (`npm run geo -- FRA`) |

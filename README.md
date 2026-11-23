@@ -120,7 +120,7 @@ scripts/             Natural Earth build, news probe
 
 | Document | For |
 |---|---|
-| [Architecture](docs/architecture.md) | Core structure, the country/provider/dataset contracts, the prefill process and the migration |
+| [Architecture](docs/architecture.md) | Core structure, the country/provider/dataset contracts, the [SDK and the country helpers you can reuse](docs/architecture.md#5-the-country-developer-toolkit-toolssdk-sdk), the prefill process and the migration |
 | [Country integration guide](docs/country-guide.md) | Developers adding or improving a country: choosing sources, writing a provider, testing, PR checklist |
 | [Country template](countries/_template/) | A complete example country folder with one provider, a fixture and a test |
 | [Dataset schema](docs/schemas/dataset.schema.json) | The JSON format every prefill produces |
