@@ -9,7 +9,10 @@
 //    Wallis-et-Futuna, Polynésie and Nouvelle-Calédonie are counted but dropped).
 //  - Rates are deaths / INSEE population at 1 January of the same year × 100,000, rounded to 2 decimals; 3-year
 //    averages need all three years. National = Σ deaths / Σ population over the same départements.
-import { DEP_TO_MAP, DEPS, meanOf, round, withCityJurisdictions } from '../../lib/fr.mjs'
+import { stats } from '#sdk'
+import { DEP_TO_MAP, DEPS, withCityJurisdictions } from '../../lib/fr.mjs'
+
+const { round, meanOfLast } = stats
 
 export const KILLED = '2'
 
@@ -49,7 +52,7 @@ export function toValues({ years, deaths, population }, { deps = DEPS, names = {
   const regions = deps.map((d) => DEP_TO_MAP[d])
   const summarise = (count, popOf, extra = {}) => {
     const series = years.map((y) => rate(count(y), popOf(y)))
-    return { latestYear: years.at(-1), latest: { roadDeaths: series.at(-1) }, counts: { roadDeaths: count(years.at(-1)) }, avg3: { roadDeaths: meanOf(series.slice(-3)) }, series: { roadDeaths: series }, ...extra }
+    return { latestYear: years.at(-1), latest: { roadDeaths: series.at(-1) }, counts: { roadDeaths: count(years.at(-1)) }, avg3: { roadDeaths: round(meanOfLast(series, 3, { min: 3 })) }, series: { roadDeaths: series }, ...extra }
   }
   const parts = { values: { national: {}, region: {} }, names: { region: {} }, series: { years, national: {}, region: {} }, details: { national: {}, region: {} } }
   const put = (level, id, s, name) => {

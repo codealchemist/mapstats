@@ -6,8 +6,10 @@
 //  - Density is DREES's own figure: physicians per 100,000 inhabitants, over INSEE's population estimate at
 //    1 January of the same year. The indicator is per 1,000: density ÷ 100.
 //  - Only the "Ensemble" rows by département are read; "ND" (fewer than 10 professionals) stays null.
-import { num } from '#sdk'
-import { DEP_TO_MAP, round, withCityJurisdictions } from '../../lib/fr.mjs'
+import { num, stats } from '#sdk'
+import { DEP_TO_MAP, withCityJurisdictions } from '../../lib/fr.mjs'
+
+const { round } = stats
 
 /** "075-Paris" / "02A-Corse-du-Sud" / "971 -Guadeloupe" → INSEE département code, null for totals and areas off the map. */
 export function depCode(label) {

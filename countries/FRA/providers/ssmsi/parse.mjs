@@ -12,8 +12,10 @@
 //  - 3-year averages need all three annual rates; the "Usage de stupéfiants" AFD / hors AFD sub-splits are skipped.
 //  - National rates = Σ facts / Σ the matching denominator over the départements of the map (no national row is
 //    published); Mayotte's population is frozen at the 2017 census in the source, so its rates are as published.
-import { num } from '#sdk'
-import { DEP_TO_MAP, DEPS, meanOf, round, withCityJurisdictions } from '../../lib/fr.mjs'
+import { num, stats } from '#sdk'
+import { DEP_TO_MAP, DEPS, withCityJurisdictions } from '../../lib/fr.mjs'
+
+const { round, meanOfLast } = stats
 
 // MapStats key → SSMSI "indicateur" label and the denominator column of its published rate.
 export const METRICS = {
@@ -70,7 +72,7 @@ export function summarise(byYear, years) {
     const s = years.map((y) => round(byYear[y]?.[k]?.rate == null ? null : byYear[y][k].rate * 100))
     out.latest[k] = s.at(-1)
     out.counts[k] = byYear[latestYear]?.[k]?.n ?? null
-    out.avg3[k] = meanOf(s.slice(-3))
+    out.avg3[k] = round(meanOfLast(s, 3, { min: 3 }))
     if (m.series) out.series[k] = s
   }
   return out

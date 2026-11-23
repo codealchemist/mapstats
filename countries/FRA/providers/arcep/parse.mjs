@@ -1,8 +1,10 @@
 // ARCEP eligibility statistics (CSV by technology and by speed class) → shares per département and commune. Pure.
 //  - Shares are eligible premises / all premises (dwellings and business locations) × 100, 1 decimal: FttH-eligible and
 //    eligible to at least 30 Mbit/s with any technology.
-import { num } from '#sdk'
-import { DEP_TO_MAP, round, withCityJurisdictions } from '../../lib/fr.mjs'
+import { num, stats } from '#sdk'
+import { DEP_TO_MAP, withCityJurisdictions } from '../../lib/fr.mjs'
+
+const { round } = stats
 
 const share = (part, total) => (part == null || !total ? null : round((100 * part) / total, 1))
 

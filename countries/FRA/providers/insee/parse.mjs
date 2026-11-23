@@ -2,8 +2,10 @@
 //   Melodi observations: { dimensions: { GEO: '2026-DEP-26', TIME_PERIOD, … }, measures: { OBS_VALUE_NIVEAU: { value } }, attributes }
 //   BDM (SDMX-ML): Series elements with attributes (REF_AREA "D75", IDBANK, TITLE_FR) and Obs children
 import { rawStore, parseXml, stats } from '#sdk'
-import { DEP_TO_MAP, DEPS, round } from '../../lib/fr.mjs'
+import { DEP_TO_MAP, DEPS } from '../../lib/fr.mjs'
 import { CITIES } from '../../places.js'
+
+const { round } = stats
 
 export const MELODI = 'https://api.insee.fr/melodi/data'
 export const BDM = 'https://api.insee.fr/series/BDM/V1/data'

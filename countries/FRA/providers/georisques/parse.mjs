@@ -11,7 +11,10 @@
 //    or approved (5).
 //  - Département classes are population-weighted means of commune classes (1 decimal), with the share of population
 //    living in exposed communes kept alongside. These classes are MapStats estimates built on administrative records.
-import { communeOf, depOf, DEP_TO_MAP, round, withCityJurisdictions } from '../../lib/fr.mjs'
+import { stats } from '#sdk'
+import { communeOf, depOf, DEP_TO_MAP, withCityJurisdictions } from '../../lib/fr.mjs'
+
+const { round } = stats
 
 export const FLOOD_SINCE = 2000
 export const PPRIF = ['none', 'prescribed', 'approved']

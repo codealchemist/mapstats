@@ -23,11 +23,6 @@ export function regionNames() {
   return Object.fromEntries(geo.features.map((f) => [f.properties.id, f.properties.name]))
 }
 
-export const round = (v, d = 2) => (v == null ? null : Math.round(v * 10 ** d) / 10 ** d)
-
-/** Mean of exactly `n` published values: a window with a gap stays null rather than averaging fewer years. */
-export const meanOf = (a, n = 3) => (a.length === n && a.every((x) => x != null) ? round(a.reduce((s, x) => s + x, 0) / n) : null)
-
 /** INSEE commune code of the commune proper: the municipal arrondissements of Paris, Lyon and Marseille fold in. */
 export const communeOf = (code) => (/^751\d\d$/.test(code) ? '75056' : /^6938\d$/.test(code) ? '69123' : /^132\d\d$/.test(code) ? '13055' : code)
 /** Département code of a commune code ("97411" → "974", "2A004" → "2A"). */
