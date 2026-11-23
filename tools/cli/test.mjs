@@ -1,5 +1,7 @@
-// npm test — every offline test: news pipeline, live-data queue, golden scoring snapshot, score anchors, each provider's
-// provider.test.mjs (countries/*/providers/*/, the template included) and the template's manifest.
+// npm test — every offline test: news pipeline, live-data queue, golden scoring snapshot, score anchors, the SDK's
+// tools/sdk/*.test.mjs, each provider's provider.test.mjs (countries/*/providers/*/, the template included) and the
+// template's manifest.
+import fs from 'node:fs'
 import path from 'node:path'
 import { spawnSync } from 'node:child_process'
 import { ROOT, countryDir, providerTests } from './context.mjs'
@@ -12,6 +14,7 @@ const suites = [
   'tests/anchors.mjs',
   'tests/countries.mjs',
   'tests/measures.mjs',
+  ...fs.readdirSync(path.join(ROOT, 'tools/sdk')).filter((f) => f.endsWith('.test.mjs')).map((f) => `tools/sdk/${f}`),
   ...providerTests().map((f) => path.relative(ROOT, f)),
 ]
 

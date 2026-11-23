@@ -5,7 +5,7 @@ import { CATEGORIES, INDICATORS } from '../../data/metrics.js'
 import { baseOptions, barStyle, lineStyle } from '../charts/theme.js'
 import { fmtIndicator, fmtScore, MONTHS } from '../../lib/format.js'
 import { meterScale, isOwnValue } from '../../lib/scoring.js'
-import { providerUnder, PROVIDERS, localFirst } from '../../core/providers.js'
+import { providerUnder, providersFor, localFirst } from '../../core/providers.js'
 import { floodLevel } from '../mapLayers.js'
 import { warningsFor } from '../../lib/warnings.js'
 import { hiddenMeasures, standardOfMeasure, measureBand, scoresFor } from '../../data/standards.js'
@@ -18,9 +18,9 @@ import { matches } from './match.js'
  * columns always scroll together and line up. Charts in a row share one axis range.
  * places: fixed-length array (3) of { e, i, d, flood } or null for an empty slot.
  */
-export function SideBySide({ places, header, national, ranges, standards, tk, onFocus, onInfo, query = '', scrollRef, initialScroll, flashKey, onFlashDone }) {
+export function SideBySide({ places, header, national, ranges, standards, country, tk, onFocus, onInfo, query = '', scrollRef, initialScroll, flashKey, onFlashDone }) {
   const filled = places.filter(Boolean)
-  const rows = filterRows(buildRows(filled, national, ranges, standards), query)
+  const rows = filterRows(buildRows(filled, national, ranges, standards, country), query)
   // Phones hide every empty slot but the first, so the filled places get the width.
   const firstEmpty = places.findIndex((p) => !p)
   const spare = places.map((p, k) => !p && k !== firstEmpty)
@@ -123,7 +123,7 @@ function MiniChart({ cfg, height = 140 }) {
 }
 
 // ---------- rows ----------
-function buildRows(filled, national, ranges, standards) {
+function buildRows(filled, national, ranges, standards, country) {
   const rows = []
   // Direction of a row: its own, or that of the indicator it scores for under the selected standard.
   const betterOf = (ind) => ind.better || indicatorById[scoresFor(ind.id, standards)]?.better || null
@@ -144,7 +144,7 @@ function buildRows(filled, national, ranges, standards) {
     return {
       key: `ind:${ind.id}`, label: ind.label, focus: `ind:${ind.id}`, info: { indicator: ind.id },
       // Whether MapStats calculates it as a score, the standard measuring it (when one does), then the source.
-      sub: [ORIGIN[ind.id]?.[0] === 'score' && 'MapStats score', standardOfMeasure(ind.id, standards)?.short, providerUnder(ind.id, standards)?.short].filter(Boolean).join(' · '),
+      sub: [ORIGIN[ind.id]?.[0] === 'score' && 'MapStats score', standardOfMeasure(ind.id, standards)?.short, providerUnder(ind.id, country, standards)?.short].filter(Boolean).join(' · '),
       cell: ({ e }) => {
         const v = e.values[ind.id]
         if (v == null) return null
@@ -213,7 +213,7 @@ function buildRows(filled, national, ranges, standards) {
     const extra = []
     if (c.id === 'safety') {
       // Yearly series from the providers that publish them (their report.trends).
-      for (const p of localFirst(PROVIDERS).filter((x) => x.report?.category === c.id)) {
+      for (const p of localFirst(providersFor(country)).filter((x) => x.report?.category === c.id)) {
         const of = (e) => e.details?.[p.id]
         const t = p.report.trends
         const years = national.details?.[p.id]?.years || []

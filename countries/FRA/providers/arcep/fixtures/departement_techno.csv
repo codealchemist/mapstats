@@ -1,0 +1,4 @@
+code_dep;nom_dep;code_reg;nbr;type;elig_ftth;elig_coax;elig_cu;elig_thdr;elig_4gf;elig_hdr;elig_sat;date
+65;Hautes-Pyrénées;76;185943;all;174530;13000;119846;0;179055;0;185943;2026-06-30
+75;Paris;11;1665813;all;1597520;0;0;0;0;0;1665813;2026-06-30
+975;Saint-Pierre-et-Miquelon;00;3000;all;0;0;0;0;0;0;3000;2026-06-30

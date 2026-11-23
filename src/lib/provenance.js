@@ -110,20 +110,20 @@ export function valuesBySource({ entity, model, country, detail, quakes, live = 
   }
 
   // ---- Statistics only available for the whole region (cities) / the region's own figures ----
-  const regionWide = INDICATORS.filter((i) => isRegionOnly(familyOf(i.id)))
+  const regionWide = INDICATORS.filter((i) => isRegionOnly(familyOf(i.id, country)))
   const provRows = regionWide
     .filter((i) => (isCity ? entity.inherited?.has(i.id) : entity.values[i.id] != null))
-    .map((i) => ({ ...row(i.label, entity.values[i.id], i.unit), source: providerOf(i.id).short }))
+    .map((i) => ({ ...row(i.label, entity.values[i.id], i.unit), source: providerOf(i.id, country).short }))
   if (provRows.length) {
-    const family = familyOf(regionWide[0].id)
-    const why = familyBase(family)?.why || ''
+    // One group for every region-wide family: the base reliability shown is the first family's.
+    const why = familyBase(familyOf(regionWide[0].id, country))?.why || ''
     groups.push({
       key: 'province', name: `${country.regionLabel}-level statistics${isCity ? ` (${entity.provinceName})` : ''}`,
       level: country.regionLabel, area: isCity ? entity.provinceName : entity.name, status: why && `${why[0].toUpperCase()}${why.slice(1)}`,
       rows: provRows,
       note: isCity
         ? `Not published for ${entity.name}; shown for transparency because the score uses them. Each row names its reference source.`
-        : 'Approximate values entered by hand from each reference source; verify before relying on them.',
+        : `Published for the whole ${country.regionLabel.toLowerCase()}; each row names its reference source.`,
     })
   }
 

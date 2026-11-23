@@ -55,7 +55,8 @@ for (const ds of datasets) {
   }
   for (const [k, s] of Object.entries(r.indicators)) {
     const prev = published[k]
-    published[k] = { provider: s.provider, region: (prev?.region || 0) + (s.levels.region || 0), subregion: s.levels.subregion || 0, city: s.levels.city || 0, series: !!ds.series?.years }
+    const cities = new Set([...(prev?.cities || []), ...Object.entries(ds.values?.city || {}).filter(([, v]) => v[k] != null).map(([id]) => id)])
+    published[k] = { provider: s.provider, region: (prev?.region || 0) + (s.levels.region || 0), subregion: s.levels.subregion || 0, cities, series: !!ds.series?.years }
   }
 }
 if (!datasets.length) line('datasets', 'none yet: live global data only')
@@ -80,7 +81,7 @@ const news = country.news
 const covered = (cat) => Object.entries(published).some(([k, s]) => indicatorById[k].category === cat && indicatorById[k].better && s.region >= 0.9 * regionIds.length)
 const register = (k) => providerById(published[k]?.provider)?.kind === 'register'
 const crimeLocal = Object.keys(published).filter((k) => indicatorById[k].category === 'safety' && register(k))
-const ownCrime = places.filter((p) => crimeLocal.some((k) => (published[k].subregion && p.codes?.subregion) || published[k].city)).length
+const ownCrime = places.filter((p) => crimeLocal.some((k) => (published[k].subregion && p.codes?.subregion) || published[k].cities.has(p.id))).length
 const tiers = [
   ['Environment', regionIds.length > 0, 'config + geo (npm run geo)'],
   ['News', news.lang && news.edition && (news.outlets.verified.length >= Math.max(1, regionIds.length / 3) || news.outletsNote), `language, edition and verified outlets for ≥ 1/3 of regions (${news.outlets.verified.length}/${regionIds.length}), or outletsNote saying why there are none`],

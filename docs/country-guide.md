@@ -4,7 +4,7 @@ How to add a country to MapStats, or improve one, by working only in `countries/
 
 - **Audience:** developers who own a country's data.
 - **Before you start:** read sections 2–3 of the [architecture](architecture.md#2-structure).
-- **Worked example:** [`countries/_template/`](../countries/_template/) is a complete fictional country with one provider, a fixture and a test (run by `npm test`). Argentina (`countries/ARG/`) is the real, complete case.
+- **Worked example:** [`countries/_template/`](../countries/_template/) is a complete fictional country with one provider, a fixture and a test (run by `npm test`). Argentina (`countries/ARG/`) and France (`countries/FRA/`) are the real, complete cases.
 
 ---
 
@@ -31,9 +31,9 @@ So a country with only a config already gets a working map with **Natural risks*
 
 | Tier | Name | Requirements |
 |---|---|---|
-| 0 | **Environment** | Config + geo. Live global data only. *(All non-Argentine countries today.)* |
+| 0 | **Environment** | Config + geo. Live global data only. *(Every country but Argentina and France today.)* |
 | 1 | **News** | `news.js` with language, edition and ambiguous names. Verified outlets for at least a third of the regions, or `outletsNote` saying why there are none. |
-| 2 | **Curated** | At least one dataset for each of Safety, Services and Economy, with ≥ 90 % of regions covered. Each dataset has a prefill and a passing test. |
+| 2 | **Curated** | At least one dataset for each of Safety, Services and Economy, with ≥ 90 % of regions covered. Each dataset has a prefill and a passing test. *(France reaches this.)* |
 | 3 | **Local** | A curated city list with `codes`. Official crime statistics at subregion or city level for ≥ 75 % of listed cities. Trend `series` for at least 5 years. *(Argentina reaches this.)* |
 
 ## 3. Choosing sources
@@ -58,7 +58,7 @@ The quality of MapStats depends on this step more than any other. For each indic
 - [ ] **Access:** a bulk file download (CSV/XLSX/API) beats scraping HTML. Note whether the URL is stable from year to year.
 - [ ] **Methodology** is published. Link it.
 - [ ] **Cadence:** when the next release is expected. This feeds `prefill:due`.
-- [ ] **Robots and terms** allow automated download. If they don't, download by hand into the provider's `raw/` folder and register the file with `rawStore(…).add(name, { note })`.
+- [ ] **Robots and terms** allow automated download. If they don't, download by hand into the provider's `raw/` folder. `rawStore(…).fetchOnce(url, { byHand: true, note })` then registers the file with its URL on the next run instead of downloading it (`add(name, { note })` for a file with no URL).
 
 When two sources cover the same indicator, **add both** as separate providers. The app shows them side by side, takes the median or the reliability-weighted mean, and shows users where the sources disagree. Don't pre-average them in a prefill.
 
@@ -231,13 +231,17 @@ Fill in `countries/CHL/README.md`: tier, sources table, coverage, known gaps, ne
 
 **Region-level CSV from a statistics office.** Use the [template provider](../countries/_template/providers/example-stats/) as it is. Map the office's region codes with `REGION_CODES`. Names are less stable than codes.
 
-**Excel workbooks.** `readXlsx(path, { sheet })` streams the rows of one worksheet as objects (first row = header), so 100 MB files are fine (Argentina's SNIC departmental base is one). Old-format `.xls` files are read too. Statistics tables with titles, notes and multi-row headers read better with `readWorkbook(path)`: every sheet as `{ name, rows }`, each row an array of cells. Find the columns by their header text in `parse.mjs` (Argentina's `provincial-stats` does this for INDEC's tables). Test the parsing on a few real rows, either as a CSV excerpt in `fixtures/` read with `parseCsv`, or as inline arrays.
+**Excel workbooks.** `readXlsx(path, { sheet })` streams the rows of one worksheet as objects (first row = header), so 100 MB files are fine (Argentina's SNIC departmental base is one). `sheet` is the worksheet's 0-based index or its name; rich text cells read as plain text and formulas as their result. Old-format `.xls` files are read too. Statistics tables with titles, notes and multi-row headers read better with `readWorkbook(path)`: every sheet as `{ name, rows }`, each row an array of cells. Find the columns by their header text in `parse.mjs` (Argentina's `provincial-stats` does this for INDEC's tables). Test the parsing on a few real rows, either as a CSV excerpt in `fixtures/` read with `parseCsv`, or as inline arrays.
+
+**Paged JSON APIs.** `rawStore(…).fetchPagesOnce(url, { name, items, next })` follows the pages under the same rules as `fetchOnce` (robots.txt, one spaced request per page, the 403/429 stop) and stores one file: the first page with every page's `items` array joined. `next(page)` returns the next page's URL, or null at the end. When the API takes a fixed number of codes per call, pass the list of URLs instead. France's INSEE prefill follows Melodi's `paging.next`; its Géorisques prefill passes a list (20 communes per call). An XML answer (SDMX) is a plain `fetchOnce`, read with `parseXml(text, { arrays })`.
+
+**Zip archives, dBase tables, CSVs with stray separators.** France wrote readers for these that aren't in the SDK yet. See the [country helpers you can reuse](architecture.md#5-the-country-developer-toolkit-toolssdk-sdk): move the one you need into the SDK, with your case in its test, rather than copying it.
 
 **PDF tables.** Some figures are published only as PDF. `readPdf(path)` gives each page as lines (top to bottom) of cells (left to right), from the PDF's text; scanned PDFs have none. Rebuild the table in `parse.mjs`: Argentina's `pdfTableColumn` finds a numbered table by its title, rejoins province names that wrap onto two lines and splits cells the PDF merged. Check the result against a total the publication prints.
 
 **Counts instead of rates.** Convert with `stats.per100k(count, population)`, using the population the publisher used in the same release. If the publisher doesn't give one, say which population you used in the README. Prefer published rates when they exist. That is SNIC's rule: rates are used exactly as published.
 
-**Small areas with noisy rates.** Publish the multi-year mean (`stats.meanOfLast(series, 3)`) as the value and the yearly values as `series`. Indicators whose `definition` says "mean of 3 years" expect this.
+**Small areas with noisy rates.** Publish the multi-year mean (`stats.meanOfLast(series, 3)`; `{ min: 3 }` to require all three years, as France does) as the value and the yearly values as `series`. Indicators whose `definition` says "mean of 3 years" expect this.
 
 **Subregion data, region-level map.** Put both levels in the dataset (`values.region` and `values.subregion`). The core uses subregion values for cities linked by `codes.subregion`, and region values for the rest, labelled as borrowed.
 
@@ -251,7 +255,7 @@ Fill in `countries/CHL/README.md`: tier, sources table, coverage, known gaps, ne
 
 - **Never invent, interpolate or borrow inside a dataset.** Missing is `null`. The core handles fallbacks and labels them.
 - **Never redefine a core indicator.** If your source measures something different, propose a new indicator, or add it as descriptive (`better: null`) in your config.
-- **Never import from another country's folder or from `src/` internals.** Use `#core/define.js` and `#sdk`. If you need something that isn't there, open an issue: it probably belongs in the SDK for everyone.
+- **Never import from another country's folder or from `src/` internals.** Use `#core/define.js` and `#sdk`. If you need something that isn't there, check the [country helpers you can reuse](architecture.md#5-the-country-developer-toolkit-toolssdk-sdk) first, then open an issue: it probably belongs in the SDK for everyone.
 - **No secrets or API keys in the browser.** A source that needs a key is a prefill (key in your local environment) or a core-reviewed function.
 - **Ids are permanent:** region ids (ISO 3166-2), city ids, provider ids.
 - **Commit the generated datasets and the raw manifests.** Don't commit the raw files.

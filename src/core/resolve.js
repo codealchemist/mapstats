@@ -35,7 +35,10 @@ export function indexDatasets(datasets) {
   const known = new Set(INDICATORS.map((i) => i.id))
   const slot = (level, id) => (at[level][id] ||= { values: {}, providers: {}, details: {} })
   for (const ds of datasets) {
-    if (ds.provider) meta[ds.provider] = { period: ds.period, origin: ds.origin, years: ds.series?.years || null, generatedAt: ds.generatedAt }
+    // A compilation's period and origin describe every provider it cites.
+    for (const p of new Set([ds.provider, ...Object.values(ds.providers || {})].filter(Boolean))) {
+      meta[p] = { period: ds.period, origin: ds.origin, years: ds.series?.years || null, generatedAt: ds.generatedAt }
+    }
     for (const level of LEVELS) {
       for (const [id, vals] of Object.entries(ds.values?.[level] || {})) {
         const s = slot(level, id)

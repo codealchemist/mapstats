@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { X, ExternalLink, Search, Database } from 'lucide-react'
 import { INDICATORS } from '../data/metrics.js'
-import { PROVIDERS, providerOf, familyOf, familyBase } from '../core/providers.js'
+import { PROVIDERS, familyIdOf, familyBase } from '../core/providers.js'
 import { ACCESS, DATA_TYPES } from '../core/define.js'
 import { fold } from '../lib/format.js'
 
@@ -16,9 +16,8 @@ export function SourcesView({ onClose, datasets = {} }) {
   }, [onClose])
 
   const sources = useMemo(() => PROVIDERS.map((p) => {
-    const indicators = INDICATORS.filter((i) => providerOf(i.id) === p)
-    const family = indicators.length ? familyOf(indicators[0].id) : null
-    return { ...p, key: p.id, indicators, weight: familyBase(family)?.w ?? null }
+    const indicators = INDICATORS.filter((i) => p.provides.includes(i.id))
+    return { ...p, key: p.id, indicators, weight: familyBase(familyIdOf(p))?.w ?? null }
   }), [])
 
   const needle = fold(q.trim())

@@ -17,7 +17,7 @@ import { slug } from '../lib/format.js'
 import { scoreTone } from '../lib/colors.js'
 import { useToast } from './Toast.jsx'
 import { valuesBySource, fmtExact } from '../lib/provenance.js'
-import { familyById, SOURCE_FAMILIES, isMultiSource, sourcesForIndicators, providersFor, reportProviders } from '../core/providers.js'
+import { familyById, SOURCE_FAMILIES, isMultiSource, sourcesForIndicators, providersFor, providerUnder, reportProviders, unpublishedFor } from '../core/providers.js'
 import { hasBlock, TrendBlock } from './report/ProviderBlocks.jsx'
 import { warningsFor } from '../lib/warnings.js'
 import { agreementOf } from '../lib/sourceWeights.js'
@@ -155,6 +155,8 @@ export function ReportPanel({ entity, model, country, live, theme, onClose, onSe
   const safetyProviders = reportProviders(country, 'safety')
   const ownSafety = SAFETY_KEYS.filter((k) => isOwnValue(entity, k))
   const links = providersFor(country).flatMap((p) => p.links?.(entity) || [])
+  // Scored indicators no source publishes for the country: left out of the score and the coverage, listed here.
+  const unpublished = unpublishedFor(country, standards)
 
   const sourceGroups = useMemo(() => valuesBySource({ entity, model, country, detail, quakes, live }), [entity, model, country, detail, quakes, live])
 
@@ -164,7 +166,7 @@ export function ReportPanel({ entity, model, country, live, theme, onClose, onSe
     try {
       await new Promise((r) => setTimeout(r, 30))
       const charts = [...(registryRef.current?.values() || [])].map(({ title, build }) => ({ title, ...renderOffscreen(build) }))
-      await reportPdf({ entity, national, charts, countryName: country.name, sourceGroups, standards })
+      await reportPdf({ entity, national, charts, country, sourceGroups, standards })
       toast('PDF report downloaded')
     } catch (e) {
       console.error(e)
@@ -174,7 +176,7 @@ export function ReportPanel({ entity, model, country, live, theme, onClose, onSe
     }
   }
   const exportCsv = () => {
-    downloadBlob(reportCsv(entity, detail, sourceGroups, standards), `mapstats-${slug(entity.name)}.csv`)
+    downloadBlob(reportCsv(entity, detail, sourceGroups, standards, country), `mapstats-${slug(entity.name)}.csv`)
     toast('CSV downloaded')
   }
 
@@ -237,6 +239,11 @@ export function ReportPanel({ entity, model, country, live, theme, onClose, onSe
               </div>
               <Coverage value={entity.coverage} />
             </div>
+            {unpublished.length > 0 && (
+              <p className="note">
+                <Info size={13} /> Not published for {country.name}: {unpublished.map((i) => i.label).join(', ')}. Scores and data coverage leave them out.
+              </p>
+            )}
             {isCity && entity.inherited?.size > 0 && (
               <p className="note">
                 <Info size={13} /> Scores use province-level figures{entity.provinceName ? ` (${entity.provinceName})` : ''} where {entity.name} has no city-level data.
@@ -290,7 +297,7 @@ export function ReportPanel({ entity, model, country, live, theme, onClose, onSe
           <section id="sec-safety" className="report-section">
             <SectionHead icon={ShieldAlert} title="Safety"
               sub={safetyProviders.filter((p) => hasBlock(p, entity)).map((p) => p.report.label).join(' · ') || (isCity ? 'City-level crime data' : 'Province crime statistics')}
-              sources={sourcesForIndicators(ownSafety)} />
+              sources={sourcesForIndicators(ownSafety, country)} />
             {ownSafety.length > 0 && (
               <div className="kv">
                 {ownSafety.map((k) => (
@@ -299,7 +306,7 @@ export function ReportPanel({ entity, model, country, live, theme, onClose, onSe
               </div>
             )}
             {safetyProviders.map((p) => <TrendBlock key={p.id} provider={p} entity={entity} model={model} country={country} theme={theme} />)}
-            <MissingStats entity={entity} ids={SAFETY_KEYS.filter((k) => !isOwnValue(entity, k))} />
+            <MissingStats entity={entity} ids={SAFETY_KEYS.filter((k) => !isOwnValue(entity, k))} country={country} />
           </section>
 
           <NewsSection entity={entity} country={country} model={model} />
@@ -363,7 +370,7 @@ export function ReportPanel({ entity, model, country, live, theme, onClose, onSe
                 ))}
               </div>
             )}
-            <MissingStats entity={entity} ids={HAZARD_KEYS.filter((k) => !isOwnValue(entity, k))} />
+            <MissingStats entity={entity} ids={HAZARD_KEYS.filter((k) => !isOwnValue(entity, k))} country={country} />
             <FloodWatch flood={live.flood?.[entity.id]} status={live.status.flood} isCity={isCity} />
             {quakes && (
               <>
@@ -388,11 +395,11 @@ export function ReportPanel({ entity, model, country, live, theme, onClose, onSe
           {/* ---------- Indicators ---------- */}
           <section id="sec-indicators" className="report-section">
             <SectionHead icon={Info} title="All indicators" sub="Value · position between the lowest and highest in the country · country average" />
-            {CATEGORIES.map((c) => <IndicatorGroup key={c.id} category={c} entity={entity} national={national} ranges={model.ranges} standards={standards} onInfo={setInfo} />)}
+            {CATEGORIES.map((c) => <IndicatorGroup key={c.id} category={c} entity={entity} national={national} ranges={model.ranges} standards={standards} country={country} onInfo={setInfo} />)}
           </section>
         </ChartRegistry>
       </div>
-      {info && <MeasureInfo measure={info} standards={standards} onClose={() => setInfo(null)} />}
+      {info && <MeasureInfo measure={info} standards={standards} country={country} onClose={() => setInfo(null)} />}
     </aside>
   )
 }
@@ -445,7 +452,7 @@ function Coverage({ value = 0 }) {
   const pct = Math.round(value * 100)
   const r = 22, c = 2 * Math.PI * r
   return (
-    <div className="coverage" title="Share of scored indicators with data">
+    <div className="coverage" title="Share of the scored indicators published for this country (or by the selected source) that have data for this place">
       <svg width="58" height="58" viewBox="0 0 58 58" aria-hidden="true">
         <circle cx="29" cy="29" r={r} className="cov-track" />
         <circle cx="29" cy="29" r={r} className="cov-fill" strokeDasharray={`${(c * pct) / 100} ${c}`} transform="rotate(-90 29 29)" />
@@ -455,7 +462,7 @@ function Coverage({ value = 0 }) {
   )
 }
 
-function IndicatorGroup({ category, entity, national, ranges, standards, onInfo }) {
+function IndicatorGroup({ category, entity, national, ranges, standards, country, onInfo }) {
   const Icon = ICONS[category.icon]
   const isCity = entity.type === 'city'
   // One row per measure, as the selected standard measures it (data/standards.js hiddenMeasures).
@@ -471,7 +478,7 @@ function IndicatorGroup({ category, entity, national, ranges, standards, onInfo 
         <span><Icon size={14} /> {category.label}</span>
         <span className="muted small">{fmtScore(entity.categories[category.id])} <span className="faint">/ avg {fmtScore(national.categories[category.id])}</span></span>
       </div>
-      <SourceButtons keys={sourcesForIndicators(rows.map((i) => i.id), standards)} label={null} />
+      <SourceButtons keys={sourcesForIndicators(rows.map((i) => i.id), country, standards)} label={null} />
       {rows.map((i) => {
         const v = entity.values[i.id], avg = national.values[i.id], range = ranges[i.id]
         const pos = meterScale(range, [v, avg])
@@ -490,7 +497,7 @@ function IndicatorGroup({ category, entity, national, ranges, standards, onInfo 
           </div>
         )
       })}
-      <MissingStats entity={entity} ids={missing} standards={standards} />
+      <MissingStats entity={entity} ids={missing} standards={standards} country={country} />
     </div>
   )
 }
@@ -499,7 +506,9 @@ const HAZARD_KEYS = ['seismicZone']
 const SAFETY_KEYS = ['homicide', 'propertyCrime', 'roadDeaths']
 
 // Notice for indicators with no city-level data, with links to where they could be found.
-function MissingStats({ entity, ids, standards }) {
+function MissingStats({ entity, ids: all, standards, country }) {
+  // Indicators no source publishes for the country are not a city-level gap: the overview lists them.
+  const ids = all.filter((id) => providerUnder(id, country, standards))
   if (entity.type !== 'city' || !ids.length) return null
   const fallback = ids.filter((id) => entity.inherited?.has(id))
   return (
@@ -511,7 +520,7 @@ function MissingStats({ entity, ids, standards }) {
           The score uses province-level figures{entity.provinceName ? ` (${entity.provinceName})` : ''} for {fallback.length === ids.length ? 'these' : fallback.map((id) => indicatorById[id].label.toLowerCase()).join(', ')}.
         </div>
       )}
-      <SourceButtons keys={sourcesForIndicators(ids, standards)} label="Look up" />
+      <SourceButtons keys={sourcesForIndicators(ids, country, standards)} label="Look up" />
     </div>
   )
 }

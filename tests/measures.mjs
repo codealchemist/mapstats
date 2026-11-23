@@ -4,6 +4,7 @@ import { check, done } from '../tools/sdk/test.mjs'
 import { INDICATORS } from '../src/data/metrics.js'
 import { STANDARDS, DEFAULT_STANDARDS, hiddenMeasures, standardOfMeasure, measureBand, scoresFor } from '../src/data/standards.js'
 import { ABOUT, ORIGIN, ROW_ABOUT } from '../src/data/about.js'
+import { fmtIndicator } from '../src/lib/format.js'
 
 const under = (sel) => hiddenMeasures({ ...DEFAULT_STANDARDS, ...sel })
 const shown = (sel, ids) => ids.filter((id) => !under(sel).has(id))
@@ -28,5 +29,7 @@ check('UV: the yearly score, not its duplicate', under({}).has('uvScore') && !un
 check('a standard’s own measure scores the indicator', scoresFor('usAqi', { aqi: 'epa' }) === 'aqi' && scoresFor('usAqi', { aqi: 'eea' }) === null && scoresFor('thermalNws', {}) === null)
 check('the measure names its standard', standardOfMeasure('frostbiteDays', { thermalStress: 'eccc' })?.id === 'eccc' && standardOfMeasure('homicide') === null)
 check('categories in the standard’s own units only', measureBand('usAqi', 120, { aqi: 'epa' }) === 'Unhealthy for sensitive groups' && measureBand('thermalStress', 90, {}) === null)
+const zones = [3, 0.7, 2.04].map((v) => fmtIndicator('seismicZone', v))
+check('a zone reads as a zone, a mean of zones keeps a decimal', zones.join() === '3/4,0.7/4,2.0/4', zones.join(', '))
 check('every standard family has a default option', Object.values(STANDARDS).every((s) => s.options.some((o) => o.id === s.default)))
 done()

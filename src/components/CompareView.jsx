@@ -114,7 +114,7 @@ export function CompareView({ slots, model, country, theme, sourceMode, standard
           <button className="icon-btn sm push" onClick={() => onRemove(k)} title="Remove"><X size={14} /></button>
         </div>
         <button className="cmp-name link" onClick={() => onOpen(k)} title="Open full report">{e.name}</button>
-        <div className="muted small">{e.type === 'city' ? e.provinceName : country.name} · {Math.round((e.coverage || 0) * 100)}% data</div>
+        <div className="muted small" title="Data coverage: share of the scored indicators published for this country (or by the selected source) that have data for this place">{e.type === 'city' ? e.provinceName : country.name} · {Math.round((e.coverage || 0) * 100)}% data</div>
       </div>
     )
   }
@@ -168,7 +168,7 @@ export function CompareView({ slots, model, country, theme, sourceMode, standard
       </header>
 
       {mode === 'side' ? (
-        <SideBySide places={places} header={header} national={model.national} ranges={model.ranges} standards={standards} tk={t} onFocus={focus} onInfo={setInfo} query={query}
+        <SideBySide places={places} header={header} national={model.national} ranges={model.ranges} standards={standards} country={country} tk={t} onFocus={focus} onInfo={setInfo} query={query}
           scrollRef={sideScrollRef} initialScroll={sideScroll.current} flashKey={flashKey} onFlashDone={() => setFlashKey(null)} />
       ) : (
         <div className="fullview-body focus-body">
@@ -183,10 +183,10 @@ export function CompareView({ slots, model, country, theme, sourceMode, standard
               : <span key={k} className="pill static muted"><Plus size={11} /> empty slot</span>))}
             <button className="link small" onClick={() => switchMode('side')}>Add or remove places</button>
           </div>
-          <FocusChart places={filled} national={model.national} theme={theme} measureId={measureId} onMeasure={setMeasureId} query={query} standards={standards} onInfo={setInfo} />
+          <FocusChart places={filled} national={model.national} theme={theme} measureId={measureId} onMeasure={setMeasureId} query={query} standards={standards} country={country} onInfo={setInfo} />
         </div>
       )}
-      {info && <MeasureInfo measure={info} standards={standards} onClose={() => setInfo(null)} />}
+      {info && <MeasureInfo measure={info} standards={standards} country={country} onClose={() => setInfo(null)} />}
     </div>
   )
 }

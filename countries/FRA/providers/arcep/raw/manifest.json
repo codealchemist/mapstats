@@ -1,0 +1,28 @@
+{
+  "files": {
+    "departement_techno.csv": {
+      "url": "https://data.arcep.fr/fixe/maconnexioninternet/statistiques/last/departement/departement_techno.csv",
+      "retrievedAt": "2026-10-06",
+      "sha256": "da13359364b9b84428a9bca4371d44e351664cc1228779828b9fe3530b7cb4ff",
+      "bytes": 7803
+    },
+    "departement_debit.csv": {
+      "url": "https://data.arcep.fr/fixe/maconnexioninternet/statistiques/last/departement/departement_debit.csv",
+      "retrievedAt": "2026-10-06",
+      "sha256": "be45319d70ea1d4d667d9fc8ee549f4b57aa8534694b5d4230adfa60633c3004",
+      "bytes": 8610
+    },
+    "commune_techno.csv": {
+      "url": "https://data.arcep.fr/fixe/maconnexioninternet/statistiques/last/commune/commune_techno.csv",
+      "retrievedAt": "2026-10-06",
+      "sha256": "f3cc3d17d7ce99db3fe4d7a7be7a65c14b070691d2111a0c3e645f6426adfba6",
+      "bytes": 2262503
+    },
+    "commune_debit.csv": {
+      "url": "https://data.arcep.fr/fixe/maconnexioninternet/statistiques/last/commune/commune_debit.csv",
+      "retrievedAt": "2026-10-06",
+      "sha256": "b89f7b9f35ddf098660e2db4471038bdd8f264e458d8795d1f72a8d49217eddb",
+      "bytes": 2456056
+    }
+  }
+}

@@ -1,0 +1,11 @@
+{
+  "files": {
+    "donnee-dep-data.gouv-2025-geographie2026-produit-le2026-06-25.csv": {
+      "url": "https://www.data.gouv.fr/fr/datasets/r/2b27a675-e3bf-41ef-a852-5fb9ab483967",
+      "note": "département base, https://www.data.gouv.fr/fr/datasets/bases-statistiques-communale-departementale-et-regionale-de-la-delinquance-enregistree-par-la-police-et-la-gendarmerie-nationales",
+      "retrievedAt": "2026-10-05",
+      "sha256": "05fd70cbfe72f694826a8431630aa798071ab1f653b61fafbfc90a816b0122b1",
+      "bytes": 2001231
+    }
+  }
+}

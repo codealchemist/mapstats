@@ -54,18 +54,18 @@ const OVERLAYS = [
   { id: 'surface', label: 'Climate surface', hint: 'Interpolated map of a climate variable', status: 'climate' },
 ]
 
-function LayersTab({ model, live, metricId, onMetric, overlays, onOverlays, onInfo, sourceMode, standards }) {
+function LayersTab({ model, live, metricId, onMetric, overlays, onOverlays, onInfo, sourceMode, standards, country }) {
   // In a single-source view, only that source's indicators (and the categories it covers) are listed.
   const inSource = (m) => {
     if (isMultiSource(sourceMode) || m.id === 'score') return true
-    if (m.kind === 'score') return INDICATORS.some((i) => i.better && i.category === m.id.slice(4) && familyOf(i.id, standards) === sourceMode)
-    return familyOf(m.id, standards) === sourceMode
+    if (m.kind === 'score') return INDICATORS.some((i) => i.better && i.category === m.id.slice(4) && familyOf(i.id, country, standards) === sourceMode)
+    return familyOf(m.id, country, standards) === sourceMode
   }
   const groups = useMemo(() => {
     const g = {}
     for (const m of MAP_METRICS.filter(inSource)) (g[m.group] ||= []).push(m)
     return Object.entries(g)
-  }, [sourceMode, standards]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [sourceMode, standards, country]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // Indicator ids that at least one place has a value for (one pass instead of one per metric).
   const withData = useMemo(() => {
@@ -136,7 +136,7 @@ function LayersTab({ model, live, metricId, onMetric, overlays, onOverlays, onIn
               <button className="src-btn" onClick={onInfo}>All sources & methodology <Info size={11} /></button>
             </div>
           ) : (
-            <SourceButtons keys={sourcesForIndicators(metrics.filter((m) => m.kind === 'indicator' && available(m)).map((m) => m.id), standards)} />
+            <SourceButtons keys={sourcesForIndicators(metrics.filter((m) => m.kind === 'indicator' && available(m)).map((m) => m.id), country, standards)} />
           )}
         </section>
       ))}

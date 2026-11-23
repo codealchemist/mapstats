@@ -1,15 +1,16 @@
 // npm run golden — the scoring pipeline's output for fixed inputs, compared against tests/golden/*.json.
 // Guards refactors that must not change any score. After an intended change: npm run golden -- --update
 import fs from 'node:fs'
-import { buildEntities, adHocEntity, livePoints, resolveCountry } from '../src/lib/scoring.js'
+import { buildEntities, resolveSelection, livePoints, resolveCountry } from '../src/lib/scoring.js'
 import { countryByIso } from '../src/core/countries.js'
 import { DEFAULT_WEIGHTS, INDICATORS } from '../src/data/metrics.js'
-import { SOURCE_FAMILIES, familyOf } from '../src/core/providers.js'
+import { SOURCE_FAMILIES, familyOf, familiesFor } from '../src/core/providers.js'
 import { loadCountry } from '../tools/cli/context.mjs'
 import { STANDARDS } from '../src/data/standards.js'
 
 const UPDATE = process.argv.includes('--update')
-const MODES = ['combined', 'weighted', 'snic', 'openmeteo', 'usgs', 'provincial']
+// Every source mode the country offers (the integration modes, then each of its families).
+const modesFor = (country) => familiesFor(country).map((f) => f.id)
 const WEIGHTS = [DEFAULT_WEIGHTS, { ...DEFAULT_WEIGHTS, safety: 60, economy: 0 }]
 const dir = new URL('./golden/', import.meta.url)
 
@@ -61,31 +62,35 @@ async function snapshot(iso3) {
   const resolved = resolveCountry(geo, cities, datasets)
   const live = fakeLive(livePoints(geo, cities))
   const out = { entities: {}, runs: {} }
-  const base = buildEntities({ provincesGeo: geo, cities, base: resolved, live, weights: DEFAULT_WEIGHTS })
+  const base = buildEntities({ country, provincesGeo: geo, cities, base: resolved, live, weights: DEFAULT_WEIGHTS })
   for (const e of [...base.provinces, ...base.cities, base.national]) {
     out.entities[e.id] = { name: e.name, province: e.province, values: present(e.values), inherited: borrowed(e), details: detailLevels(e) }
   }
   out.ranges = base.ranges
   out.families = Object.fromEntries(SOURCE_FAMILIES.map((f) => [f.id, f.label]))
-  out.indicators = Object.fromEntries(INDICATORS.map((i) => [i.id, { family: familyOf(i.id) }]))
+  out.indicators = Object.fromEntries(INDICATORS.map((i) => [i.id, { family: familyOf(i.id, country) }]))
   WEIGHTS.forEach((weights, w) => {
-    for (const mode of MODES) {
-      const m = buildEntities({ provincesGeo: geo, cities, base: resolved, live, weights, sourceMode: mode })
+    for (const mode of modesFor(country)) {
+      const m = buildEntities({ country, provincesGeo: geo, cities, base: resolved, live, weights, sourceMode: mode })
       out.runs[`w${w}:${mode}`] = [...m.provinces, ...m.cities, m.national].map(pick)
-      // A searched place inside the first region, scored with the first city's live values.
+      // Searched places, resolved as the report and the compare view resolve a selection, with the first city's live
+      // values: one inside the first region, one outside every region (a worldwide result).
       const prov = m.provinces[0], c0 = base.cities[0]
-      const adHoc = adHocEntity({
-        place: { id: 'geo-1', name: 'Searched place', lat: c0.lat + 0.1, lon: c0.lon, pop: 25000 },
-        provinceId: prov.id, provinceName: prov.name, provinceEntity: prov, country, weights, sourceMode: mode, dist: m.dist,
-        live: Object.fromEntries(Object.entries(c0.values).filter(([k]) => ['climateComfort', 'aqi', 'quakes', 'meanTemp'].includes(k))),
-      })
-      out.runs[`w${w}:${mode}`].push({ ...pick(adHoc), values: present(adHoc.values), inherited: borrowed(adHoc) })
+      const live0 = Object.fromEntries(Object.entries(c0.values).filter(([k]) => ['climateComfort', 'aqi', 'quakes', 'meanTemp'].includes(k)))
+      const searched = [
+        { place: { id: 'geo-1', name: 'Searched place', lat: c0.lat + 0.1, lon: c0.lon, pop: 25000 }, provinceId: prov.id, provinceName: prov.name, live: live0 },
+        { place: { id: 'geo-2', name: 'Worldwide result', lat: -c0.lat, lon: c0.lon + 90, pop: 80000, admin1: 'Elsewhere' }, live: live0 },
+      ]
+      for (const input of searched) {
+        const adHoc = resolveSelection({ type: 'adhoc', id: input.place.id, input }, { model: m, country, weights, sourceMode: mode })
+        out.runs[`w${w}:${mode}`].push({ ...pick(adHoc), values: present(adHoc.values), inherited: borrowed(adHoc) })
+      }
     }
   })
   // Every alternative standard, default weights, median of sources: each scores every place alike.
   for (const [ind, s] of Object.entries(STANDARDS)) {
     for (const o of s.options.filter((x) => x.id !== s.default)) {
-      const m = buildEntities({ provincesGeo: geo, cities, base: resolved, live, weights: DEFAULT_WEIGHTS, standards: { [ind]: o.id } })
+      const m = buildEntities({ country, provincesGeo: geo, cities, base: resolved, live, weights: DEFAULT_WEIGHTS, standards: { [ind]: o.id } })
       out.runs[`std:${ind}=${o.id}`] = [...m.provinces, ...m.cities, m.national].map(pick)
     }
   }
@@ -101,7 +106,7 @@ function diff(a, b, path = '', out = []) {
 }
 
 let failures = 0
-for (const iso3 of ['ARG', 'BOL']) {
+for (const iso3 of ['ARG', 'BOL', 'FRA']) {
   const file = new URL(`${iso3}.json`, dir)
   const got = await snapshot(iso3)
   if (UPDATE || !fs.existsSync(file)) {

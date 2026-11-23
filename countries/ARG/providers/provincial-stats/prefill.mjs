@@ -56,8 +56,7 @@ export async function prefill({ args, log }) {
   // certificate, with what to do).
   const census = {}, censusFiles = []
   for (const { iso, measure, name, url } of CENSUS) {
-    if (!raw.manifest.files[name] && fs.existsSync(`${raw.dir}/${name}`)) raw.add(name, { url, note: 'downloaded by hand: censo.gob.ar omits its intermediate certificate' })
-    const f = await raw.fetchOnce(url).catch((e) => {
+    const f = await raw.fetchOnce(url, { name, byHand: true, note: 'downloaded by hand: censo.gob.ar omits its intermediate certificate' }).catch((e) => {
       throw new Error(`${name}: ${e.cause?.code || e.message}. censo.gob.ar's certificate chain is incomplete: run\n  node countries/ARG/providers/provincial-stats/censo-download.mjs (npm run censo:download)\nor download ${url} into ${raw.dir} with a browser, and run again.`)
     })
     if (f.changed) throw new Error(`${name} changed since it was registered`)

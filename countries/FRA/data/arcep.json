@@ -1,0 +1,1483 @@
+{
+ "schema": 1,
+ "provider": "FRA/arcep",
+ "country": "FRA",
+ "generatedAt": "2026-10-22T20:59:52.587Z",
+ "values": {
+  "region": {
+   "FR-65": {
+    "fibreCoverage": 93.9
+   },
+   "FR-62": {
+    "fibreCoverage": 98
+   },
+   "FR-37": {
+    "fibreCoverage": 97.3
+   },
+   "FR-76": {
+    "fibreCoverage": 96.7
+   },
+   "FR-38": {
+    "fibreCoverage": 96.6
+   },
+   "FR-48": {
+    "fibreCoverage": 94.7
+   },
+   "FR-60": {
+    "fibreCoverage": 97.9
+   },
+   "FR-35": {
+    "fibreCoverage": 89.5
+   },
+   "FR-67": {
+    "fibreCoverage": 94.2
+   },
+   "FR-52": {
+    "fibreCoverage": 96
+   },
+   "FR-27": {
+    "fibreCoverage": 96.6
+   },
+   "FR-03": {
+    "fibreCoverage": 82.6
+   },
+   "FR-02": {
+    "fibreCoverage": 97.7
+   },
+   "FR-2B": {
+    "fibreCoverage": 92.8
+   },
+   "FR-82": {
+    "fibreCoverage": 95.9
+   },
+   "FR-16": {
+    "fibreCoverage": 97.2
+   },
+   "FR-24": {
+    "fibreCoverage": 95.5
+   },
+   "FR-89": {
+    "fibreCoverage": 96.6
+   },
+   "FR-10": {
+    "fibreCoverage": 95.1
+   },
+   "FR-91": {
+    "fibreCoverage": 96
+   },
+   "FR-49": {
+    "fibreCoverage": 97
+   },
+   "FR-85": {
+    "fibreCoverage": 96.4
+   },
+   "FR-09": {
+    "fibreCoverage": 92.4
+   },
+   "FR-12": {
+    "fibreCoverage": 93.2
+   },
+   "FR-01": {
+    "fibreCoverage": 90.8
+   },
+   "FR-45": {
+    "fibreCoverage": 96.3
+   },
+   "FR-06": {
+    "fibreCoverage": 95.5
+   },
+   "FR-88": {
+    "fibreCoverage": 95
+   },
+   "FR-54": {
+    "fibreCoverage": 88.2
+   },
+   "FR-34": {
+    "fibreCoverage": 94.9
+   },
+   "FR-41": {
+    "fibreCoverage": 96.8
+   },
+   "FR-42": {
+    "fibreCoverage": 98
+   },
+   "FR-43": {
+    "fibreCoverage": 81.7
+   },
+   "FR-2A": {
+    "fibreCoverage": 93.8
+   },
+   "FR-61": {
+    "fibreCoverage": 90.6
+   },
+   "FR-17": {
+    "fibreCoverage": 96
+   },
+   "FR-77": {
+    "fibreCoverage": 95
+   },
+   "FR-19": {
+    "fibreCoverage": 97.3
+   },
+   "FR-08": {
+    "fibreCoverage": 95.1
+   },
+   "FR-28": {
+    "fibreCoverage": 95.3
+   },
+   "FR-94": {
+    "fibreCoverage": 96
+   },
+   "FR-66": {
+    "fibreCoverage": 92.6
+   },
+   "FR-92": {
+    "fibreCoverage": 97.6
+   },
+   "FR-25": {
+    "fibreCoverage": 96.6
+   },
+   "FR-46": {
+    "fibreCoverage": 94.3
+   },
+   "FR-14": {
+    "fibreCoverage": 94.5
+   },
+   "FR-80": {
+    "fibreCoverage": 95.6
+   },
+   "FR-MQ": {
+    "fibreCoverage": 71.6
+   },
+   "FR-59": {
+    "fibreCoverage": 97.1
+   },
+   "FR-68": {
+    "fibreCoverage": 92.6
+   },
+   "FR-74": {
+    "fibreCoverage": 82.4
+   },
+   "FR-GF": {
+    "fibreCoverage": 82.1
+   },
+   "FR-73": {
+    "fibreCoverage": 94.2
+   },
+   "FR-57": {
+    "fibreCoverage": 90.9
+   },
+   "FR-51": {
+    "fibreCoverage": 96.4
+   },
+   "FR-79": {
+    "fibreCoverage": 95.7
+   },
+   "FR-86": {
+    "fibreCoverage": 93.6
+   },
+   "FR-81": {
+    "fibreCoverage": 96.8
+   },
+   "FR-07": {
+    "fibreCoverage": 87.3
+   },
+   "FR-22": {
+    "fibreCoverage": 85.8
+   },
+   "FR-71": {
+    "fibreCoverage": 97
+   },
+   "FR-GP": {
+    "fibreCoverage": 88.7
+   },
+   "FR-95": {
+    "fibreCoverage": 97.7
+   },
+   "FR-05": {
+    "fibreCoverage": 94.7
+   },
+   "FR-13": {
+    "fibreCoverage": 93.8
+   },
+   "FR-YT": {
+    "fibreCoverage": 15.9
+   },
+   "FR-84": {
+    "fibreCoverage": 94.1
+   },
+   "FR-83": {
+    "fibreCoverage": 94.7
+   },
+   "FR-21": {
+    "fibreCoverage": 96.3
+   },
+   "FR-78": {
+    "fibreCoverage": 97.5
+   },
+   "FR-56": {
+    "fibreCoverage": 88.2
+   },
+   "FR-55": {
+    "fibreCoverage": 95.7
+   },
+   "FR-32": {
+    "fibreCoverage": 94.9
+   },
+   "FR-36": {
+    "fibreCoverage": 97
+   },
+   "FR-RE": {
+    "fibreCoverage": 95.8
+   },
+   "FR-33": {
+    "fibreCoverage": 96
+   },
+   "FR-18": {
+    "fibreCoverage": 97.4
+   },
+   "FR-30": {
+    "fibreCoverage": 95.1
+   },
+   "FR-63": {
+    "fibreCoverage": 83.9
+   },
+   "FR-72": {
+    "fibreCoverage": 96.5
+   },
+   "FR-29": {
+    "fibreCoverage": 88.8
+   },
+   "FR-53": {
+    "fibreCoverage": 96.7
+   },
+   "FR-50": {
+    "fibreCoverage": 94.4
+   },
+   "FR-90": {
+    "fibreCoverage": 95.1
+   },
+   "FR-47": {
+    "fibreCoverage": 94.7
+   },
+   "FR-70": {
+    "fibreCoverage": 96.7
+   },
+   "FR-40": {
+    "fibreCoverage": 94.1
+   },
+   "FR-15": {
+    "fibreCoverage": 80.6
+   },
+   "FR-75": {
+    "fibreCoverage": 95.9
+   },
+   "FR-69": {
+    "fibreCoverage": 97.1
+   },
+   "FR-93": {
+    "fibreCoverage": 95.2
+   },
+   "FR-26": {
+    "fibreCoverage": 93.7
+   },
+   "FR-11": {
+    "fibreCoverage": 93.9
+   },
+   "FR-04": {
+    "fibreCoverage": 95.6
+   },
+   "FR-23": {
+    "fibreCoverage": 97.4
+   },
+   "FR-64": {
+    "fibreCoverage": 96.9
+   },
+   "FR-39": {
+    "fibreCoverage": 95.1
+   },
+   "FR-58": {
+    "fibreCoverage": 96.5
+   },
+   "FR-44": {
+    "fibreCoverage": 97.1
+   },
+   "FR-87": {
+    "fibreCoverage": 95.2
+   },
+   "FR-31": {
+    "fibreCoverage": 95.1
+   }
+  },
+  "subregion": {
+   "13001": {
+    "fibreCoverage": 95.7
+   },
+   "13055": {
+    "fibreCoverage": 89.8
+   },
+   "14118": {
+    "fibreCoverage": 96.9
+   },
+   "21231": {
+    "fibreCoverage": 97
+   },
+   "25056": {
+    "fibreCoverage": 96.3
+   },
+   "29019": {
+    "fibreCoverage": 97.6
+   },
+   "30189": {
+    "fibreCoverage": 93.2
+   },
+   "31555": {
+    "fibreCoverage": 93.4
+   },
+   "33063": {
+    "fibreCoverage": 96.3
+   },
+   "34172": {
+    "fibreCoverage": 91.3
+   },
+   "35238": {
+    "fibreCoverage": 96.7
+   },
+   "37261": {
+    "fibreCoverage": 97.7
+   },
+   "38185": {
+    "fibreCoverage": 96.1
+   },
+   "42218": {
+    "fibreCoverage": 96.6
+   },
+   "44109": {
+    "fibreCoverage": 95.4
+   },
+   "45234": {
+    "fibreCoverage": 91.5
+   },
+   "49007": {
+    "fibreCoverage": 97.3
+   },
+   "51454": {
+    "fibreCoverage": 98.1
+   },
+   "54395": {
+    "fibreCoverage": 89.8
+   },
+   "57463": {
+    "fibreCoverage": 95.2
+   },
+   "59350": {
+    "fibreCoverage": 94.2
+   },
+   "63113": {
+    "fibreCoverage": 97.2
+   },
+   "64122": {
+    "fibreCoverage": 95.8
+   },
+   "66136": {
+    "fibreCoverage": 96.6
+   },
+   "67482": {
+    "fibreCoverage": 92.7
+   },
+   "68224": {
+    "fibreCoverage": 95.1
+   },
+   "69123": {
+    "fibreCoverage": 98
+   },
+   "72181": {
+    "fibreCoverage": 97.8
+   },
+   "74010": {
+    "fibreCoverage": 97.3
+   },
+   "75056": {
+    "fibreCoverage": 95.9
+   },
+   "76351": {
+    "fibreCoverage": 96.6
+   },
+   "76540": {
+    "fibreCoverage": 95.7
+   },
+   "77288": {
+    "fibreCoverage": 96.9
+   },
+   "80021": {
+    "fibreCoverage": 97.6
+   },
+   "83137": {
+    "fibreCoverage": 94.3
+   },
+   "87085": {
+    "fibreCoverage": 96.1
+   },
+   "97120": {
+    "fibreCoverage": 95.1
+   },
+   "97209": {
+    "fibreCoverage": 97.2
+   },
+   "97411": {
+    "fibreCoverage": 97.1
+   },
+   "06088": {
+    "fibreCoverage": 96.7
+   }
+  },
+  "city": {
+   "FRA-paris": {
+    "fibreCoverage": 95.9
+   }
+  }
+ },
+ "names": {
+  "region": {
+   "FR-65": "Hautes-Pyrénées",
+   "FR-62": "Pas-de-Calais",
+   "FR-37": "Indre-et-Loire",
+   "FR-76": "Seine-Maritime",
+   "FR-38": "Isère",
+   "FR-48": "Lozère",
+   "FR-60": "Oise",
+   "FR-35": "Ille-et-Vilaine",
+   "FR-67": "Bas-Rhin",
+   "FR-52": "Haute-Marne",
+   "FR-27": "Eure",
+   "FR-03": "Allier",
+   "FR-02": "Aisne",
+   "FR-2B": "Haute-Corse",
+   "FR-82": "Tarn-et-Garonne",
+   "FR-16": "Charente",
+   "FR-24": "Dordogne",
+   "FR-89": "Yonne",
+   "FR-10": "Aube",
+   "FR-91": "Essonne",
+   "FR-49": "Maine-et-Loire",
+   "FR-85": "Vendée",
+   "FR-09": "Ariège",
+   "FR-12": "Aveyron",
+   "FR-01": "Ain",
+   "FR-45": "Loiret",
+   "FR-06": "Alpes-Maritimes",
+   "FR-88": "Vosges",
+   "FR-54": "Meurthe-et-Moselle",
+   "FR-34": "Hérault",
+   "FR-41": "Loir-et-Cher",
+   "FR-42": "Loire",
+   "FR-43": "Haute-Loire",
+   "FR-2A": "Corse-du-Sud",
+   "FR-61": "Orne",
+   "FR-17": "Charente-Maritime",
+   "FR-77": "Seien-et-Marne",
+   "FR-19": "Corrèze",
+   "FR-08": "Ardennes",
+   "FR-28": "Eure-et-Loir",
+   "FR-94": "Val-de-Marne",
+   "FR-66": "Pyrénées-Orientales",
+   "FR-92": "Hauts-de-Seine",
+   "FR-25": "Doubs",
+   "FR-46": "Lot",
+   "FR-14": "Calvados",
+   "FR-80": "Somme",
+   "FR-MQ": "Martinique",
+   "FR-59": "Nord",
+   "FR-68": "Haute-Rhin",
+   "FR-74": "Haute-Savoie",
+   "FR-GF": "Guyane française",
+   "FR-73": "Savoie",
+   "FR-57": "Moselle",
+   "FR-51": "Marne",
+   "FR-79": "Deux-Sèvres",
+   "FR-86": "Vienne",
+   "FR-81": "Tarn",
+   "FR-07": "Ardèche",
+   "FR-22": "Côtes-d'Armor",
+   "FR-71": "Saône-et-Loire",
+   "FR-GP": "Guadeloupe",
+   "FR-95": "Val-d'Oise",
+   "FR-05": "Hautes-Alpes",
+   "FR-13": "Bouches-du-Rhône",
+   "FR-YT": "Mayotte",
+   "FR-84": "Vaucluse",
+   "FR-83": "Var",
+   "FR-21": "Côte-d'Or",
+   "FR-78": "Yvelines",
+   "FR-56": "Morbihan",
+   "FR-55": "Meuse",
+   "FR-32": "Gers",
+   "FR-36": "Indre",
+   "FR-RE": "La Réunion",
+   "FR-33": "Gironde",
+   "FR-18": "Cher",
+   "FR-30": "Gard",
+   "FR-63": "Puy-de-Dôme",
+   "FR-72": "Sarthe",
+   "FR-29": "Finistère",
+   "FR-53": "Mayenne",
+   "FR-50": "Manche",
+   "FR-90": "Territoire de Belfort",
+   "FR-47": "Lot-et-Garonne",
+   "FR-70": "Haute-Saône",
+   "FR-40": "Landes",
+   "FR-15": "Cantal",
+   "FR-75": "Paris",
+   "FR-69": "Rhône",
+   "FR-93": "Seine-Saint-Denis",
+   "FR-26": "Drôme",
+   "FR-11": "Aude",
+   "FR-04": "Alpes-de-Haute-Provence",
+   "FR-23": "Creuse",
+   "FR-64": "Pyrénées-Atlantiques",
+   "FR-39": "Jura",
+   "FR-58": "Nièvre",
+   "FR-44": "Loire-Atlantique",
+   "FR-87": "Haute-Vienne",
+   "FR-31": "Haute-Garonne"
+  },
+  "subregion": {
+   "13001": "Aix-en-Provence",
+   "13055": "Marseille",
+   "14118": "Caen",
+   "21231": "Dijon",
+   "25056": "Besançon",
+   "29019": "Brest",
+   "30189": "Nîmes",
+   "31555": "Toulouse",
+   "33063": "Bordeaux",
+   "34172": "Montpellier",
+   "35238": "Rennes",
+   "37261": "Tours",
+   "38185": "Grenoble",
+   "42218": "Saint-Étienne",
+   "44109": "Nantes",
+   "45234": "Orléans",
+   "49007": "Angers",
+   "51454": "Reims",
+   "54395": "Nancy",
+   "57463": "Metz",
+   "59350": "Lille",
+   "63113": "Clermont-Ferrand",
+   "64122": "Biarritz",
+   "66136": "Perpignan",
+   "67482": "Strasbourg",
+   "68224": "Mulhouse",
+   "69123": "Lyon",
+   "72181": "Le Mans",
+   "74010": "Annecy",
+   "75056": "Paris",
+   "76351": "Le Havre",
+   "76540": "Rouen",
+   "77288": "Melun",
+   "80021": "Amiens",
+   "83137": "Toulon",
+   "87085": "Limoges",
+   "97120": "Pointe-à-Pitre",
+   "97209": "Fort-de-France",
+   "97411": "Saint-Denis",
+   "06088": "Nice"
+  },
+  "city": {
+   "FRA-paris": "Paris"
+  }
+ },
+ "details": {
+  "region": {
+   "FR-65": {
+    "premises": 185943,
+    "ftth": 93.9,
+    "date": "2026-06-30",
+    "thd30": 100
+   },
+   "FR-62": {
+    "premises": 832393,
+    "ftth": 98,
+    "date": "2026-06-30",
+    "thd30": 100
+   },
+   "FR-37": {
+    "premises": 407364,
+    "ftth": 97.3,
+    "date": "2026-06-30",
+    "thd30": 100
+   },
+   "FR-76": {
+    "premises": 769655,
+    "ftth": 96.7,
+    "date": "2026-06-30",
+    "thd30": 100
+   },
+   "FR-38": {
+    "premises": 825073,
+    "ftth": 96.6,
+    "date": "2026-06-30",
+    "thd30": 100
+   },
+   "FR-48": {
+    "premises": 73746,
+    "ftth": 94.7,
+    "date": "2026-06-30",
+    "thd30": 100
+   },
+   "FR-60": {
+    "premises": 445100,
+    "ftth": 97.9,
+    "date": "2026-06-30",
+    "thd30": 100
+   },
+   "FR-35": {
+    "premises": 766541,
+    "ftth": 89.5,
+    "date": "2026-06-30",
+    "thd30": 100
+   },
+   "FR-67": {
+    "premises": 715415,
+    "ftth": 94.2,
+    "date": "2026-06-30",
+    "thd30": 100
+   },
+   "FR-52": {
+    "premises": 119136,
+    "ftth": 96,
+    "date": "2026-06-30",
+    "thd30": 100
+   },
+   "FR-27": {
+    "premises": 359268,
+    "ftth": 96.6,
+    "date": "2026-06-30",
+    "thd30": 100
+   },
+   "FR-03": {
+    "premises": 250496,
+    "ftth": 82.6,
+    "date": "2026-06-30",
+    "thd30": 100
+   },
+   "FR-02": {
+    "premises": 312485,
+    "ftth": 97.7,
+    "date": "2026-06-30",
+    "thd30": 100
+   },
+   "FR-2B": {
+    "premises": 164522,
+    "ftth": 92.8,
+    "date": "2026-06-30",
+    "thd30": 100
+   },
+   "FR-82": {
+    "premises": 168778,
+    "ftth": 95.9,
+    "date": "2026-06-30",
+    "thd30": 100
+   },
+   "FR-16": {
+    "premises": 243674,
+    "ftth": 97.2,
+    "date": "2026-06-30",
+    "thd30": 100
+   },
+   "FR-24": {
+    "premises": 327041,
+    "ftth": 95.5,
+    "date": "2026-06-30",
+    "thd30": 100
+   },
+   "FR-89": {
+    "premises": 241724,
+    "ftth": 96.6,
+    "date": "2026-06-30",
+    "thd30": 100
+   },
+   "FR-10": {
+    "premises": 201322,
+    "ftth": 95.1,
+    "date": "2026-06-30",
+    "thd30": 100
+   },
+   "FR-91": {
+    "premises": 715869,
+    "ftth": 96,
+    "date": "2026-06-30",
+    "thd30": 100
+   },
+   "FR-49": {
+    "premises": 506242,
+    "ftth": 97,
+    "date": "2026-06-30",
+    "thd30": 100
+   },
+   "FR-85": {
+    "premises": 541789,
+    "ftth": 96.4,
+    "date": "2026-06-30",
+    "thd30": 100
+   },
+   "FR-09": {
+    "premises": 132555,
+    "ftth": 92.4,
+    "date": "2026-06-30",
+    "thd30": 100
+   },
+   "FR-12": {
+    "premises": 226728,
+    "ftth": 93.2,
+    "date": "2026-06-30",
+    "thd30": 100
+   },
+   "FR-01": {
+    "premises": 433625,
+    "ftth": 90.8,
+    "date": "2026-06-30",
+    "thd30": 100
+   },
+   "FR-45": {
+    "premises": 414340,
+    "ftth": 96.3,
+    "date": "2026-06-30",
+    "thd30": 100
+   },
+   "FR-06": {
+    "premises": 923930,
+    "ftth": 95.5,
+    "date": "2026-06-30",
+    "thd30": 100
+   },
+   "FR-88": {
+    "premises": 253839,
+    "ftth": 95,
+    "date": "2026-06-30",
+    "thd30": 100
+   },
+   "FR-54": {
+    "premises": 462466,
+    "ftth": 88.2,
+    "date": "2026-06-30",
+    "thd30": 100
+   },
+   "FR-34": {
+    "premises": 903009,
+    "ftth": 94.9,
+    "date": "2026-06-30",
+    "thd30": 100
+   },
+   "FR-41": {
+    "premises": 228917,
+    "ftth": 96.8,
+    "date": "2026-06-30",
+    "thd30": 100
+   },
+   "FR-42": {
+    "premises": 494254,
+    "ftth": 98,
+    "date": "2026-06-30",
+    "thd30": 100
+   },
+   "FR-43": {
+    "premises": 178669,
+    "ftth": 81.7,
+    "date": "2026-06-30",
+    "thd30": 100
+   },
+   "FR-2A": {
+    "premises": 149137,
+    "ftth": 93.8,
+    "date": "2026-06-30",
+    "thd30": 100
+   },
+   "FR-61": {
+    "premises": 207760,
+    "ftth": 90.6,
+    "date": "2026-06-30",
+    "thd30": 100
+   },
+   "FR-17": {
+    "premises": 531185,
+    "ftth": 96,
+    "date": "2026-06-30",
+    "thd30": 100
+   },
+   "FR-77": {
+    "premises": 799870,
+    "ftth": 95,
+    "date": "2026-06-30",
+    "thd30": 100
+   },
+   "FR-19": {
+    "premises": 198570,
+    "ftth": 97.3,
+    "date": "2026-06-30",
+    "thd30": 100
+   },
+   "FR-08": {
+    "premises": 171941,
+    "ftth": 95.1,
+    "date": "2026-06-30",
+    "thd30": 100
+   },
+   "FR-28": {
+    "premises": 277148,
+    "ftth": 95.3,
+    "date": "2026-06-30",
+    "thd30": 100
+   },
+   "FR-94": {
+    "premises": 796018,
+    "ftth": 96,
+    "date": "2026-06-30",
+    "thd30": 100
+   },
+   "FR-66": {
+    "premises": 428057,
+    "ftth": 92.6,
+    "date": "2026-06-30",
+    "thd30": 100
+   },
+   "FR-92": {
+    "premises": 994002,
+    "ftth": 97.6,
+    "date": "2026-06-30",
+    "thd30": 100
+   },
+   "FR-25": {
+    "premises": 347730,
+    "ftth": 96.6,
+    "date": "2026-06-30",
+    "thd30": 100
+   },
+   "FR-46": {
+    "premises": 151807,
+    "ftth": 94.3,
+    "date": "2026-06-30",
+    "thd30": 100
+   },
+   "FR-14": {
+    "premises": 526347,
+    "ftth": 94.5,
+    "date": "2026-06-30",
+    "thd30": 100
+   },
+   "FR-80": {
+    "premises": 363156,
+    "ftth": 95.6,
+    "date": "2026-06-30",
+    "thd30": 100
+   },
+   "FR-MQ": {
+    "premises": 300599,
+    "ftth": 71.6,
+    "date": "2026-06-30",
+    "thd30": 99.9
+   },
+   "FR-59": {
+    "premises": 1459047,
+    "ftth": 97.1,
+    "date": "2026-06-30",
+    "thd30": 100
+   },
+   "FR-68": {
+    "premises": 482942,
+    "ftth": 92.6,
+    "date": "2026-06-30",
+    "thd30": 100
+   },
+   "FR-74": {
+    "premises": 669570,
+    "ftth": 82.4,
+    "date": "2026-06-30",
+    "thd30": 100
+   },
+   "FR-GF": {
+    "premises": 120537,
+    "ftth": 82.1,
+    "date": "2026-06-30",
+    "thd30": 99.9
+   },
+   "FR-73": {
+    "premises": 431786,
+    "ftth": 94.2,
+    "date": "2026-06-30",
+    "thd30": 100
+   },
+   "FR-57": {
+    "premises": 628799,
+    "ftth": 90.9,
+    "date": "2026-06-30",
+    "thd30": 100
+   },
+   "FR-51": {
+    "premises": 367670,
+    "ftth": 96.4,
+    "date": "2026-06-30",
+    "thd30": 100
+   },
+   "FR-79": {
+    "premises": 234744,
+    "ftth": 95.7,
+    "date": "2026-06-30",
+    "thd30": 100
+   },
+   "FR-86": {
+    "premises": 287487,
+    "ftth": 93.6,
+    "date": "2026-06-30",
+    "thd30": 100
+   },
+   "FR-81": {
+    "premises": 268484,
+    "ftth": 96.8,
+    "date": "2026-06-30",
+    "thd30": 100
+   },
+   "FR-07": {
+    "premises": 254035,
+    "ftth": 87.3,
+    "date": "2026-06-30",
+    "thd30": 100
+   },
+   "FR-22": {
+    "premises": 485419,
+    "ftth": 85.8,
+    "date": "2026-06-30",
+    "thd30": 100
+   },
+   "FR-71": {
+    "premises": 373704,
+    "ftth": 97,
+    "date": "2026-06-30",
+    "thd30": 100
+   },
+   "FR-GP": {
+    "premises": 325276,
+    "ftth": 88.7,
+    "date": "2026-06-30",
+    "thd30": 100
+   },
+   "FR-95": {
+    "premises": 638261,
+    "ftth": 97.7,
+    "date": "2026-06-30",
+    "thd30": 100
+   },
+   "FR-05": {
+    "premises": 162908,
+    "ftth": 94.7,
+    "date": "2026-06-30",
+    "thd30": 100
+   },
+   "FR-13": {
+    "premises": 1271119,
+    "ftth": 93.8,
+    "date": "2026-06-30",
+    "thd30": 100
+   },
+   "FR-YT": {
+    "premises": 70023,
+    "ftth": 15.9,
+    "date": "2026-06-30",
+    "thd30": 100
+   },
+   "FR-84": {
+    "premises": 388524,
+    "ftth": 94.1,
+    "date": "2026-06-30",
+    "thd30": 100
+   },
+   "FR-83": {
+    "premises": 877838,
+    "ftth": 94.7,
+    "date": "2026-06-30",
+    "thd30": 99.9
+   },
+   "FR-21": {
+    "premises": 368280,
+    "ftth": 96.3,
+    "date": "2026-06-30",
+    "thd30": 100
+   },
+   "FR-78": {
+    "premises": 800464,
+    "ftth": 97.5,
+    "date": "2026-06-30",
+    "thd30": 100
+   },
+   "FR-56": {
+    "premises": 609833,
+    "ftth": 88.2,
+    "date": "2026-06-30",
+    "thd30": 100
+   },
+   "FR-55": {
+    "premises": 119962,
+    "ftth": 95.7,
+    "date": "2026-06-30",
+    "thd30": 100
+   },
+   "FR-32": {
+    "premises": 138415,
+    "ftth": 94.9,
+    "date": "2026-06-30",
+    "thd30": 100
+   },
+   "FR-36": {
+    "premises": 163996,
+    "ftth": 97,
+    "date": "2026-06-30",
+    "thd30": 100
+   },
+   "FR-RE": {
+    "premises": 521472,
+    "ftth": 95.8,
+    "date": "2026-06-30",
+    "thd30": 100
+   },
+   "FR-33": {
+    "premises": 1121692,
+    "ftth": 96,
+    "date": "2026-06-30",
+    "thd30": 100
+   },
+   "FR-18": {
+    "premises": 216331,
+    "ftth": 97.4,
+    "date": "2026-06-30",
+    "thd30": 100
+   },
+   "FR-30": {
+    "premises": 532243,
+    "ftth": 95.1,
+    "date": "2026-06-30",
+    "thd30": 100
+   },
+   "FR-63": {
+    "premises": 476443,
+    "ftth": 83.9,
+    "date": "2026-06-30",
+    "thd30": 100
+   },
+   "FR-72": {
+    "premises": 360843,
+    "ftth": 96.5,
+    "date": "2026-06-30",
+    "thd30": 100
+   },
+   "FR-29": {
+    "premises": 686487,
+    "ftth": 88.8,
+    "date": "2026-06-30",
+    "thd30": 100
+   },
+   "FR-53": {
+    "premises": 199079,
+    "ftth": 96.7,
+    "date": "2026-06-30",
+    "thd30": 100
+   },
+   "FR-50": {
+    "premises": 368219,
+    "ftth": 94.4,
+    "date": "2026-06-30",
+    "thd30": 100
+   },
+   "FR-90": {
+    "premises": 81868,
+    "ftth": 95.1,
+    "date": "2026-06-30",
+    "thd30": 100
+   },
+   "FR-47": {
+    "premises": 234408,
+    "ftth": 94.7,
+    "date": "2026-06-30",
+    "thd30": 100
+   },
+   "FR-70": {
+    "premises": 155287,
+    "ftth": 96.7,
+    "date": "2026-06-30",
+    "thd30": 100
+   },
+   "FR-40": {
+    "premises": 323734,
+    "ftth": 94.1,
+    "date": "2026-06-30",
+    "thd30": 100
+   },
+   "FR-15": {
+    "premises": 121934,
+    "ftth": 80.6,
+    "date": "2026-06-30",
+    "thd30": 100
+   },
+   "FR-75": {
+    "premises": 1665813,
+    "ftth": 95.9,
+    "date": "2026-06-30",
+    "thd30": 100
+   },
+   "FR-69": {
+    "premises": 1196558,
+    "ftth": 97.1,
+    "date": "2026-06-30",
+    "thd30": 100
+   },
+   "FR-93": {
+    "premises": 888256,
+    "ftth": 95.2,
+    "date": "2026-06-30",
+    "thd30": 100
+   },
+   "FR-26": {
+    "premises": 348248,
+    "ftth": 93.7,
+    "date": "2026-06-30",
+    "thd30": 100
+   },
+   "FR-11": {
+    "premises": 324604,
+    "ftth": 93.9,
+    "date": "2026-06-30",
+    "thd30": 100
+   },
+   "FR-04": {
+    "premises": 153125,
+    "ftth": 95.6,
+    "date": "2026-06-30",
+    "thd30": 100
+   },
+   "FR-23": {
+    "premises": 111563,
+    "ftth": 97.4,
+    "date": "2026-06-30",
+    "thd30": 100
+   },
+   "FR-64": {
+    "premises": 513982,
+    "ftth": 96.9,
+    "date": "2026-06-30",
+    "thd30": 100
+   },
+   "FR-39": {
+    "premises": 192870,
+    "ftth": 95.1,
+    "date": "2026-06-30",
+    "thd30": 100
+   },
+   "FR-58": {
+    "premises": 162561,
+    "ftth": 96.5,
+    "date": "2026-06-30",
+    "thd30": 100
+   },
+   "FR-44": {
+    "premises": 942822,
+    "ftth": 97.1,
+    "date": "2026-06-30",
+    "thd30": 100
+   },
+   "FR-87": {
+    "premises": 263795,
+    "ftth": 95.2,
+    "date": "2026-06-30",
+    "thd30": 100
+   },
+   "FR-31": {
+    "premises": 931598,
+    "ftth": 95.1,
+    "date": "2026-06-30",
+    "thd30": 100
+   }
+  },
+  "subregion": {
+   "13001": {
+    "premises": 108099,
+    "ftth": 95.7,
+    "date": "2026-06-30",
+    "thd30": 100
+   },
+   "13055": {
+    "premises": 533329,
+    "ftth": 89.8,
+    "date": "2026-06-30",
+    "thd30": 100
+   },
+   "14118": {
+    "premises": 82708,
+    "ftth": 96.9,
+    "date": "2026-06-30",
+    "thd30": 100
+   },
+   "21231": {
+    "premises": 121632,
+    "ftth": 97,
+    "date": "2026-06-30",
+    "thd30": 100
+   },
+   "25056": {
+    "premises": 82798,
+    "ftth": 96.3,
+    "date": "2026-06-30",
+    "thd30": 100
+   },
+   "29019": {
+    "premises": 99899,
+    "ftth": 97.6,
+    "date": "2026-06-30",
+    "thd30": 100
+   },
+   "30189": {
+    "premises": 104375,
+    "ftth": 93.2,
+    "date": "2026-06-30",
+    "thd30": 100
+   },
+   "31555": {
+    "premises": 362239,
+    "ftth": 93.4,
+    "date": "2026-06-30",
+    "thd30": 100
+   },
+   "33063": {
+    "premises": 209949,
+    "ftth": 96.3,
+    "date": "2026-06-30",
+    "thd30": 100
+   },
+   "34172": {
+    "premises": 211646,
+    "ftth": 91.3,
+    "date": "2026-06-30",
+    "thd30": 100
+   },
+   "35238": {
+    "premises": 161563,
+    "ftth": 96.7,
+    "date": "2026-06-30",
+    "thd30": 100
+   },
+   "37261": {
+    "premises": 105389,
+    "ftth": 97.7,
+    "date": "2026-06-30",
+    "thd30": 100
+   },
+   "38185": {
+    "premises": 118435,
+    "ftth": 96.1,
+    "date": "2026-06-30",
+    "thd30": 100
+   },
+   "42218": {
+    "premises": 118566,
+    "ftth": 96.6,
+    "date": "2026-06-30",
+    "thd30": 100
+   },
+   "44109": {
+    "premises": 224221,
+    "ftth": 95.4,
+    "date": "2026-06-30",
+    "thd30": 100
+   },
+   "45234": {
+    "premises": 76597,
+    "ftth": 91.5,
+    "date": "2026-06-30",
+    "thd30": 100
+   },
+   "49007": {
+    "premises": 109137,
+    "ftth": 97.3,
+    "date": "2026-06-30",
+    "thd30": 100
+   },
+   "51454": {
+    "premises": 122769,
+    "ftth": 98.1,
+    "date": "2026-06-30",
+    "thd30": 100
+   },
+   "54395": {
+    "premises": 87627,
+    "ftth": 89.8,
+    "date": "2026-06-30",
+    "thd30": 100
+   },
+   "57463": {
+    "premises": 85709,
+    "ftth": 95.2,
+    "date": "2026-06-30",
+    "thd30": 100
+   },
+   "59350": {
+    "premises": 167389,
+    "ftth": 94.2,
+    "date": "2026-06-30",
+    "thd30": 100
+   },
+   "63113": {
+    "premises": 115542,
+    "ftth": 97.2,
+    "date": "2026-06-30",
+    "thd30": 100
+   },
+   "64122": {
+    "premises": 29148,
+    "ftth": 95.8,
+    "date": "2026-06-30",
+    "thd30": 100
+   },
+   "66136": {
+    "premises": 87439,
+    "ftth": 96.6,
+    "date": "2026-06-30",
+    "thd30": 100
+   },
+   "67482": {
+    "premises": 191345,
+    "ftth": 92.7,
+    "date": "2026-06-30",
+    "thd30": 99.9
+   },
+   "68224": {
+    "premises": 70923,
+    "ftth": 95.1,
+    "date": "2026-06-30",
+    "thd30": 100
+   },
+   "69123": {
+    "premises": 377381,
+    "ftth": 98,
+    "date": "2026-06-30",
+    "thd30": 100
+   },
+   "72181": {
+    "premises": 97523,
+    "ftth": 97.8,
+    "date": "2026-06-30",
+    "thd30": 100
+   },
+   "74010": {
+    "premises": 93866,
+    "ftth": 97.3,
+    "date": "2026-06-30",
+    "thd30": 100
+   },
+   "75056": {
+    "premises": 1665813,
+    "ftth": 95.9,
+    "date": "2026-06-30",
+    "thd30": 100
+   },
+   "76351": {
+    "premises": 108471,
+    "ftth": 96.6,
+    "date": "2026-06-30",
+    "thd30": 100
+   },
+   "76540": {
+    "premises": 90956,
+    "ftth": 95.7,
+    "date": "2026-06-30",
+    "thd30": 100
+   },
+   "77288": {
+    "premises": 28198,
+    "ftth": 96.9,
+    "date": "2026-06-30",
+    "thd30": 100
+   },
+   "80021": {
+    "premises": 91983,
+    "ftth": 97.6,
+    "date": "2026-06-30",
+    "thd30": 100
+   },
+   "83137": {
+    "premises": 110087,
+    "ftth": 94.3,
+    "date": "2026-06-30",
+    "thd30": 100
+   },
+   "87085": {
+    "premises": 95956,
+    "ftth": 96.1,
+    "date": "2026-06-30",
+    "thd30": 100
+   },
+   "97120": {
+    "premises": 14777,
+    "ftth": 95.1,
+    "date": "2026-06-30",
+    "thd30": 100
+   },
+   "97209": {
+    "premises": 58448,
+    "ftth": 97.2,
+    "date": "2026-06-30",
+    "thd30": 100
+   },
+   "97411": {
+    "premises": 96059,
+    "ftth": 97.1,
+    "date": "2026-06-30",
+    "thd30": 100
+   },
+   "06088": {
+    "premises": 271906,
+    "ftth": 96.7,
+    "date": "2026-06-30",
+    "thd30": 100
+   }
+  },
+  "city": {
+   "FRA-paris": {
+    "premises": 1665813,
+    "ftth": 95.9,
+    "date": "2026-06-30",
+    "thd30": 100
+   }
+  }
+ },
+ "period": {
+  "latest": 2026,
+  "date": "2026-06-30"
+ },
+ "origin": {
+  "files": [
+   {
+    "name": "departement_techno.csv",
+    "url": "https://data.arcep.fr/fixe/maconnexioninternet/statistiques/last/departement/departement_techno.csv",
+    "sha256": "da13359364b9b84428a9bca4371d44e351664cc1228779828b9fe3530b7cb4ff",
+    "retrievedAt": "2026-10-06"
+   },
+   {
+    "name": "departement_debit.csv",
+    "url": "https://data.arcep.fr/fixe/maconnexioninternet/statistiques/last/departement/departement_debit.csv",
+    "sha256": "be45319d70ea1d4d667d9fc8ee549f4b57aa8534694b5d4230adfa60633c3004",
+    "retrievedAt": "2026-10-06"
+   },
+   {
+    "name": "commune_techno.csv",
+    "url": "https://data.arcep.fr/fixe/maconnexioninternet/statistiques/last/commune/commune_techno.csv",
+    "sha256": "f3cc3d17d7ce99db3fe4d7a7be7a65c14b070691d2111a0c3e645f6426adfba6",
+    "retrievedAt": "2026-10-06"
+   },
+   {
+    "name": "commune_debit.csv",
+    "url": "https://data.arcep.fr/fixe/maconnexioninternet/statistiques/last/commune/commune_debit.csv",
+    "sha256": "b89f7b9f35ddf098660e2db4471038bdd8f264e458d8795d1f72a8d49217eddb",
+    "retrievedAt": "2026-10-06"
+   }
+  ],
+  "notes": "official download from data.arcep.fr (Licence Ouverte 2.0): https://www.data.gouv.fr/datasets/ma-connexion-internet; shares computed by MapStats from the published counts"
+ }
+}
