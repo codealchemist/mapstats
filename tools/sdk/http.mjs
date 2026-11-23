@@ -80,13 +80,37 @@ export function rawStore(iso3, provider, { delayMs = 5000, dir: custom } = {}) {
     const changed = !!manifest.files[name] && manifest.files[name].sha256 !== sha256(buf)
     return { path: path.join(dir, name), buffer: buf, changed, get text() { return buf.toString('utf8') }, ref: ref(name) }
   }
+  /**
+   * Registers a file put in `dir` by hand (e.g. downloaded in a browser); `note` says from where. Its date is the
+   * file's. Re-registering a file whose contents changed records its new hash and date.
+   */
+  const add = (name, { url = null, note = null } = {}) => {
+    const file = path.join(dir, name)
+    const buf = fs.readFileSync(file)
+    const prev = manifest.files[name]
+    const same = prev?.sha256 === sha256(buf)
+    const saved = fs.statSync(file).mtime.toISOString().slice(0, 10)
+    manifest.files[name] = { ...(url && { url }), ...(note && { note }), retrievedAt: (same && prev.retrievedAt) || saved, sha256: sha256(buf), bytes: buf.length }
+    save(name)
+    return read(name)
+  }
+  // Whether `name` is stored: listed in the manifest, or put in raw/ by hand and registered now with `url` (byHand).
+  const stored = (name, { url, byHand, note }) => {
+    if (!fs.existsSync(path.join(dir, name))) return false
+    if (!manifest.files[name] && byHand) add(name, { url, note })
+    return !!manifest.files[name]
+  }
 
   return {
     dir,
     manifest,
-    /** Downloads `url` unless it was stored before; returns { path, buffer, text, ref } (ref: for the dataset's origin). */
-    async fetchOnce(url, { name = decodeURIComponent(new URL(url).pathname.split('/').pop()) || 'index.html', refresh = false } = {}) {
-      if (!refresh && manifest.files[name] && fs.existsSync(path.join(dir, name))) return read(name)
+    /**
+     * Downloads `url` unless it was stored before; returns { path, buffer, text, ref } (ref: for the dataset's origin).
+     * @param opts.byHand  a file already in raw/ under `name` that the manifest doesn't list (downloaded by hand, e.g.
+     *                     from a site scripts can't reach) is registered with `url` and `note` instead of downloaded
+     */
+    async fetchOnce(url, { name = decodeURIComponent(new URL(url).pathname.split('/').pop()) || 'index.html', refresh = false, byHand = false, note = null } = {}) {
+      if (!refresh && stored(name, { url, byHand, note })) return read(name)
       if (!(await allowed(url))) throw new Error(`robots.txt disallows ${url}: download it by hand and register it with add()`)
       const wait = lastRequest + delayMs - Date.now()
       if (wait > 0) await sleep(wait)
@@ -101,20 +125,7 @@ export function rawStore(iso3, provider, { delayMs = 5000, dir: custom } = {}) {
       save(name)
       return read(name)
     },
-    /**
-     * Registers a file put in `dir` by hand (e.g. downloaded in a browser); `note` says from where. Its date is the
-     * file's. Re-registering a file whose contents changed records its new hash and date.
-     */
-    add(name, { url = null, note = null } = {}) {
-      const file = path.join(dir, name)
-      const buf = fs.readFileSync(file)
-      const prev = manifest.files[name]
-      const same = prev?.sha256 === sha256(buf)
-      const saved = fs.statSync(file).mtime.toISOString().slice(0, 10)
-      manifest.files[name] = { ...(url && { url }), ...(note && { note }), retrievedAt: (same && prev.retrievedAt) || saved, sha256: sha256(buf), bytes: buf.length }
-      save(name)
-      return read(name)
-    },
+    add,
     /** Stored files (names), optionally filtered by extension: list(/\.xlsx$/i). */
     list: (re = /./) => (fs.existsSync(dir) ? fs.readdirSync(dir).filter((f) => f !== 'manifest.json' && re.test(f)) : []),
     read,

@@ -5,7 +5,7 @@
 // The workbook (≈ 70 MB) is downloaded once through its data.gouv.fr resource link into raw/ and streamed sheet by
 // sheet (it does not fit in memory when read whole).
 import { rawStore, readXlsx } from '#sdk'
-import { fetchOnceStored, regionNames } from '../../lib/fr.mjs'
+import { regionNames } from '../../lib/fr.mjs'
 import { departmentRows, toValues } from './parse.mjs'
 import { DATASET } from './provider.js'
 
@@ -14,7 +14,7 @@ const SHEETS = { density: ['Densités', /^densite_(\d{4})$/], physicians: ['Effe
 
 export async function prefill({ log }) {
   const raw = rawStore('FRA', 'drees')
-  const file = await fetchOnceStored(raw, RESOURCE, { name: 'medecins_rpps_2012_2026.xlsx' })
+  const file = await raw.fetchOnce(RESOURCE, { name: 'medecins_rpps_2012_2026.xlsx', byHand: true })
   const read = async ([sheet, re]) => {
     const rows = []
     for await (const r of readXlsx(file.path, { sheet })) rows.push(r)

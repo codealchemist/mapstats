@@ -115,17 +115,8 @@ export function parseReferencePopulations(csv) {
   return { pop, year }
 }
 
-/**
- * fetchOnce, after registering a file that was put in raw/ by hand under `name` (e.g. downloaded before the store
- * existed, or with a browser) with the URL it came from.
- */
-export async function fetchOnceStored(raw, url, { name = decodeURIComponent(new URL(url).pathname.split('/').pop()), note } = {}) {
-  if (!raw.manifest.files[name] && fs.existsSync(path.join(raw.dir, name))) raw.add(name, { url, note })
-  return raw.fetchOnce(url, { name })
-}
-
 export async function communePopulations() {
-  const file = await fetchOnceStored(rawStore('FRA', 'insee'), POPULATIONS.url, { name: POPULATIONS.name })
+  const file = await rawStore('FRA', 'insee').fetchOnce(POPULATIONS.url, { name: POPULATIONS.name, byHand: true })
   return { ...parseReferencePopulations(zipEntry(file.path, /_data\.csv$/).text()), ref: file.ref }
 }
 

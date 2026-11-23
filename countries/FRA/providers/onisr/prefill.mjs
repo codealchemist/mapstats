@@ -6,7 +6,7 @@
 // from year to year) into raw/. Population denominators come from the INSEE provider's stored population estimates
 // (its raw folder; downloaded there if missing). Add a year to YEARS when the ONISR publishes it.
 import { rawStore, parseCsv } from '#sdk'
-import { fetchOnceStored, regionNames } from '../../lib/fr.mjs'
+import { regionNames } from '../../lib/fr.mjs'
 import { populationFile, populationByYear } from '../insee/parse.mjs'
 import { accidentDepartments, killedByDepartment, toValues } from './parse.mjs'
 import { DATASET } from './provider.js'
@@ -30,8 +30,8 @@ export async function prefill({ log }) {
   const files = []
   for (const y of years) {
     const [caract, usagers] = YEARS[y]
-    const c = await fetchOnceStored(raw, caract, { name: `caract-${y}.csv` })
-    const u = await fetchOnceStored(raw, usagers, { name: `usagers-${y}.csv` })
+    const c = await raw.fetchOnce(caract, { name: `caract-${y}.csv`, byHand: true })
+    const u = await raw.fetchOnce(usagers, { name: `usagers-${y}.csv`, byHand: true })
     const departments = accidentDepartments(parseCsv(c.text))
     const { byRegion, killed, outside, unknown } = killedByDepartment(parseCsv(u.text), departments)
     for (const [id, n] of Object.entries(byRegion)) (deaths[id] ||= {})[y] = n

@@ -7,7 +7,7 @@
 // zoning API answer for the tracked communes (20 per call; the current official zoning, used to cross-check the table
 // and as the cities' own values). Commune populations come from the INSEE provider's stored reference-population file.
 import { rawStore } from '#sdk'
-import { communePopulations, fetchJsonOnce, fetchOnceStored, dbfRows, looseCsv, regionNames, zipEntry, zipEntryNames } from '../../lib/fr.mjs'
+import { communePopulations, fetchJsonOnce, dbfRows, looseCsv, regionNames, zipEntry, zipEntryNames } from '../../lib/fr.mjs'
 import { COMMUNE_NAMES } from '../../places.js'
 import { zonesFrom, floodEventsFrom, ddrmFireFrom, pprFrom, classes, aggregate, toValues, FLOOD_SINCE } from './parse.mjs'
 import { ZONING, GASPAR } from './provider.js'
@@ -19,8 +19,8 @@ const COMMUNES = Object.keys(COMMUNE_NAMES)
 
 export async function prefill({ log }) {
   const raw = rawStore('FRA', 'georisques')
-  const zoning = await fetchOnceStored(raw, ZONING_URL)
-  const gaspar = await fetchOnceStored(raw, GASPAR_URL)
+  const zoning = await raw.fetchOnce(ZONING_URL, { byHand: true })
+  const gaspar = await raw.fetchOnce(GASPAR_URL, { byHand: true })
   const pages = Array.from({ length: Math.ceil(COMMUNES.length / 20) }, (_, i) => `${API}?code_insee=${COMMUNES.slice(i * 20, i * 20 + 20).join(',')}&page_size=100`)
   const api = await fetchJsonOnce(raw, pages, 'zonage-sismique-communes.json', { items: 'data' })
   const { pop, year: popYear, ref: popRef } = await communePopulations()
