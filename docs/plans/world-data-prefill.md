@@ -1,6 +1,12 @@
 # Plan: shared world-data cache, prefilled by admins
 
-**Status:** proposal, not started. To be built after PR #1 (Open-Meteo rate limits) is merged, since it builds on that PR's request queue and `batch()` loader.
+**Status:** proposal, not started. Builds on the Open-Meteo request queue (`src/lib/meteoQueue.js`) and the `batch()` loader in `src/lib/live.js`, both from PR #1, now merged.
+
+**Since this was measured**, master has changed what this plan touches:
+
+- **Live layers:** air quality is now a yearly mean (the last 365 days, hourly), and heat and cold stress was added (`fetchThermalBatch`: the last full year of hourly ERA5). Each costs ≈ 8 calls per place, ≈ 600 per Argentina load, so the per-load totals and shares under _Problem_ and _Scope_ are out of date. Heat and cold stress is final once the year closes, like climate and UV, so it fits this cache, but it isn't in the numbers below. Climate, UV and normals cost the same per place as measured here.
+- **Admin:** [`docs/architecture.md`](../architecture.md) (sections 1 and 6) says long-term data is produced offline by `npm run prefill`, committed as files and reviewed in a pull request, with no admin web UI. This plan adds one, so those sections would change (open question 4). "Prefill" also names that file-based process now.
+- **PR #8** (open) moves live loading into a layer registry (`LIVE_LAYERS` in `src/hooks/useLiveData.js`), loads the gap-grid points only on demand, and retries only missing places. If it lands first, the shared-cache read plugs into that registry.
 
 ## Problem
 
@@ -22,14 +28,15 @@ Admins prefill the historical data into a shared cache in Netlify Blobs. Visitor
 
 ## Scope
 
-| Data                                                              | Prefilled? | Why                                                |
-| ----------------------------------------------------------------- | ---------- | -------------------------------------------------- |
-| Climate, last full year (ERA5: temperature, rain, snow, sunshine) | **Yes**    | Final once the year closes; ~70% of a country load |
-| UV, last full year (archived forecasts)                           | **Yes**    | Final once the year closes                         |
-| 10-year climate normals per city (reports)                        | **Yes**    | ~130 calls per city report; final for the period   |
-| Air quality (30-day average)                                      | No         | Changes daily; ~74 calls per country, cheap        |
-| River flow (GloFAS, 30-day forecast)                              | No         | Changes every 12 h                                 |
-| Places found through search (outside the city list)               | No         | Not on the known place list; visitors fetch them   |
+| Data                                                              | Prefilled? | Why                                                                            |
+| ----------------------------------------------------------------- | ---------- | ------------------------------------------------------------------------------ |
+| Climate, last full year (ERA5: temperature, rain, snow, sunshine) | **Yes**    | Final once the year closes; ~70% of a country load                             |
+| UV, last full year (archived forecasts)                           | **Yes**    | Final once the year closes                                                     |
+| 10-year climate normals per city (reports)                        | **Yes**    | ~130 calls per city report; final for the period                               |
+| Heat and cold stress, last full year (hourly ERA5)                | Not yet    | Final once the year closes; added on master after this plan                    |
+| Air quality (mean of the last 365 days)                           | No         | A rolling year, changes daily; ≈ 8 calls per place (~1 when this was measured) |
+| River flow (GloFAS, 30-day forecast)                              | No         | Changes every 12 h                                                             |
+| Places found through search (outside the city list)               | No         | Not on the known place list; visitors fetch them                               |
 
 ## Cost of a full fill
 
@@ -143,7 +150,7 @@ With the shared cache, each place is fetched **once a year** in total, and visit
 
 ### Expected place list (server side)
 
-The function computes each country's expected places the same way the client does: `livePoints()` + `gapGrid()` over the bundled `public/geo/{iso3}.json` and `-cities.json` (for normals, cities only). This is shared code, not a copy, so client and server can't drift.
+The function computes each country's expected places the same way the client does: `livePoints()` (`src/lib/scoring.js`) + `gapGrid()` (`src/lib/geo.js`) over `countries/{ISO3}/geo/regions.json` and the country's places: its curated list from `country.data.js` (Argentina's `places.js`), else `geo/cities.json` (for normals, cities only). This is shared code, not a copy, so client and server can't drift. The browser gets these files through Vite (`src/core/geoAssets.js`, `src/core/countryData.js`), so the function bundles them itself; `loadCountry` in `tools/cli/context.mjs` already reads them in Node.
 
 This list defines what counts as "missing" and which coordinates an upload may contain.
 
@@ -235,10 +242,11 @@ Validation protects against bugs and stolen tokens:
   - only places a complete year lacks requested
   - previous-year fallback: nothing fetched, not kept in `localStorage`
   - shared cache down → full fetch
-- **Manual** with `netlify dev`: two browsers with two admin tokens claiming different items, then the same one.
+- **Manual** with `npm run dev:netlify`: two browsers with two admin tokens claiming different items, then the same one.
 
 ## Open questions
 
 1. How many admins (1, 2 or 3) take part in the yearly fill, and on which days in January?
 2. Who are the admins, and how are tokens handed out and rotated?
-3. Should the admin page also prefill air quality and river flow for a daily snapshot? (Not planned: cheap for visitors, and stale quickly.)
+3. Should the admin page also prefill air quality and river flow for a daily snapshot? (Not planned: both go stale quickly. River flow is cheap for visitors; air quality no longer is, at ≈ 8 calls per place.)
+4. The map-layer summaries for all 16 countries are ~236 KB a year. Should they (and heat and cold stress) ship as committed datasets from `npm run prefill`, like the GEM and UTCI prefills, leaving Blobs and the admin page to the report normals? That is how `docs/architecture.md` handles long-term data today.
