@@ -353,7 +353,7 @@ write    → countries/<ISO3>/data/<id>.json                              commit
 | Check | Runs in | Guards |
 |---|---|---|
 | `tests/anchors.mjs` | `npm test`, CI | The committed score anchors match the datasets |
-| `tests/golden.mjs` | `npm test`, CI | Scores, categories, per-source scores, weights and reasons, ranks and values for Argentina and Bolivia, every source mode, against a snapshot. Every migration step kept it identical; the two intended score changes (Numbeo, anchors) updated it with their impact in the commit. |
+| `tests/golden.mjs` | `npm test`, CI | Scores, categories, per-source scores, weights and reasons, ranks and values for Argentina, Bolivia and France, every source mode, plus searched places (inside a region and outside every region) resolved as the report and compare view resolve them, against a snapshot. Every migration step kept it identical; the two intended score changes (Numbeo, anchors) updated it with their impact in the commit. |
 | `provider.test.mjs` per provider | `npm test`, `country:check` | Each source's parsing and mapping rules, on fixtures |
 | `defineCountry` / `defineProvider` | load time | Manifests and provider definitions |
 | `country:check` | by developers and reviewers | A country folder as a whole |

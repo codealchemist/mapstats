@@ -301,3 +301,15 @@ export function adHocEntity({ place, provinceId, provinceName, provinceEntity, c
   e.compare = { combined: scoreValues(values, weights, 'combined', e.inherited, ctx), weighted: scoreValues(values, weights, 'weighted', e.inherited, ctx) }
   return e
 }
+
+/**
+ * The place behind a selection (the report's or a compare slot's), against the current model so weights, source mode
+ * and standards apply: { type: 'city' | 'province', id }, or { type: 'adhoc', input } for a searched place, scored here.
+ */
+export function resolveSelection(sel, { model, country, weights, sourceMode, standards }) {
+  if (sel?.type === 'adhoc') {
+    const provinceEntity = model?.provinces.find((p) => p.id === sel.input.provinceId)
+    return adHocEntity({ ...sel.input, provinceEntity, country, weights, sourceMode, standards, dist: model?.dist })
+  }
+  return (sel && model && (sel.type === 'city' ? model.cities : model.provinces).find((e) => e.id === sel.id)) || null
+}

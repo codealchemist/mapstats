@@ -15,7 +15,7 @@ import { DEFAULT_STANDARDS, STANDARDS } from './data/standards.js'
 import { familyOf, scoringFamiliesFor, isMultiSource } from './core/providers.js'
 import { useCountryData } from './hooks/useCountryData.js'
 import { useLiveData } from './hooks/useLiveData.js'
-import { adHocEntity, buildEntities, ownValue, resolveCountry } from './lib/scoring.js'
+import { buildEntities, ownValue, resolveCountry, resolveSelection } from './lib/scoring.js'
 import { colorAt, scaleFor } from './lib/colors.js'
 import { renderSurface, surfaceSamples, surfaceVarById } from './lib/surface.js'
 import { livePoints } from './lib/scoring.js'
@@ -86,11 +86,10 @@ export default function App() {
   )
 
   // Ad-hoc (searched) places are rescored when weights change.
-  const adHoc = useMemo(() => {
-    if (selected?.type !== 'adhoc') return null
-    const provinceEntity = model?.provinces.find((p) => p.id === selected.input.provinceId)
-    return adHocEntity({ ...selected.input, provinceEntity, country, weights, sourceMode, standards, dist: model?.dist })
-  }, [selected, model, country, weights, sourceMode, standards])
+  const adHoc = useMemo(
+    () => (selected?.type === 'adhoc' ? resolveSelection(selected, { model, country, weights, sourceMode, standards }) : null),
+    [selected, model, country, weights, sourceMode, standards],
+  )
 
   const adHocPoint = useMemo(() => adHoc && { lat: adHoc.lat, lon: adHoc.lon }, [adHoc?.lat, adHoc?.lon]) // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -190,14 +189,10 @@ export default function App() {
   }, [model])
 
   // Resolve compare selections against the current model (so weights / source mode apply).
-  const compareEntities = useMemo(() => compare.map((sel) => {
-    if (!sel || !model) return null
-    if (sel.type === 'adhoc') {
-      const provinceEntity = model.provinces.find((p) => p.id === sel.input.provinceId)
-      return adHocEntity({ ...sel.input, provinceEntity, weights, sourceMode, standards, dist: model.dist })
-    }
-    return (sel.type === 'city' ? model.cities : model.provinces).find((e) => e.id === sel.id) || null
-  }), [compare, model, weights, sourceMode, standards])
+  const compareEntities = useMemo(
+    () => compare.map((sel) => (model ? resolveSelection(sel, { model, country, weights, sourceMode, standards }) : null)),
+    [compare, model, country, weights, sourceMode, standards],
+  )
 
   const addToCompare = useCallback((sel, slot) => {
     if (!sel) return
