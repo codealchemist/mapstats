@@ -1,7 +1,7 @@
 // INDEC tables (sheets as rows of cells, from readWorkbook) → values per province (ISO 3166-2). Pure: no I/O, so
 // the offline test runs the same rules on a few rows. Every reader finds its columns by header text, not position,
 // and fails when a province is missing rather than leaving a gap.
-import { fold, num } from '#sdk'
+import { fold, num, stats } from '#sdk'
 
 const clean = (s) => fold(String(s ?? '').replace(/\(\d+\)/g, ''))
 
@@ -137,11 +137,8 @@ export function poverty(incidence, population) {
   return values
 }
 
-// Births per girl in Argentina's vital statistics (about 105 boys per 100 girls): weights the men's and women's life
-// expectancy into one for both sexes, which INDEC's projections don't publish.
-const BOYS_PER_GIRL = 1.05
-
-/** INDEC projections, "Cuadro 3": life expectancy at birth per province in `year`, both sexes. */
+/** INDEC projections, "Cuadro 3": life expectancy at birth per province in `year`, both sexes (INDEC publishes men's
+ *  and women's: stats.lifeExpBothSexes weights them by births). */
 export function lifeExpectancy(rows, { province, regionIds, year }) {
   const sexRow = rows.findIndex((r) => r.some((h) => clean(h) === 'varones'))
   const men = rows[sexRow].findIndex((h) => clean(h) === 'varones'), women = rows[sexRow].findIndex((h) => clean(h) === 'mujeres')
@@ -150,7 +147,7 @@ export function lifeExpectancy(rows, { province, regionIds, year }) {
   const m = col(men, women), w = col(women, -1)
   if (m < 0 || w < 0) throw new Error(`life expectancy: no ${year} column`)
   const byIso = provinceRows(rows, sexRow + 2, province)
-  return complete(Object.fromEntries(Object.entries(byIso).map(([iso, r]) => [iso, Math.round(((BOYS_PER_GIRL * r[m] + r[w]) / (1 + BOYS_PER_GIRL)) * 10) / 10])), regionIds, 'life expectancy')
+  return complete(Object.fromEntries(Object.entries(byIso).map(([iso, r]) => [iso, stats.lifeExpBothSexes({ men: r[m], women: r[w] })])), regionIds, 'life expectancy')
 }
 
 /** INDEC projections, one sheet per province named "<INDEC code>-<NAME>": population at 1 July of `year`. */

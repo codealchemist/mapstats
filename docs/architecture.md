@@ -314,7 +314,7 @@ Node only, used by prefills and tests.
 | `http` | `rawStore(iso3, id)`: `fetchOnce(url)` downloads each file once into the provider's `raw/` folder, honours robots.txt, identifies MapStats, spaces requests (5 s), stops at the first 403/429, and records URL, date and SHA-256 in `manifest.json`. `add(name, { note })` registers a file downloaded by hand. `read`, `list`. |
 | `parse` | `parseCsv` (quoted fields, delimiter detection, BOM), `readXlsx` (streamed, for 100 MB+ workbooks; `.xls` too), `readWorkbook` (every sheet as rows of cells, for statistics tables; SheetJS), `readPdf` (a PDF's text as pages of lines of cells; pdf.js), `loadHtml` (cheerio), `num` (decimal commas, blanks and dashes → `null`) |
 | `places` | `fold`, `matcher(entries, { strip })` that reports unmatched names instead of guessing, `featureAt(lat, lon, featureCollection)` |
-| `stats` | `round`, `per100k`, `share`, `meanOfLast` |
+| `stats` | `round`, `per100k`, `share`, `meanOfLast`, `lifeExpBothSexes` (men's and women's life expectancy weighted by births) |
 | `dataset` | `checkDataset` (schema, ids, providers, domains, coverage), `writeDataset` |
 | `test` | `check`, `section`, `fixture`, `done` |
 

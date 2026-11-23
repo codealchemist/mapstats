@@ -16,7 +16,7 @@ const life = lifeExpectancy({ observations: [
   obs('2025-DEP-48', { TIME_PERIOD: '2024', SEX: 'F' }, 84, { OBS_STATUS_FR: 'PROV' }),
   obs('2025-DEP-13', { TIME_PERIOD: '2025', SEX: 'M' }, 81), obs('2025-DEP-13', { TIME_PERIOD: '2024', SEX: 'F' }, 85.7), obs('2025-DEP-13', { TIME_PERIOD: '2024', SEX: 'M' }, 80.3),
 ] })
-check('life expectancy: the latest year both sexes are published, and their mean', life.region['FR-48'].year === 2025 && life.region['FR-48'].lifeExp === 82.7 && life.region['FR-13'].year === 2024 && life.region['FR-13'].lifeExp === 83 && life.status[2025] === 'PROV')
+check('life expectancy: the latest year both sexes are published, weighted 105 boys : 100 girls', life.region['FR-48'].year === 2025 && life.region['FR-48'].lifeExp === 82.7 && life.region['FR-13'].year === 2024 && life.region['FR-13'].lifeExp === 82.9 && life.status[2025] === 'PROV')
 
 const com = commuting({ observations: [obs('2026-DEP-974', { TIME_PERIOD: '2023', TRANS: '_T' }, 297250.7), obs('2026-DEP-974', { TIME_PERIOD: '2023', TRANS: '6' }, 14862.5), obs('2026-COM-06088', { TIME_PERIOD: '2023', TRANS: '_T' }, 100000)] })
 check('commuting: public-transport share of commuters, 1 decimal; a commune without the mode is left out', com.region['FR-RE'].transitCommute === 5 && com.region['FR-RE'].workers === 297251 && !com.subregion['06088'] && com.year === 2023)

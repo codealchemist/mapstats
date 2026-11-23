@@ -10,7 +10,7 @@
   "povertyRelative": "FRA/insee-filosofi",
   "transitCommute": "FRA/insee-census"
  },
- "generatedAt": "2026-10-22T20:59:46.791Z",
+ "generatedAt": "2026-11-23T09:17:50.887Z",
  "period": {
   "latest": 2025,
   "population": 2023,
@@ -47,7 +47,7 @@
     "url": "https://api.insee.fr/melodi/data/DS_DECES_MORTALITE_SERIES?GEO=DEP-10&GEO=DEP-11&GEO=DEP-12&GEO=DEP-13&GEO=DEP-14&GEO=DEP-15&GEO=DEP-16&GEO=DEP-17&GEO=DEP-18&GEO=DEP-19&GEO=DEP-21&GEO=DEP-22&GEO=DEP-23&GEO=DEP-24&GEO=DEP-25&GEO=DEP-26&GEO=DEP-27&GEO=DEP-28&GEO=DEP-29&GEO=DEP-30&GEO=DEP-31&GEO=DEP-32&GEO=DEP-33&GEO=DEP-34&GEO=DEP-35&GEO=DEP-36&GEO=DEP-37&GEO=DEP-38&GEO=DEP-39&GEO=DEP-40&GEO=DEP-41&GEO=DEP-42&GEO=DEP-43&GEO=DEP-44&GEO=DEP-45&GEO=DEP-46&GEO=DEP-47&GEO=DEP-48&GEO=DEP-49&GEO=DEP-50&GEO=DEP-51&GEO=DEP-52&GEO=DEP-53&GEO=DEP-54&GEO=DEP-55&GEO=DEP-56&GEO=DEP-57&GEO=DEP-58&GEO=DEP-59&GEO=DEP-60&GEO=DEP-61&GEO=DEP-62&GEO=DEP-63&GEO=DEP-64&GEO=DEP-65&GEO=DEP-66&GEO=DEP-67&GEO=DEP-68&GEO=DEP-69&GEO=DEP-70&GEO=DEP-71&GEO=DEP-72&GEO=DEP-73&GEO=DEP-74&GEO=DEP-75&GEO=DEP-76&GEO=DEP-77&GEO=DEP-78&GEO=DEP-79&GEO=DEP-80&GEO=DEP-81&GEO=DEP-82&GEO=DEP-83&GEO=DEP-84&GEO=DEP-85&GEO=DEP-86&GEO=DEP-87&GEO=DEP-88&GEO=DEP-89&GEO=DEP-90&GEO=DEP-91&GEO=DEP-92&GEO=DEP-93&GEO=DEP-94&GEO=DEP-95&GEO=DEP-971&GEO=DEP-972&GEO=DEP-973&GEO=DEP-974&GEO=DEP-976&GEO=DEP-01&GEO=DEP-02&GEO=DEP-03&GEO=DEP-04&GEO=DEP-05&GEO=DEP-06&GEO=DEP-07&GEO=DEP-08&GEO=DEP-09&GEO=DEP-2A&GEO=DEP-2B&EC_MEASURE=LEXPEC&AGE=Y0&SEX=F&SEX=M&TIME_PERIOD=2015&TIME_PERIOD=2016&TIME_PERIOD=2017&TIME_PERIOD=2018&TIME_PERIOD=2019&TIME_PERIOD=2020&TIME_PERIOD=2021&TIME_PERIOD=2022&TIME_PERIOD=2023&TIME_PERIOD=2024&TIME_PERIOD=2025&maxResult=5000",
     "sha256": "2fa6bcad56eeaeebf4b3bd71958464fcb6f62bbfd0bbf28af31f0a3ba34d0325",
     "retrievedAt": "2026-10-06",
-    "note": "lifeExp: mean of the published women's and men's life expectancy at birth, 2025 (provisional)"
+    "note": "lifeExp: the published women's and men's life expectancy at birth, both sexes weighted 105 boys : 100 girls, 2025 (provisional)"
    },
    {
     "name": "commuting.json",
@@ -78,7 +78,7 @@
    "FR-10": {
     "pop": 310447,
     "unemployment": 9.4,
-    "lifeExp": 81.6,
+    "lifeExp": 81.5,
     "lifeExpWomen": 84.2,
     "lifeExpMen": 78.9,
     "povertyRelative": 18.1,
@@ -87,7 +87,7 @@
    "FR-11": {
     "pop": 379648,
     "unemployment": 10.5,
-    "lifeExp": 81.4,
+    "lifeExp": 81.3,
     "lifeExpWomen": 84.4,
     "lifeExpMen": 78.3,
     "povertyRelative": 21.2,
@@ -96,7 +96,7 @@
    "FR-12": {
     "pop": 279609,
     "unemployment": 5.6,
-    "lifeExp": 82.6,
+    "lifeExp": 82.5,
     "lifeExpWomen": 85.1,
     "lifeExpMen": 80,
     "povertyRelative": 14.5,
@@ -105,7 +105,7 @@
    "FR-13": {
     "pop": 2087658,
     "unemployment": 8.8,
-    "lifeExp": 83.5,
+    "lifeExp": 83.4,
     "lifeExpWomen": 86,
     "lifeExpMen": 81,
     "povertyRelative": 20.3,
@@ -114,7 +114,7 @@
    "FR-14": {
     "pop": 709441,
     "unemployment": 6.9,
-    "lifeExp": 82.2,
+    "lifeExp": 82.1,
     "lifeExpWomen": 85.5,
     "lifeExpMen": 78.9,
     "povertyRelative": 13.5,
@@ -123,7 +123,7 @@
    "FR-15": {
     "pop": 144196,
     "unemployment": 4.5,
-    "lifeExp": 82.3,
+    "lifeExp": 82.2,
     "lifeExpWomen": 84.4,
     "lifeExpMen": 80.2,
     "povertyRelative": 13.7,
@@ -132,7 +132,7 @@
    "FR-16": {
     "pop": 352683,
     "unemployment": 7.7,
-    "lifeExp": 82.4,
+    "lifeExp": 82.3,
     "lifeExpWomen": 85.7,
     "lifeExpMen": 79,
     "povertyRelative": 15.4,
@@ -141,7 +141,7 @@
    "FR-17": {
     "pop": 672279,
     "unemployment": 7.1,
-    "lifeExp": 82.6,
+    "lifeExp": 82.5,
     "lifeExpWomen": 85.5,
     "lifeExpMen": 79.6,
     "povertyRelative": 13.1,
@@ -150,7 +150,7 @@
    "FR-18": {
     "pop": 298660,
     "unemployment": 7.3,
-    "lifeExp": 81.2,
+    "lifeExp": 81.1,
     "lifeExpWomen": 84,
     "lifeExpMen": 78.4,
     "povertyRelative": 15.9,
@@ -159,7 +159,7 @@
    "FR-19": {
     "pop": 240826,
     "unemployment": 6,
-    "lifeExp": 82.9,
+    "lifeExp": 82.8,
     "lifeExpWomen": 85.6,
     "lifeExpMen": 80.2,
     "povertyRelative": 14.4,
@@ -168,7 +168,7 @@
    "FR-21": {
     "pop": 540100,
     "unemployment": 6,
-    "lifeExp": 83.3,
+    "lifeExp": 83.2,
     "lifeExpWomen": 86.1,
     "lifeExpMen": 80.4,
     "povertyRelative": 13,
@@ -177,7 +177,7 @@
    "FR-22": {
     "pop": 611859,
     "unemployment": 6.3,
-    "lifeExp": 81.7,
+    "lifeExp": 81.6,
     "lifeExpWomen": 84.8,
     "lifeExpMen": 78.5,
     "povertyRelative": 12.2,
@@ -186,7 +186,7 @@
    "FR-23": {
     "pop": 115527,
     "unemployment": 6.9,
-    "lifeExp": 81.1,
+    "lifeExp": 81,
     "lifeExpWomen": 84.6,
     "lifeExpMen": 77.5,
     "povertyRelative": 19.5,
@@ -195,7 +195,7 @@
    "FR-24": {
     "pop": 417614,
     "unemployment": 7.3,
-    "lifeExp": 82.4,
+    "lifeExp": 82.3,
     "lifeExpWomen": 85.2,
     "lifeExpMen": 79.6,
     "povertyRelative": 17.1,
@@ -204,7 +204,7 @@
    "FR-25": {
     "pop": 547163,
     "unemployment": 7.5,
-    "lifeExp": 82.6,
+    "lifeExp": 82.5,
     "lifeExpWomen": 85.7,
     "lifeExpMen": 79.4,
     "povertyRelative": 13.4,
@@ -213,7 +213,7 @@
    "FR-26": {
     "pop": 524207,
     "unemployment": 7.9,
-    "lifeExp": 83.2,
+    "lifeExp": 83.1,
     "lifeExpWomen": 85.7,
     "lifeExpMen": 80.6,
     "povertyRelative": 16,
@@ -222,7 +222,7 @@
    "FR-27": {
     "pop": 602714,
     "unemployment": 7.2,
-    "lifeExp": 81.7,
+    "lifeExp": 81.6,
     "lifeExpWomen": 84.7,
     "lifeExpMen": 78.7,
     "povertyRelative": 13.8,
@@ -231,7 +231,7 @@
    "FR-28": {
     "pop": 433129,
     "unemployment": 7,
-    "lifeExp": 82.3,
+    "lifeExp": 82.2,
     "lifeExpWomen": 84.7,
     "lifeExpMen": 79.8,
     "povertyRelative": 13.3,
@@ -240,7 +240,7 @@
    "FR-29": {
     "pop": 933455,
     "unemployment": 6.5,
-    "lifeExp": 81.9,
+    "lifeExp": 81.8,
     "lifeExpWomen": 84.8,
     "lifeExpMen": 79,
     "povertyRelative": 11.4,
@@ -249,7 +249,7 @@
    "FR-30": {
     "pop": 770940,
     "unemployment": 10,
-    "lifeExp": 83.2,
+    "lifeExp": 83.1,
     "lifeExpWomen": 85.7,
     "lifeExpMen": 80.6,
     "povertyRelative": 21,
@@ -258,7 +258,7 @@
    "FR-31": {
     "pop": 1471468,
     "unemployment": 8.3,
-    "lifeExp": 84.3,
+    "lifeExp": 84.2,
     "lifeExpWomen": 86.4,
     "lifeExpMen": 82.1,
     "povertyRelative": 15.9,
@@ -267,7 +267,7 @@
    "FR-32": {
     "pop": 192645,
     "unemployment": 5.9,
-    "lifeExp": 83.2,
+    "lifeExp": 83.1,
     "lifeExpWomen": 85.5,
     "lifeExpMen": 80.8,
     "povertyRelative": 15.6,
@@ -276,7 +276,7 @@
    "FR-33": {
     "pop": 1690493,
     "unemployment": 7.3,
-    "lifeExp": 83.9,
+    "lifeExp": 83.8,
     "lifeExpWomen": 86.4,
     "lifeExpMen": 81.3,
     "povertyRelative": 14.2,
@@ -294,7 +294,7 @@
    "FR-35": {
     "pop": 1120666,
     "unemployment": 6.2,
-    "lifeExp": 83.5,
+    "lifeExp": 83.4,
     "lifeExpWomen": 86,
     "lifeExpMen": 80.9,
     "povertyRelative": 11.7,
@@ -303,7 +303,7 @@
    "FR-36": {
     "pop": 216069,
     "unemployment": 7,
-    "lifeExp": 80.5,
+    "lifeExp": 80.4,
     "lifeExpWomen": 84,
     "lifeExpMen": 76.9,
     "povertyRelative": 15.8,
@@ -312,7 +312,7 @@
    "FR-37": {
     "pop": 619362,
     "unemployment": 6.9,
-    "lifeExp": 83.6,
+    "lifeExp": 83.5,
     "lifeExpWomen": 86.1,
     "lifeExpMen": 81,
     "povertyRelative": 14.1,
@@ -321,7 +321,7 @@
    "FR-38": {
     "pop": 1298990,
     "unemployment": 6.2,
-    "lifeExp": 84.2,
+    "lifeExp": 84.1,
     "lifeExpWomen": 86.8,
     "lifeExpMen": 81.6,
     "povertyRelative": 13,
@@ -330,7 +330,7 @@
    "FR-39": {
     "pop": 257973,
     "unemployment": 5.6,
-    "lifeExp": 82,
+    "lifeExp": 81.9,
     "lifeExpWomen": 85.1,
     "lifeExpMen": 78.9,
     "povertyRelative": 12.3,
@@ -339,7 +339,7 @@
    "FR-40": {
     "pop": 433570,
     "unemployment": 6.8,
-    "lifeExp": 82.9,
+    "lifeExp": 82.8,
     "lifeExpWomen": 85.5,
     "lifeExpMen": 80.3,
     "povertyRelative": 12.1,
@@ -348,7 +348,7 @@
    "FR-41": {
     "pop": 328543,
     "unemployment": 6.4,
-    "lifeExp": 82.9,
+    "lifeExp": 82.8,
     "lifeExpWomen": 85.2,
     "lifeExpMen": 80.5,
     "povertyRelative": 14,
@@ -357,7 +357,7 @@
    "FR-42": {
     "pop": 774133,
     "unemployment": 7.8,
-    "lifeExp": 83.2,
+    "lifeExp": 83.1,
     "lifeExpWomen": 85.6,
     "lifeExpMen": 80.8,
     "povertyRelative": 16.8,
@@ -366,7 +366,7 @@
    "FR-43": {
     "pop": 228654,
     "unemployment": 5.6,
-    "lifeExp": 82.9,
+    "lifeExp": 82.8,
     "lifeExpWomen": 85.7,
     "lifeExpMen": 80,
     "povertyRelative": 12.4,
@@ -375,7 +375,7 @@
    "FR-44": {
     "pop": 1487570,
     "unemployment": 6,
-    "lifeExp": 83.3,
+    "lifeExp": 83.2,
     "lifeExpWomen": 86.2,
     "lifeExpMen": 80.3,
     "povertyRelative": 11.5,
@@ -384,7 +384,7 @@
    "FR-45": {
     "pop": 691268,
     "unemployment": 7.6,
-    "lifeExp": 82.9,
+    "lifeExp": 82.8,
     "lifeExpWomen": 85.4,
     "lifeExpMen": 80.3,
     "povertyRelative": 15,
@@ -393,7 +393,7 @@
    "FR-46": {
     "pop": 176473,
     "unemployment": 7.3,
-    "lifeExp": 82.8,
+    "lifeExp": 82.7,
     "lifeExpWomen": 85.1,
     "lifeExpMen": 80.5,
     "povertyRelative": 15.8,
@@ -402,7 +402,7 @@
    "FR-47": {
     "pop": 333602,
     "unemployment": 7.7,
-    "lifeExp": 82.7,
+    "lifeExp": 82.6,
     "lifeExpWomen": 85.3,
     "lifeExpMen": 80.1,
     "povertyRelative": 18.5,
@@ -420,7 +420,7 @@
    "FR-49": {
     "pop": 833776,
     "unemployment": 6.7,
-    "lifeExp": 83.8,
+    "lifeExp": 83.7,
     "lifeExpWomen": 86.4,
     "lifeExpMen": 81.1,
     "povertyRelative": 11.8,
@@ -429,7 +429,7 @@
    "FR-50": {
     "pop": 497522,
     "unemployment": 5.4,
-    "lifeExp": 82.3,
+    "lifeExp": 82.2,
     "lifeExpWomen": 85.5,
     "lifeExpMen": 79,
     "povertyRelative": 12,
@@ -438,7 +438,7 @@
    "FR-51": {
     "pop": 563076,
     "unemployment": 7.3,
-    "lifeExp": 82.2,
+    "lifeExp": 82.1,
     "lifeExpWomen": 84.9,
     "lifeExpMen": 79.4,
     "povertyRelative": 15.8,
@@ -447,7 +447,7 @@
    "FR-52": {
     "pop": 168331,
     "unemployment": 6.7,
-    "lifeExp": 80.7,
+    "lifeExp": 80.6,
     "lifeExpWomen": 84.1,
     "lifeExpMen": 77.3,
     "povertyRelative": 16,
@@ -456,7 +456,7 @@
    "FR-53": {
     "pop": 305468,
     "unemployment": 5.5,
-    "lifeExp": 83.6,
+    "lifeExp": 83.5,
     "lifeExpWomen": 86.5,
     "lifeExpMen": 80.6,
     "povertyRelative": 11.6,
@@ -465,7 +465,7 @@
    "FR-54": {
     "pop": 732236,
     "unemployment": 6.9,
-    "lifeExp": 82,
+    "lifeExp": 81.9,
     "lifeExpWomen": 84.7,
     "lifeExpMen": 79.2,
     "povertyRelative": 16.1,
@@ -474,7 +474,7 @@
    "FR-55": {
     "pop": 180290,
     "unemployment": 7.2,
-    "lifeExp": 81.6,
+    "lifeExp": 81.5,
     "lifeExpWomen": 85.2,
     "lifeExpMen": 77.9,
     "povertyRelative": 15,
@@ -483,7 +483,7 @@
    "FR-56": {
     "pop": 783390,
     "unemployment": 5.9,
-    "lifeExp": 82.3,
+    "lifeExp": 82.2,
     "lifeExpWomen": 85.4,
     "lifeExpMen": 79.2,
     "povertyRelative": 11.3,
@@ -492,7 +492,7 @@
    "FR-57": {
     "pop": 1051309,
     "unemployment": 7.2,
-    "lifeExp": 81.4,
+    "lifeExp": 81.3,
     "lifeExpWomen": 83.6,
     "lifeExpMen": 79.1,
     "povertyRelative": 16.6,
@@ -501,7 +501,7 @@
    "FR-58": {
     "pop": 201417,
     "unemployment": 7,
-    "lifeExp": 80.5,
+    "lifeExp": 80.4,
     "lifeExpWomen": 84.1,
     "lifeExpMen": 76.9,
     "povertyRelative": 17.3,
@@ -510,7 +510,7 @@
    "FR-59": {
     "pop": 2615635,
     "unemployment": 10,
-    "lifeExp": 81.7,
+    "lifeExp": 81.6,
     "lifeExpWomen": 84.5,
     "lifeExpMen": 78.8,
     "povertyRelative": 20.7,
@@ -519,7 +519,7 @@
    "FR-60": {
     "pop": 829899,
     "unemployment": 7.7,
-    "lifeExp": 82.1,
+    "lifeExp": 82,
     "lifeExpWomen": 84.5,
     "lifeExpMen": 79.6,
     "povertyRelative": 14.5,
@@ -528,7 +528,7 @@
    "FR-61": {
     "pop": 275201,
     "unemployment": 7.3,
-    "lifeExp": 82.1,
+    "lifeExp": 82,
     "lifeExpWomen": 84.6,
     "lifeExpMen": 79.6,
     "povertyRelative": 16.3,
@@ -537,7 +537,7 @@
    "FR-62": {
     "pop": 1457905,
     "unemployment": 8.7,
-    "lifeExp": 80.5,
+    "lifeExp": 80.4,
     "lifeExpWomen": 83.5,
     "lifeExpMen": 77.5,
     "povertyRelative": 19.1,
@@ -546,7 +546,7 @@
    "FR-63": {
     "pop": 664453,
     "unemployment": 6.7,
-    "lifeExp": 82.7,
+    "lifeExp": 82.6,
     "lifeExpWomen": 85.6,
     "lifeExpMen": 79.8,
     "povertyRelative": 14.8,
@@ -555,7 +555,7 @@
    "FR-64": {
     "pop": 706564,
     "unemployment": 5.9,
-    "lifeExp": 83.9,
+    "lifeExp": 83.8,
     "lifeExpWomen": 86.4,
     "lifeExpMen": 81.3,
     "povertyRelative": 13.3,
@@ -564,7 +564,7 @@
    "FR-65": {
     "pop": 231349,
     "unemployment": 7.7,
-    "lifeExp": 82.9,
+    "lifeExp": 82.8,
     "lifeExpWomen": 85.3,
     "lifeExpMen": 80.5,
     "povertyRelative": 16.6,
@@ -573,7 +573,7 @@
    "FR-66": {
     "pop": 496855,
     "unemployment": 12.2,
-    "lifeExp": 82.2,
+    "lifeExp": 82.1,
     "lifeExpWomen": 85.5,
     "lifeExpMen": 78.9,
     "povertyRelative": 22.4,
@@ -582,7 +582,7 @@
    "FR-67": {
     "pop": 1163810,
     "unemployment": 6.6,
-    "lifeExp": 82.7,
+    "lifeExp": 82.6,
     "lifeExpWomen": 85,
     "lifeExpMen": 80.3,
     "povertyRelative": 15,
@@ -591,7 +591,7 @@
    "FR-68": {
     "pop": 770738,
     "unemployment": 7.2,
-    "lifeExp": 83,
+    "lifeExp": 82.9,
     "lifeExpWomen": 85.5,
     "lifeExpMen": 80.5,
     "povertyRelative": 14.1,
@@ -600,7 +600,7 @@
    "FR-69": {
     "pop": 1914667,
     "unemployment": 7,
-    "lifeExp": 84.5,
+    "lifeExp": 84.4,
     "lifeExpWomen": 87.1,
     "lifeExpMen": 81.9,
     "povertyRelative": 16.3,
@@ -609,7 +609,7 @@
    "FR-70": {
     "pop": 233185,
     "unemployment": 6.9,
-    "lifeExp": 81.7,
+    "lifeExp": 81.6,
     "lifeExpWomen": 84.7,
     "lifeExpMen": 78.6,
     "povertyRelative": 13.8,
@@ -618,7 +618,7 @@
    "FR-71": {
     "pop": 550310,
     "unemployment": 6.8,
-    "lifeExp": 82.2,
+    "lifeExp": 82.1,
     "lifeExpWomen": 85.5,
     "lifeExpMen": 78.9,
     "povertyRelative": 14.1,
@@ -627,7 +627,7 @@
    "FR-72": {
     "pop": 566733,
     "unemployment": 7.5,
-    "lifeExp": 82.9,
+    "lifeExp": 82.8,
     "lifeExpWomen": 85.9,
     "lifeExpMen": 79.9,
     "povertyRelative": 14.1,
@@ -636,7 +636,7 @@
    "FR-73": {
     "pop": 448226,
     "unemployment": 5.6,
-    "lifeExp": 83.9,
+    "lifeExp": 83.8,
     "lifeExpWomen": 86.6,
     "lifeExpMen": 81.2,
     "povertyRelative": 11.1,
@@ -645,7 +645,7 @@
    "FR-74": {
     "pop": 861158,
     "unemployment": 5.7,
-    "lifeExp": 84.2,
+    "lifeExp": 84.1,
     "lifeExpWomen": 86.6,
     "lifeExpMen": 81.8,
     "povertyRelative": 10.2,
@@ -654,7 +654,7 @@
    "FR-75": {
     "pop": 2103778,
     "unemployment": 6,
-    "lifeExp": 84.8,
+    "lifeExp": 84.7,
     "lifeExpWomen": 87.1,
     "lifeExpMen": 82.4,
     "povertyRelative": 16.8,
@@ -663,7 +663,7 @@
    "FR-76": {
     "pop": 1260964,
     "unemployment": 8.4,
-    "lifeExp": 81.7,
+    "lifeExp": 81.6,
     "lifeExpWomen": 84.7,
     "lifeExpMen": 78.7,
     "povertyRelative": 16.6,
@@ -672,7 +672,7 @@
    "FR-77": {
     "pop": 1468108,
     "unemployment": 7.2,
-    "lifeExp": 83.2,
+    "lifeExp": 83.1,
     "lifeExpWomen": 85.4,
     "lifeExpMen": 81,
     "povertyRelative": 13.6,
@@ -681,7 +681,7 @@
    "FR-78": {
     "pop": 1485086,
     "unemployment": 7,
-    "lifeExp": 84.6,
+    "lifeExp": 84.5,
     "lifeExpWomen": 86.8,
     "lifeExpMen": 82.3,
     "povertyRelative": 11.6,
@@ -690,7 +690,7 @@
    "FR-79": {
     "pop": 375229,
     "unemployment": 5.7,
-    "lifeExp": 82.4,
+    "lifeExp": 82.3,
     "lifeExpWomen": 85.3,
     "lifeExpMen": 79.4,
     "povertyRelative": 12.7,
@@ -699,7 +699,7 @@
    "FR-80": {
     "pop": 565413,
     "unemployment": 8.5,
-    "lifeExp": 81.2,
+    "lifeExp": 81.1,
     "lifeExpWomen": 84,
     "lifeExpMen": 78.3,
     "povertyRelative": 17.3,
@@ -708,7 +708,7 @@
    "FR-81": {
     "pop": 397352,
     "unemployment": 8.2,
-    "lifeExp": 84.1,
+    "lifeExp": 84,
     "lifeExpWomen": 86.5,
     "lifeExpMen": 81.6,
     "povertyRelative": 16.4,
@@ -717,7 +717,7 @@
    "FR-82": {
     "pop": 265817,
     "unemployment": 8.9,
-    "lifeExp": 82.7,
+    "lifeExp": 82.6,
     "lifeExpWomen": 86.1,
     "lifeExpMen": 79.3,
     "povertyRelative": 17,
@@ -726,7 +726,7 @@
    "FR-83": {
     "pop": 1119307,
     "unemployment": 7.4,
-    "lifeExp": 83.2,
+    "lifeExp": 83.1,
     "lifeExpWomen": 86,
     "lifeExpMen": 80.3,
     "povertyRelative": 16.8,
@@ -735,7 +735,7 @@
    "FR-84": {
     "pop": 572056,
     "unemployment": 10,
-    "lifeExp": 83,
+    "lifeExp": 82.9,
     "lifeExpWomen": 85.7,
     "lifeExpMen": 80.3,
     "povertyRelative": 21.4,
@@ -744,7 +744,7 @@
    "FR-85": {
     "pop": 713609,
     "unemployment": 5.6,
-    "lifeExp": 82.9,
+    "lifeExp": 82.8,
     "lifeExpWomen": 85.5,
     "lifeExpMen": 80.2,
     "povertyRelative": 9.2,
@@ -753,7 +753,7 @@
    "FR-86": {
     "pop": 438897,
     "unemployment": 6.7,
-    "lifeExp": 82.8,
+    "lifeExp": 82.7,
     "lifeExpWomen": 85.8,
     "lifeExpMen": 79.8,
     "povertyRelative": 15.5,
@@ -762,7 +762,7 @@
    "FR-87": {
     "pop": 373167,
     "unemployment": 7.1,
-    "lifeExp": 82.1,
+    "lifeExp": 82,
     "lifeExpWomen": 84.4,
     "lifeExpMen": 79.8,
     "povertyRelative": 17.1,
@@ -771,7 +771,7 @@
    "FR-88": {
     "pop": 357248,
     "unemployment": 7.8,
-    "lifeExp": 81.4,
+    "lifeExp": 81.3,
     "lifeExpWomen": 84.2,
     "lifeExpMen": 78.6,
     "povertyRelative": 15.8,
@@ -780,7 +780,7 @@
    "FR-89": {
     "pop": 332267,
     "unemployment": 7.6,
-    "lifeExp": 81.2,
+    "lifeExp": 81.1,
     "lifeExpWomen": 84.2,
     "lifeExpMen": 78.1,
     "povertyRelative": 16,
@@ -789,7 +789,7 @@
    "FR-90": {
     "pop": 140255,
     "unemployment": 9.4,
-    "lifeExp": 82.2,
+    "lifeExp": 82.1,
     "lifeExpWomen": 85,
     "lifeExpMen": 79.4,
     "povertyRelative": 17.1,
@@ -798,7 +798,7 @@
    "FR-91": {
     "pop": 1338485,
     "unemployment": 7,
-    "lifeExp": 84.3,
+    "lifeExp": 84.2,
     "lifeExpWomen": 86.4,
     "lifeExpMen": 82.2,
     "povertyRelative": 15.4,
@@ -807,7 +807,7 @@
    "FR-92": {
     "pop": 1654712,
     "unemployment": 6.6,
-    "lifeExp": 85.4,
+    "lifeExp": 85.3,
     "lifeExpWomen": 87.6,
     "lifeExpMen": 83.2,
     "povertyRelative": 13.5,
@@ -816,7 +816,7 @@
    "FR-93": {
     "pop": 1704316,
     "unemployment": 10.7,
-    "lifeExp": 83.4,
+    "lifeExp": 83.3,
     "lifeExpWomen": 85.7,
     "lifeExpMen": 81,
     "povertyRelative": 29.5,
@@ -825,7 +825,7 @@
    "FR-94": {
     "pop": 1426929,
     "unemployment": 7.8,
-    "lifeExp": 84.8,
+    "lifeExp": 84.7,
     "lifeExpWomen": 86.7,
     "lifeExpMen": 82.8,
     "povertyRelative": 18.4,
@@ -834,7 +834,7 @@
    "FR-95": {
     "pop": 1281653,
     "unemployment": 8.5,
-    "lifeExp": 83.5,
+    "lifeExp": 83.4,
     "lifeExpWomen": 85.9,
     "lifeExpMen": 81.1,
     "povertyRelative": 19.4,
@@ -843,7 +843,7 @@
    "FR-GP": {
     "pop": 384160,
     "unemployment": 16.6,
-    "lifeExp": 81.4,
+    "lifeExp": 81.3,
     "lifeExpWomen": 84.7,
     "lifeExpMen": 78.1,
     "povertyRelative": null,
@@ -852,7 +852,7 @@
    "FR-MQ": {
     "pop": 360630,
     "unemployment": 13.4,
-    "lifeExp": 81.3,
+    "lifeExp": 81.2,
     "lifeExpWomen": 85.1,
     "lifeExpMen": 77.5,
     "povertyRelative": null,
@@ -861,7 +861,7 @@
    "FR-GF": {
     "pop": 293996,
     "unemployment": 16.9,
-    "lifeExp": 79.7,
+    "lifeExp": 79.6,
     "lifeExpWomen": 82.2,
     "lifeExpMen": 77.1,
     "povertyRelative": null,
@@ -870,7 +870,7 @@
    "FR-RE": {
     "pop": 889679,
     "unemployment": 16.3,
-    "lifeExp": 81.4,
+    "lifeExp": 81.3,
     "lifeExpWomen": 84.5,
     "lifeExpMen": 78.2,
     "povertyRelative": 36.4,
@@ -888,7 +888,7 @@
    "FR-01": {
     "pop": 679344,
     "unemployment": 5.7,
-    "lifeExp": 84,
+    "lifeExp": 83.9,
     "lifeExpWomen": 85.9,
     "lifeExpMen": 82,
     "povertyRelative": 12.2,
@@ -897,7 +897,7 @@
    "FR-02": {
     "pop": 523342,
     "unemployment": 10.4,
-    "lifeExp": 80.3,
+    "lifeExp": 80.2,
     "lifeExpWomen": 83.2,
     "lifeExpMen": 77.4,
     "povertyRelative": 19.4,
@@ -906,7 +906,7 @@
    "FR-03": {
     "pop": 333298,
     "unemployment": 8,
-    "lifeExp": 81.7,
+    "lifeExp": 81.6,
     "lifeExpWomen": 84.8,
     "lifeExpMen": 78.6,
     "povertyRelative": 16.4,
@@ -915,7 +915,7 @@
    "FR-04": {
     "pop": 168054,
     "unemployment": 8,
-    "lifeExp": 82.8,
+    "lifeExp": 82.7,
     "lifeExpWomen": 85.8,
     "lifeExpMen": 79.7,
     "povertyRelative": 18.6,
@@ -924,7 +924,7 @@
    "FR-05": {
     "pop": 143467,
     "unemployment": 6.4,
-    "lifeExp": 83.4,
+    "lifeExp": 83.3,
     "lifeExpWomen": 86.1,
     "lifeExpMen": 80.7,
     "povertyRelative": 14.3,
@@ -933,7 +933,7 @@
    "FR-06": {
     "pop": 1128418,
     "unemployment": 7,
-    "lifeExp": 83.8,
+    "lifeExp": 83.7,
     "lifeExpWomen": 86.5,
     "lifeExpMen": 81.1,
     "povertyRelative": 17.7,
@@ -942,7 +942,7 @@
    "FR-07": {
     "pop": 334231,
     "unemployment": 7.8,
-    "lifeExp": 82.8,
+    "lifeExp": 82.7,
     "lifeExpWomen": 85.9,
     "lifeExpMen": 79.7,
     "povertyRelative": 15.6,
@@ -951,7 +951,7 @@
    "FR-08": {
     "pop": 265893,
     "unemployment": 9.8,
-    "lifeExp": 81.2,
+    "lifeExp": 81.1,
     "lifeExpWomen": 84.6,
     "lifeExpMen": 77.7,
     "povertyRelative": 19.9,
@@ -960,7 +960,7 @@
    "FR-09": {
     "pop": 155722,
     "unemployment": 9.3,
-    "lifeExp": 82.5,
+    "lifeExp": 82.4,
     "lifeExpWomen": 84.9,
     "lifeExpMen": 80,
     "povertyRelative": 20,
@@ -969,7 +969,7 @@
    "FR-2A": {
     "pop": 168306,
     "unemployment": 6.2,
-    "lifeExp": 84.7,
+    "lifeExp": 84.6,
     "lifeExpWomen": 87.2,
     "lifeExpMen": 82.1,
     "povertyRelative": 17.9,
@@ -978,7 +978,7 @@
    "FR-2B": {
     "pop": 187180,
     "unemployment": 6.8,
-    "lifeExp": 83.4,
+    "lifeExp": 83.3,
     "lifeExpWomen": 85.5,
     "lifeExpMen": 81.2,
     "povertyRelative": 21.8,
@@ -1151,7 +1151,7 @@
    "FRA-paris": {
     "pop": 2103778,
     "unemployment": 6,
-    "lifeExp": 84.8,
+    "lifeExp": 84.7,
     "lifeExpWomen": 87.1,
     "lifeExpMen": 82.4,
     "povertyRelative": 16.8,

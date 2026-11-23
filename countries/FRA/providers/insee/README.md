@@ -15,7 +15,7 @@ A compilation (`data/insee.json` cites a provider per indicator), read from INSE
 ## Definitions vs the MapStats catalogue
 
 - `unemployment`: ILO unemployment rate, annual average. Metropolitan départements have INSEE's localised rates; overseas départements only the Labour Force Survey rate (same concept, different series) and Mayotte none. Argentina's EPH rate is urban-only.
-- `lifeExp`: INSEE publishes département life expectancy for women and men separately. The scored value is their mean (within about 0.2 year of a combined life table); both published values are shown. Argentina weights 105 boys to 100 girls.
+- `lifeExp`: INSEE publishes département life expectancy for women and men separately. The scored value weights them by births, 105 boys to 100 girls, as a combined life table starts and as Argentina's is computed (`stats.lifeExpBothSexes` in the SDK); both published values are shown.
 - `povertyRelative`: share of persons below 60 % of the metropolitan median standard of living. A relative threshold, not comparable with Argentina's basic-basket `poverty`: shown, not scored. Metropolitan France and La Réunion only; the other overseas départements stay `null`.
 - `transitCommute`: employed residents aged 15+ whose main mode of transport to work is public transport, census 2023 (France excluding Mayotte). A measure of use, not of network coverage: context only.
 - `pop`: population at 1 January 2023 (definitive) for départements; municipal populations 2023 for communes (copied into `places.js`).

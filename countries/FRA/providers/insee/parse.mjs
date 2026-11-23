@@ -1,7 +1,7 @@
 // INSEE API answers → département and commune values. Pure: the test runs the readers on inline observations.
 //   Melodi observations: { dimensions: { GEO: '2026-DEP-26', TIME_PERIOD, … }, measures: { OBS_VALUE_NIVEAU: { value } }, attributes }
 //   BDM (SDMX-ML): Series elements with attributes (REF_AREA "D75", IDBANK, TITLE_FR) and Obs children
-import { rawStore, parseXml } from '#sdk'
+import { rawStore, parseXml, stats } from '#sdk'
 import { DEP_TO_MAP, DEPS, fetchJsonOnce, round } from '../../lib/fr.mjs'
 import { CITIES } from '../../places.js'
 
@@ -64,7 +64,7 @@ export function filosofi({ observations }) {
   return out
 }
 
-/** Life expectancy at birth, women and men: the latest year both are published per département, and their mean (1 decimal). */
+/** Life expectancy at birth, women and men: the latest year both are published per département, and both sexes weighted by births. */
 export function lifeExpectancy({ observations }, years = LIFE_YEARS) {
   const bySex = {}, statuses = {}
   for (const o of observations) {
@@ -78,7 +78,7 @@ export function lifeExpectancy({ observations }, years = LIFE_YEARS) {
   for (const [id, s] of Object.entries(bySex)) {
     const year = Math.max(...years.filter((y) => s.F[y] != null && s.M[y] != null), 0) || null
     const women = year ? s.F[year] : null, men = year ? s.M[year] : null
-    out.region[id] = { year, lifeExpWomen: women, lifeExpMen: men, lifeExp: women != null && men != null ? round((women + men) / 2, 1) : null }
+    out.region[id] = { year, lifeExpWomen: women, lifeExpMen: men, lifeExp: stats.lifeExpBothSexes({ men, women }) }
     out.year = Math.max(out.year || 0, year || 0) || null
   }
   return out

@@ -9,7 +9,7 @@
 //
 // Rules:
 //  - Values are stored as published, with the reference period of each series; nothing is recomputed except the
-//    mean of the women's and men's life expectancy and the public-transport share of commuters.
+//    life expectancy of both sexes (the women's and men's, weighted by births) and the public-transport share of commuters.
 //  - Filosofi covers metropolitan France and La Réunion only: the other overseas départements stay null.
 //  - Unemployment: metropolitan départements have localised ILO rates; overseas départements only the survey-based
 //    ILO rate (same concept, different series) and Mayotte none. The series (idbank, title) is kept per département.
@@ -70,7 +70,7 @@ export async function prefill({ log }) {
         { ...files.population.ref, note: `pop: persons at 1 January ${POP_REFERENCE_YEAR} (localised population estimates; ${population.status[POP_REFERENCE_YEAR] || 'definitive'})` },
         { ...files.communes.ref, note: 'municipal populations of the tracked communes (populations légales): places.js' },
         { ...files.filosofi.ref, note: `povertyRelative: % of persons below 60 % of the median standard of living (Filosofi ${pov.year}; metropolitan France and La Réunion)` },
-        { ...files.mortality.ref, note: `lifeExp: mean of the published women's and men's life expectancy at birth, ${life.year}${life.status[life.year] === 'PROV' ? ' (provisional)' : ''}` },
+        { ...files.mortality.ref, note: `lifeExp: the published women's and men's life expectancy at birth, both sexes weighted 105 boys : 100 girls, ${life.year}${life.status[life.year] === 'PROV' ? ' (provisional)' : ''}` },
         { ...files.commuting.ref, note: `transitCommute: employed residents aged 15+ whose main mode of transport to work is public transport, census ${com.year} (France excluding Mayotte)` },
         { ...files.unemployment.ref, note: `unemployment: ILO rate, ${unemp.year} annual average (localised rates; survey-based overseas, none for Mayotte)` },
         { ...files.populations.ref, note: 'reference populations of every commune (weights of the Géorisques prefill)' },

@@ -27,7 +27,7 @@ export default [
   }),
   defineProvider({
     ...insee, id: 'insee-mortality', short: 'INSEE vital statistics', name: 'INSEE – deaths and mortality series', url: 'https://www.insee.fr/fr/statistiques/7765185',
-    covers: 'Life expectancy at birth by département, women and men separately (Melodi DS_DECES_MORTALITE_SERIES); the scored value is their mean',
+    covers: 'Life expectancy at birth by département, women and men separately (Melodi DS_DECES_MORTALITE_SERIES); the scored value weights them by births (105 boys : 100 girls)',
     kind: 'register', levels: ['region'], family: 'insee', provides: ['lifeExp', 'lifeExpWomen', 'lifeExpMen'], cadence: 'Yearly (the last three years provisional)',
   }),
   defineProvider({
