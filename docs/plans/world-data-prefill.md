@@ -16,7 +16,7 @@ Letting any visitor upload results to a shared cache was rejected: Open-Meteo re
 
 Admins prefill the historical data into a shared cache in Netlify Blobs. Visitors only read it.
 
-- **Visitors:** read the shared cache first, then fetch only what's missing with their own quota, as today. They never write to it.
+- **Visitors:** read the shared cache first, and use their own quota, as today, only for what it can't answer: a country not filled yet, or a place added since. They never write to it.
 - **Admins:** use an admin-only page listing what's missing. Each admin claims an item, their browser fetches it with their own quota and uploads it, and the other admins see who is loading what.
 - **Refresh:** historical data is refreshed once a year.
 
@@ -96,7 +96,7 @@ The measurement used synthetic values, which may compress slightly better than r
 - **Per GB (20 credits):** ~87,000 country loads from the cache, against ~1,400 first visits' worth of app code. Cache reads add only ~1–2% to a first visit's bandwidth; app code dominates.
 - **Repeat visits:** download nothing from the cache, because the browser's `localStorage` cache (30 days for climate and UV) answers first.
 - **Web requests:** 2 per country load (climate + UV), so 10,000 country loads ≈ 4 credits.
-- **Function compute:** milliseconds per uncached read. With CDN caching, most reads never invoke the function; CDN responses still count as bandwidth (the small figure above).
+- **Function compute:** milliseconds per uncached read. With CDN caching, most reads never invoke the function; CDN responses still count as bandwidth (the small figure above). During a yearly fill, previous-year answers aren't cached, so each country load in that window invokes it.
 - **Blob operations inside the function:** not priced separately; they draw from the same credit pool and are tiny at these sizes. Netlify doesn't document whether a blob read costs anything beyond the function call; confirm on the usage page after the first fill.
 - **Admin uploads:** ~1.35 MB per year in total.
 
@@ -131,11 +131,11 @@ With the shared cache, each place is fetched **once a year** in total, and visit
 
 ### Storage (Netlify Blobs, store `meteo`)
 
-| Key                            | Content                                                                                                                                                                                                                                                                     |
-| ------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `data/{layer}/{year}/{iso3}`   | `{ layer, year, iso3, updatedAt, points: { "lat,lon": value } }`. `layer` is `climate`, `uv` or `normals` (`year` = last year of the 10-year period). Coordinates are rounded to 3 decimals, as in today's requests. Values have the same shape the browser already stores. |
-| `claims/{layer}/{year}/{iso3}` | `{ admin, startedAt, leaseUntil, filled, expected }`                                                                                                                                                                                                                        |
-| `demand/{layer}/{year}/{iso3}` | Count of visitor reads that found missing places (optional; used to rank the admin list)                                                                                                                                                                                    |
+| Key                            | Content                                                                                                                                                                                                                                                                                                                           |
+| ------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `data/{layer}/{year}/{iso3}`   | `{ layer, year, iso3, updatedAt, complete, points: { "lat,lon": value } }`. `layer` is `climate`, `uv` or `normals` (`year` = last year of the 10-year period). Coordinates are rounded to 3 decimals, as in today's requests. Values have the same shape the browser already stores. `complete`: see _Completeness and caching_. |
+| `claims/{layer}/{year}/{iso3}` | `{ admin, startedAt, leaseUntil, filled, expected }`                                                                                                                                                                                                                                                                              |
+| `demand/{layer}/{year}/{iso3}` | Count of reads answered without the requested year (optional; used to rank the admin list)                                                                                                                                                                                                                                        |
 
 - **Per place, not per chunk:** today's browser cache keys whole chunks of places. Per-place entries let any chunk, country or report reuse them.
 - **Merging:** writes use Blobs' conditional writes. Read the current `etag`, merge the new places, write with `onlyIfMatch`, and retry on conflict, so two uploads never overwrite each other. Claims use `onlyIfNew` or `onlyIfMatch` in the same way.
@@ -149,14 +149,26 @@ This list defines what counts as "missing" and which coordinates an upload may c
 
 ### Endpoints (Netlify Functions)
 
-| Method & path                          | Access | Purpose                                                                                                                                                                                                                                           |
-| -------------------------------------- | ------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `GET /api/meteo/{layer}/{year}/{iso3}` | Public | The shared cache for one country and layer. Closed years are CDN-cached (`Netlify-CDN-Cache-Control: public, s-maxage=86400, stale-while-revalidate=604800`), so most visitors never invoke the function. Records demand when places are missing. |
-| `GET /api/admin/meteo/items?year=`     | Admin  | The work list: country × layer, with expected/filled counts, claim (who, until when) and estimated cost in calls. Sorted by demand, then size.                                                                                                    |
-| `POST /api/admin/meteo/claim`          | Admin  | Claims an item for 15 minutes. Fails if someone else holds a live lease.                                                                                                                                                                          |
-| `PUT /api/admin/meteo/claim`           | Admin  | Renews the lease (sent every ~60 s while loading).                                                                                                                                                                                                |
-| `DELETE /api/admin/meteo/claim`        | Admin  | Releases the claim (stop / done).                                                                                                                                                                                                                 |
-| `POST /api/admin/meteo/upload`         | Admin  | Uploads one chunk `{ layer, year, iso3, points }`. Validated (below), then merged. Only the claim holder may upload.                                                                                                                              |
+| Method & path                          | Access | Purpose                                                                                                                                                                       |
+| -------------------------------------- | ------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `GET /api/meteo/{layer}/{year}/{iso3}` | Public | The shared cache for one country and layer (for `normals`, one city: `?place=<city id>`). Answers, caches and records demand by the rule in _Completeness and caching_ below. |
+| `GET /api/admin/meteo/items?year=`     | Admin  | The work list: country × layer, with expected/filled counts, claim (who, until when) and estimated cost in calls. Sorted by demand, then size.                                |
+| `POST /api/admin/meteo/claim`          | Admin  | Claims an item for 15 minutes. Fails if someone else holds a live lease.                                                                                                      |
+| `PUT /api/admin/meteo/claim`           | Admin  | Renews the lease (sent every ~60 s while loading).                                                                                                                            |
+| `DELETE /api/admin/meteo/claim`        | Admin  | Releases the claim (stop / done).                                                                                                                                             |
+| `POST /api/admin/meteo/upload`         | Admin  | Uploads one chunk `{ layer, year, iso3, points }`. Validated (below), then merged. Only the claim holder may upload.                                                          |
+
+### Completeness and caching
+
+One rule decides what a visitor gets, what is cached and what counts as demand. The unit is a country × layer for map layers, and a city for `normals`, since reports read one city at a time.
+
+- **Complete:** a unit is complete for a year once it holds every expected place. The upload that fills the last one sets `complete`, and it stays set.
+- **Answer:** the client asks for the last full year. The function returns that year if it is complete, else the previous year if that one is complete (labelled in the UI), else "not available". A partly filled year is never served, so visitors don't top one up from Open-Meteo, and a fill in progress costs them nothing once the previous year is complete. On "not available" (a country's first fill), the browser fetches that layer from Open-Meteo, as today.
+- **Cache:** only a complete requested year is cached: `Netlify-CDN-Cache-Control: public, durable, s-maxage=31536000` and `Netlify-Cache-Tag: meteo-{layer}-{year}-{iso3}`. Previous-year answers, "not available" and errors are `no-store`, so they always reach the function and switch over as soon as the year completes. The browser follows the same rule: `localStorage` keeps the requested year for 30 days, as today, and a previous-year answer only for the current visit.
+- **Late places:** a complete year changes only when places are added after it was completed (a new city, a changed grid). That takes a deploy, which already clears Netlify's cache, and the admin upload that adds them purges the tag (`purgeCache({ tags })` from `@netlify/cache`). Until then, visitors fetch just those places themselves.
+- **Demand:** previous-year and "not available" answers always run the function, which counts them against the requested year (best effort: no retry on a write conflict). That is exactly the work left; cached answers are complete, so there is nothing to count. The counter can't see visitors answered by their own `localStorage`, and it counts reads, not people.
+
+Netlify's [caching docs](https://docs.netlify.com/build/caching/caching-overview/) cover caching function responses, `durable`, cache tags and purge (at most twice per tag every 5 s, plenty here), state no plan restriction, and clear cached function responses on every deploy. Confirm purge works on the free plan before relying on it; without it, cap complete years at `s-maxage=86400`, so late places reach visitors within a day.
 
 ### Admin authentication
 
@@ -176,9 +188,9 @@ Validation protects against bugs and stolen tokens:
 
 ### Visitor flow (changes to `src/lib/live.js`)
 
-1. For `climate` and `uv`, `batch()` first calls `GET /api/meteo/{layer}/{year}/{iso3}`, takes every cached place, and sends only the missing ones through the existing queue. Progress counts start at the cached number (e.g. "Climate 95/95" instantly).
-2. If the current year isn't in the cache yet (January), fall back to the previous year, labelled in the UI ("2024 data, 2025 not yet available"), before fetching anything.
-3. City reports ask the shared cache for that city's normals first (`normals` layer, one place) and fetch the 10-year series only if it's missing.
+1. For `climate` and `uv`, `batch()` first calls `GET /api/meteo/{layer}/{year}/{iso3}` for the last full year and uses whatever year it answers with (_Completeness and caching_). Progress counts start at the cached number (e.g. "Climate 95/95" instantly). Only places a complete year lacks, or the whole layer on "not available", go through the existing queue.
+2. A previous-year answer (January, during the fill) is labelled in the UI ("2024 data, 2025 not yet available"), and nothing is fetched for that layer.
+3. City reports ask the shared cache for that city's normals first (`normals` layer, one place), with the same fallback, and fetch the 10-year series only on "not available".
 4. The browser's `localStorage` cache stays as the first layer. The shared cache is the second; Open-Meteo is the last resort.
 5. If the shared cache endpoint fails or times out (~3 s), the browser fetches everything itself, as today.
 
@@ -199,7 +211,7 @@ Validation protects against bugs and stolen tokens:
 ### Annual refresh
 
 - **Timing:** on January 1 the last full year changes, so every item for the new year appears as missing. ERA5 is published with a ~5-day delay; the admin page only offers a new year from **January 10**.
-- **During the fill:** visitors get the previous year (see the fallback above) until each country completes.
+- **During the fill:** each country × layer switches to the new year when it completes; until then visitors get the previous year and spend no quota on it (_Completeness and caching_).
 - **Old years:** kept; they're small, and the year selector can show them.
 
 ## Phases
@@ -207,7 +219,7 @@ Validation protects against bugs and stolen tokens:
 1. **Read path + prefill script.** Read endpoint, the expected place list, and visitor read-before-fetch with the previous-year fallback. Plus `npm run meteo:prefill -- ARG` with one admin token. This alone covers map layers for all countries in ~2 admin-days. _(~1 day)_
 2. **Admin page with claims.** Work list, leases, live progress and usage meter. _(~1 day)_
 3. **Report normals.** `normals` layer, the per-city read in reports, filled from the admin page. _(~0.5 day)_
-4. **Demand ranking (optional).** Count visitor misses; sort the work list by them. _(~0.25 day)_
+4. **Demand ranking (optional).** Count reads answered without the requested year; sort the work list by them. _(~0.25 day)_
 
 ## Testing
 
@@ -217,10 +229,11 @@ Validation protects against bugs and stolen tokens:
   - claim races, using conditional writes against an in-memory Blobs mock that supports etags
   - lease expiry and renewal
   - merge conflicts
+  - answers and cache headers: a partly filled year never served, only a complete requested year cacheable, fallbacks `no-store` and counted
 - **Client tests** (the pattern of `src/lib/test/live.mjs`):
   - cached places skipped
-  - only missing places requested
-  - previous-year fallback
+  - only places a complete year lacks requested
+  - previous-year fallback: nothing fetched, not kept in `localStorage`
   - shared cache down → full fetch
 - **Manual** with `netlify dev`: two browsers with two admin tokens claiming different items, then the same one.
 
