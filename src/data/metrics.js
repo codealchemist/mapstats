@@ -7,6 +7,7 @@
 import ANCHORS from './anchors.json' with { type: 'json' }
 
 // better: 'high' | 'low' | null (null = descriptive only, not scored)
+// classes: whole-number classes (a zone); a mean of them (a region's) is shown with one decimal, not as a class.
 // The provider behind each indicator is declared by the provider (`provides`), see src/core/providers.js.
 
 export const CATEGORIES = [
@@ -26,7 +27,7 @@ export const INDICATORS = [
   { id: 'propertyCrime', label: 'Robberies + thefts (3-yr avg)', unit: '/100k', category: 'safety', better: 'low', domain: [350, 3300], digits: 0 },
   { id: 'roadDeaths', label: 'Road deaths (3-yr avg)', unit: '/100k', category: 'safety', better: 'low', domain: [0, 30], digits: 1 },
   // Natural risks
-  { id: 'seismicZone', label: 'Seismic zone', unit: '/4', category: 'hazards', better: null, digits: 0 },
+  { id: 'seismicZone', label: 'Seismic zone', unit: '/4', category: 'hazards', better: null, digits: 0, classes: true },
   // MapStats 1–5 classes built on administrative risk records (France: GASPAR): context only, GEM scores hazards.
   { id: 'floodExposure', label: 'Flood exposure (disaster records)', unit: '/5', category: 'hazards', better: null, digits: 1, ramp: 'red' },
   { id: 'fireExposure', label: 'Forest-fire exposure (risk records)', unit: '/5', category: 'hazards', better: null, digits: 1, ramp: 'red' },

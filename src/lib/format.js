@@ -11,7 +11,8 @@ export function fmtIndicator(id, v, { unit = true } = {}) {
   if (v == null || Number.isNaN(v)) return '—'
   const ind = indicatorById[id]
   if (id === 'pop') return compact.format(v)
-  const s = fmtNum(v, ind?.digits ?? 1)
+  // A mean of classes (a département's population-weighted zone) keeps a decimal: 0.7 is not zone 1.
+  const s = fmtNum(v, ind?.classes && !Number.isInteger(+v.toFixed(6)) ? 1 : ind?.digits ?? 1)
   return unit && ind?.unit ? `${s}${ind.unit.startsWith('/') || ind.unit === '%' || ind.unit === '°C' ? '' : ' '}${ind.unit}` : s
 }
 
