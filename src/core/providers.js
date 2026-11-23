@@ -127,5 +127,9 @@ export const sourcesForIndicators = (ids, country, standards) => uniq(ids.map((i
 /** The country's providers that present data in a report category (`report.category`), its own first. */
 export const reportProviders = (country, category) => localFirst(providersFor(country)).filter((p) => p.report?.category === category)
 
+/** Scored indicators that no source publishes for a country (under a standards selection): its scores and data
+ *  coverage leave them out, and reports list them so the gap stays visible. */
+export const unpublishedFor = (country, standards) => INDICATORS.filter((i) => i.better && familyOf(i.id, country, standards) == null)
+
 /** Provider ids behind a category's indicators in a country. */
 export const sourcesForCategory = (categoryId, country, standards) => sourcesForIndicators(INDICATORS.filter((i) => i.category === categoryId).map((i) => i.id), country, standards)

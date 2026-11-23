@@ -114,7 +114,7 @@ export function CompareView({ slots, model, country, theme, sourceMode, standard
           <button className="icon-btn sm push" onClick={() => onRemove(k)} title="Remove"><X size={14} /></button>
         </div>
         <button className="cmp-name link" onClick={() => onOpen(k)} title="Open full report">{e.name}</button>
-        <div className="muted small">{e.type === 'city' ? e.provinceName : country.name} · {Math.round((e.coverage || 0) * 100)}% data</div>
+        <div className="muted small" title="Data coverage: share of the scored indicators published for this country (or by the selected source) that have data for this place">{e.type === 'city' ? e.provinceName : country.name} · {Math.round((e.coverage || 0) * 100)}% data</div>
       </div>
     )
   }

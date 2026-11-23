@@ -1,7 +1,7 @@
 import { CATEGORIES, INDICATORS } from '../data/metrics.js'
 import { fmtIndicator, fmtScore, MONTHS, slug } from './format.js'
 import { isOwnValue } from './scoring.js'
-import { providerUnder } from '../core/providers.js'
+import { providerUnder, unpublishedFor } from '../core/providers.js'
 
 // ---------- Images & clipboard ----------
 
@@ -57,10 +57,12 @@ export function reportCsv(entity, detail, sourceGroups = [], standards, country)
   // `scope` says whether a value was measured for this place or is its province's figure (used only for scoring).
   const rows = [['section', 'metric', 'value', 'unit', 'source', 'scope']]
   const own = entity.type === 'city' ? 'city' : 'region'
+  const unpublished = new Set(unpublishedFor(country, standards).map((i) => i.id))
   rows.push(['score', 'MapStats score', round(entity.score, 1), '/100', 'MapStats', own])
   CATEGORIES.forEach((c) => rows.push(['score', c.label, round(entity.categories[c.id], 1), '/100', 'MapStats', own]))
   INDICATORS.forEach((i) => {
-    const scope = isOwnValue(entity, i.id) ? own : entity.inherited?.has(i.id) ? `${entity.provinceName} (province, no city data)` : 'no data'
+    const scope = isOwnValue(entity, i.id) ? own : entity.inherited?.has(i.id) ? `${entity.provinceName} (province, no city data)`
+      : unpublished.has(i.id) ? `not published for ${country.name} (not scored)` : 'no data'
     rows.push(['indicator', i.label, round(entity.values[i.id], 3), i.unit, providerUnder(i.id, country, standards)?.short, scope])
   })
   if (detail?.climate) {
@@ -140,13 +142,16 @@ export async function reportPdf({ entity, national, charts, country, sourceGroup
     ]),
   })
 
-  const missing = entity.type === 'city' ? INDICATORS.filter((i) => i.better && !isOwnValue(entity, i.id)) : []
-  if (missing.length) {
-    const text = doc.splitTextToSize(
-      `No city-level stats for ${entity.name}: ${missing.map((i) => i.label).join(', ')}. ` +
+  // A city's published indicators without a city-level figure, then the scored indicators no source publishes for the country.
+  const unpublished = unpublishedFor(country, standards)
+  const missing = entity.type === 'city' ? INDICATORS.filter((i) => i.better && !isOwnValue(entity, i.id) && !unpublished.includes(i)) : []
+  const notes = [
+    missing.length && `No city-level stats for ${entity.name}: ${missing.map((i) => i.label).join(', ')}. ` +
       `The score uses province-level figures${entity.provinceName ? ` (${entity.provinceName})` : ''} where available.`,
-      W - 80,
-    )
+    unpublished.length && `Not published for ${countryName}: ${unpublished.map((i) => i.label).join(', ')}. Scores and data coverage leave them out.`,
+  ].filter(Boolean)
+  for (const note of notes) {
+    const text = doc.splitTextToSize(note, W - 80)
     doc.setFont('helvetica', 'normal').setFontSize(9).setTextColor(...MUTED).text(text, 40, doc.lastAutoTable.finalY + 16)
     doc.lastAutoTable.finalY += 16 + text.length * 11
   }

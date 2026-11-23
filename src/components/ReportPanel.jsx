@@ -17,7 +17,7 @@ import { slug } from '../lib/format.js'
 import { scoreTone } from '../lib/colors.js'
 import { useToast } from './Toast.jsx'
 import { valuesBySource, fmtExact } from '../lib/provenance.js'
-import { familyById, SOURCE_FAMILIES, isMultiSource, sourcesForIndicators, providersFor, reportProviders } from '../core/providers.js'
+import { familyById, SOURCE_FAMILIES, isMultiSource, sourcesForIndicators, providersFor, providerUnder, reportProviders, unpublishedFor } from '../core/providers.js'
 import { hasBlock, TrendBlock } from './report/ProviderBlocks.jsx'
 import { warningsFor } from '../lib/warnings.js'
 import { agreementOf } from '../lib/sourceWeights.js'
@@ -155,6 +155,8 @@ export function ReportPanel({ entity, model, country, live, theme, onClose, onSe
   const safetyProviders = reportProviders(country, 'safety')
   const ownSafety = SAFETY_KEYS.filter((k) => isOwnValue(entity, k))
   const links = providersFor(country).flatMap((p) => p.links?.(entity) || [])
+  // Scored indicators no source publishes for the country: left out of the score and the coverage, listed here.
+  const unpublished = unpublishedFor(country, standards)
 
   const sourceGroups = useMemo(() => valuesBySource({ entity, model, country, detail, quakes, live }), [entity, model, country, detail, quakes, live])
 
@@ -237,6 +239,11 @@ export function ReportPanel({ entity, model, country, live, theme, onClose, onSe
               </div>
               <Coverage value={entity.coverage} />
             </div>
+            {unpublished.length > 0 && (
+              <p className="note">
+                <Info size={13} /> Not published for {country.name}: {unpublished.map((i) => i.label).join(', ')}. Scores and data coverage leave them out.
+              </p>
+            )}
             {isCity && entity.inherited?.size > 0 && (
               <p className="note">
                 <Info size={13} /> Scores use province-level figures{entity.provinceName ? ` (${entity.provinceName})` : ''} where {entity.name} has no city-level data.
@@ -445,7 +452,7 @@ function Coverage({ value = 0 }) {
   const pct = Math.round(value * 100)
   const r = 22, c = 2 * Math.PI * r
   return (
-    <div className="coverage" title="Share of scored indicators with data">
+    <div className="coverage" title="Share of the scored indicators published for this country (or by the selected source) that have data for this place">
       <svg width="58" height="58" viewBox="0 0 58 58" aria-hidden="true">
         <circle cx="29" cy="29" r={r} className="cov-track" />
         <circle cx="29" cy="29" r={r} className="cov-fill" strokeDasharray={`${(c * pct) / 100} ${c}`} transform="rotate(-90 29 29)" />
@@ -499,7 +506,9 @@ const HAZARD_KEYS = ['seismicZone']
 const SAFETY_KEYS = ['homicide', 'propertyCrime', 'roadDeaths']
 
 // Notice for indicators with no city-level data, with links to where they could be found.
-function MissingStats({ entity, ids, standards, country }) {
+function MissingStats({ entity, ids: all, standards, country }) {
+  // Indicators no source publishes for the country are not a city-level gap: the overview lists them.
+  const ids = all.filter((id) => providerUnder(id, country, standards))
   if (entity.type !== 'city' || !ids.length) return null
   const fallback = ids.filter((id) => entity.inherited?.has(id))
   return (

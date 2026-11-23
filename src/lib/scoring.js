@@ -6,7 +6,9 @@
 // 2. A category score is the mean of its available indicator scores.
 // 3. The MapStats score is the weight-averaged category score, renormalising
 //    weights over the categories that have data, so missing data neither
-//    rewards nor punishes a place. `coverage` reports how much data was used.
+//    rewards nor punishes a place. `coverage` is the share of the scored indicators the country's sources publish
+//    (one source's, in a single-source view) that have data for the place: indicators no source publishes for
+//    the country (providers.js unpublishedFor) count in neither.
 
 import { CATEGORIES, INDICATORS, indicatorById, scoreRange } from '../data/metrics.js'
 import { DEFAULT_STANDARDS, STANDARDS, standardFor, standardScore } from '../data/standards.js'
@@ -91,7 +93,7 @@ export function scoreValues(values, weights, mode = 'combined', inherited = null
     const own = {}, borrowed = {}
     for (const i of SCORED.filter((x) => x.category === c.id)) {
       const f = familyOf(i.id, ctx.country, ctx.standards)
-      if (!multi && f !== mode) continue
+      if (f == null || (!multi && f !== mode)) continue
       possible++
       const v = values[i.id]
       if (v == null) continue
