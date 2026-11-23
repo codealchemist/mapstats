@@ -31,6 +31,6 @@ The queries in [`parse.mjs`](parse.mjs) `FILES` pin the years (`POP_YEARS`, `LIF
 
 ## Quirks
 
-- Melodi pages its answers (`paging.next`); the prefill follows the pages and stores one file per query.
+- Melodi pages its answers (`paging.next`); the prefill follows the pages through the raw store (`fetchPagesOnce`, with its download rules) and stores one file per query.
 - Mayotte has no unemployment series, no Filosofi and no census commuting figure: those stay `null`.
 - Life expectancy for the last three years is provisional (`OBS_STATUS_FR = PROV`); the dataset's period says so.

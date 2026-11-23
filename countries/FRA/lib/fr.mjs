@@ -119,33 +119,3 @@ export async function communePopulations() {
   const file = await rawStore('FRA', 'insee').fetchOnce(POPULATIONS.url, { name: POPULATIONS.name, byHand: true })
   return { ...parseReferencePopulations(zipEntry(file.path, /_data\.csv$/).text()), ref: file.ref }
 }
-
-const UA = process.env.MAPSTATS_USER_AGENT || 'MapStats data import (+https://github.com/codealchemist/mapstats)'
-const sleep = (ms) => new Promise((r) => setTimeout(r, ms))
-
-/**
- * Downloads a paged JSON API answer once (INSEE Melodi pages with `paging.next`; the Géorisques API takes 20 communes
- * per call) into the store under `name`, registered with its URL: { path, text, ref } like fetchOnce. `pages`
- * lists the URLs to fetch, or a function from the previous answer to the next URL.
- */
-export async function fetchJsonOnce(raw, url, name, { next = (d) => d.paging?.next || null, items = 'observations', refresh = false } = {}) {
-  const stored = fs.existsSync(path.join(raw.dir, name))
-  if (stored && !raw.manifest.files[name]) raw.add(name, { url: Array.isArray(url) ? url[0] : url })
-  if (!refresh && stored && raw.manifest.files[name]) return raw.read(name)
-  const urls = Array.isArray(url) ? [...url] : [url]
-  const all = []
-  let first = null
-  for (let u = urls.shift(); u; u = urls.shift()) {
-    const res = await fetch(u, { headers: { Accept: 'application/json', 'User-Agent': UA } })
-    if (!res.ok) throw new Error(`${res.status} ${u}`)
-    const d = await res.json()
-    first ||= d
-    all.push(...(d[items] || []))
-    const n = Array.isArray(url) ? null : next(d)
-    if (n) urls.push(n)
-    if (urls.length) await sleep(1000)
-  }
-  fs.mkdirSync(raw.dir, { recursive: true })
-  fs.writeFileSync(path.join(raw.dir, name), JSON.stringify({ ...first, [items]: all, paging: undefined, fetchedAt: new Date().toISOString().slice(0, 10) }))
-  return raw.add(name, { url: Array.isArray(url) ? url[0] : url })
-}

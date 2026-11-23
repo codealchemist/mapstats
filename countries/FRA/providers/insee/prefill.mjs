@@ -16,9 +16,9 @@
 //  - Population at 1 January 2023 is the reference used as `pop` (definitive, aligned with the 2023 census
 //    populations the communes use); later provisional years are stored for other prefills' denominators.
 import { rawStore } from '#sdk'
-import { fetchJsonOnce, POPULATIONS, regionNames, withCityJurisdictions, DEP_TO_MAP, DEPS } from '../../lib/fr.mjs'
+import { POPULATIONS, regionNames, withCityJurisdictions, DEP_TO_MAP, DEPS } from '../../lib/fr.mjs'
 import { COMMUNE_NAMES } from '../../places.js'
-import { FILES, populationByYear, communePopulations, filosofi, lifeExpectancy, commuting, unemployment } from './parse.mjs'
+import { FILES, melodiOnce, populationByYear, communePopulations, filosofi, lifeExpectancy, commuting, unemployment } from './parse.mjs'
 
 const POP_REFERENCE_YEAR = 2023
 
@@ -31,7 +31,7 @@ const PROVIDERS = {
 export async function prefill({ log }) {
   const raw = rawStore('FRA', 'insee')
   const files = {}
-  for (const [key, f] of Object.entries(FILES)) files[key] = key === 'unemployment' ? await raw.fetchOnce(f.url, { name: f.name, byHand: true }) : await fetchJsonOnce(raw, f.url, f.name)
+  for (const [key, f] of Object.entries(FILES)) files[key] = key === 'unemployment' ? await raw.fetchOnce(f.url, { name: f.name, byHand: true }) : await melodiOnce(raw, f)
   files.populations = await raw.fetchOnce(POPULATIONS.url, { name: POPULATIONS.name, byHand: true, note: 'reference populations of every commune: weights of the Géorisques prefill' })
   const json = (k) => JSON.parse(files[k].text)
 

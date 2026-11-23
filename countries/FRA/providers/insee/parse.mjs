@@ -2,7 +2,7 @@
 //   Melodi observations: { dimensions: { GEO: '2026-DEP-26', TIME_PERIOD, … }, measures: { OBS_VALUE_NIVEAU: { value } }, attributes }
 //   BDM (SDMX-ML): Series elements with attributes (REF_AREA "D75", IDBANK, TITLE_FR) and Obs children
 import { rawStore, parseXml, stats } from '#sdk'
-import { DEP_TO_MAP, DEPS, fetchJsonOnce, round } from '../../lib/fr.mjs'
+import { DEP_TO_MAP, DEPS, round } from '../../lib/fr.mjs'
 import { CITIES } from '../../places.js'
 
 export const MELODI = 'https://api.insee.fr/melodi/data'
@@ -22,8 +22,11 @@ export const FILES = {
   unemployment: { name: 'unemployment.xml', url: `${BDM}/TCRED-TRAVAIL-EMPLOI-TCHOMA-SA?startPeriod=2015` },
 }
 
+/** One Melodi query ({ url, name } of FILES), downloaded once into `raw` with its pages joined. */
+export const melodiOnce = (raw, { url, name }) => raw.fetchPagesOnce(url, { name, items: 'observations', next: (page) => page.paging?.next || null, byHand: true })
+
 /** The stored population estimates (downloaded if missing): other prefills read them for denominators. */
-export const populationFile = () => fetchJsonOnce(rawStore('FRA', 'insee'), FILES.population.url, FILES.population.name)
+export const populationFile = () => melodiOnce(rawStore('FRA', 'insee'), FILES.population)
 
 const geoDep = (geo) => DEP_TO_MAP[geo.replace(/^\d{4}-DEP-/, '')]
 const geoCom = (geo) => geo.replace(/^\d{4}-COM-/, '')
